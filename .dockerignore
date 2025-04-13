@@ -1,0 +1,7 @@
+frontend/
+resource/
+readme.md
+.git
+.gitignore
+.dockerignore
+docker-compose.yml

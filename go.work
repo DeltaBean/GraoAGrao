@@ -1,1 +1,6 @@
 go 1.24.1
+
+use (
+	./cmd/GraoEstoque
+	./pkg
+)
