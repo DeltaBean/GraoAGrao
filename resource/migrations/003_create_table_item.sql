@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS tb_item (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 
-    CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES tb_user(id)
+    CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES tb_user(user_id)
 );
 
 CREATE TRIGGER set_updated_at
