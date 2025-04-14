@@ -2,6 +2,7 @@ package routes
 
 import (
 	handler "github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/handler"
+	"github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,11 +20,22 @@ func InitRoutes(router *gin.Engine) {
 
 	// Items endpoints
 	itemGroup := router.Group("/items")
+	itemGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
 	{
 		itemGroup.GET("", handler.GetItems)
 		itemGroup.GET("/:id", handler.GetItemByID)
 		itemGroup.POST("", handler.CreateItem)
 		itemGroup.PUT("", handler.UpdateItem)
 		itemGroup.DELETE("/:id", handler.DeleteItem)
+	}
+
+	// StockIn endpoints
+	stockInGroup := router.Group("/stock_in")
+	stockInGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
+	{
+		stockInGroup.GET("", handler.ListAllStockIn)
+		stockInGroup.GET("/:id", handler.GetStockInByID)
+		stockInGroup.POST("", handler.CreateStockIn)
+		stockInGroup.DELETE("/:id", handler.DeleteStockIn)
 	}
 }
