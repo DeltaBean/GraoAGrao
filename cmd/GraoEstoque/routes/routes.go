@@ -38,4 +38,14 @@ func InitRoutes(router *gin.Engine) {
 		stockInGroup.POST("", handler.CreateStockIn)
 		stockInGroup.DELETE("/:id", handler.DeleteStockIn)
 	}
+
+	// StockOut endpoints
+	stockOutGroup := router.Group("/stock_out")
+	stockOutGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
+	{
+		stockOutGroup.GET("", handler.ListAllStockOut)
+		stockOutGroup.GET("/:id", handler.GetStockOutByID)
+		stockOutGroup.POST("", handler.CreateStockOut)
+		stockOutGroup.DELETE("/:id", handler.DeleteStockOut)
+	}
 }
