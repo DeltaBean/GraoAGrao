@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./resource/migrations:/docker-entrypoint-initdb.d # Migrations DIR
+      - ./resource/scripts:/custom-scripts
+    networks:
+      - grao-network
+
+  graoestoque:
+    build:
+      context: .
+      dockerfile: ./cmd/GraoEstoque/Dockerfile
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: ${POSTGRES_HOST}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASS: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    networks:
+      - grao-network
+    volumes:
+      - grao_log:/app/logs
+
+networks:
+  grao-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  grao_log:

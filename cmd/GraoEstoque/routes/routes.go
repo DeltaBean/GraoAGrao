@@ -2,7 +2,6 @@ package routes
 
 import (
 	handler "github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/handler"
-	middleware "github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,15 +17,13 @@ func InitRoutes(router *gin.Engine) {
 		authRoutes.GET("/google/callback", handler.GoogleAuthCallBackHandler)
 	}
 
-	// Image resize endpoints
-	imageRoutes := router.Group("/resize-images")
-	imageRoutes.Use(middleware.AuthMiddleware())
+	// Items endpoints
+	itemGroup := router.Group("/items")
 	{
-		imageRoutes.POST("", handler.PostResizeImagesHandler)
-		imageRoutes.GET("", handler.GetResizeJobHandler)
-
-		imageRoutes.GET("/:jobId", handler.GetResizeJobByIDHandler)
-
-		imageRoutes.GET("/status/:jobId", handler.GetResizeJobStatusHandler)
+		itemGroup.GET("", handler.GetItems)
+		itemGroup.GET("/:id", handler.GetItemByID)
+		itemGroup.POST("", handler.CreateItem)
+		itemGroup.PUT("", handler.UpdateItem)
+		itemGroup.DELETE("/:id", handler.DeleteItem)
 	}
 }
