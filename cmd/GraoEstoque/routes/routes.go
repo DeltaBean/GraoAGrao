@@ -39,23 +39,30 @@ func InitRoutes(router *gin.Engine) {
 		}
 	}
 
-	// StockIn endpoints
-	stockInGroup := router.Group("/stock_in")
-	stockInGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
+	stockGroup := router.Group("/stock")
+	stockGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
 	{
-		stockInGroup.GET("", handler.ListAllStockIn)
-		stockInGroup.GET("/:id", handler.GetStockInByID)
-		stockInGroup.POST("", handler.CreateStockIn)
-		stockInGroup.DELETE("/:id", handler.DeleteStockIn)
-	}
 
-	// StockOut endpoints
-	stockOutGroup := router.Group("/stock_out")
-	stockOutGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
-	{
-		stockOutGroup.GET("", handler.ListAllStockOut)
-		stockOutGroup.GET("/:id", handler.GetStockOutByID)
-		stockOutGroup.POST("", handler.CreateStockOut)
-		stockOutGroup.DELETE("/:id", handler.DeleteStockOut)
+		// Get stock materialized snapshot
+		stockGroup.GET("", handler.GetStock)
+		stockGroup.GET("/:categoryId", handler.GetStockByCategory)
+
+		// StockIn endpoints
+		stockInGroup := stockGroup.Group("/in")
+		{
+			stockInGroup.GET("", handler.ListAllStockIn)
+			stockInGroup.GET("/:id", handler.GetStockInByID)
+			stockInGroup.POST("", handler.CreateStockIn)
+			stockInGroup.DELETE("/:id", handler.DeleteStockIn)
+		}
+
+		// StockOut endpoints
+		stockOutGroup := stockGroup.Group("/out")
+		{
+			stockOutGroup.GET("", handler.ListAllStockOut)
+			stockOutGroup.GET("/:id", handler.GetStockOutByID)
+			stockOutGroup.POST("", handler.CreateStockOut)
+			stockOutGroup.DELETE("/:id", handler.DeleteStockOut)
+		}
 	}
 }
