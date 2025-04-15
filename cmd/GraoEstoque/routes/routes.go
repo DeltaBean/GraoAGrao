@@ -27,6 +27,16 @@ func InitRoutes(router *gin.Engine) {
 		itemGroup.POST("", handler.CreateItem)
 		itemGroup.PUT("", handler.UpdateItem)
 		itemGroup.DELETE("/:id", handler.DeleteItem)
+
+		// Category endpoints
+		categoryGroup := itemGroup.Group("/categories")
+		{
+			categoryGroup.GET("", handler.GetCategories)
+			categoryGroup.GET("/:id", handler.GetCategoryByID)
+			categoryGroup.POST("", handler.CreateCategory)
+			categoryGroup.PUT("", handler.UpdateCategory)
+			categoryGroup.DELETE("/:id", handler.DeleteCategory)
+		}
 	}
 
 	// StockIn endpoints

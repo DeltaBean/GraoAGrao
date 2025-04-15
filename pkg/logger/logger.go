@@ -1,8 +1,12 @@
 package logger
 
 import (
+	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+
+	"fmt"
 	"io"
 	"os"
+	"runtime"
 
 	"github.com/sirupsen/logrus"
 )
@@ -12,6 +16,9 @@ var Log *logrus.Logger
 
 func init() {
 	Log = logrus.New()
+
+	// Enable caller reporting
+	Log.SetReportCaller(true)
 
 	// Ensure the logs directory exists if you still want file logging.
 	if err := os.MkdirAll("logs", 0755); err != nil {
@@ -26,6 +33,15 @@ func init() {
 
 	// Set output to both stdout and the file.
 	Log.SetOutput(io.MultiWriter(os.Stdout, logFile))
-	Log.SetFormatter(&logrus.JSONFormatter{})
-	Log.SetLevel(logrus.DebugLevel)
+
+	// Set log format to JSON with caller information.
+	Log.SetFormatter(&logrus.JSONFormatter{
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			return "", fmt.Sprintf("%s:%d", f.File, f.Line)
+		},
+	})
+
+	if os.Getenv("STAGE") == "DEV" {
+		Log.SetLevel(logrus.DebugLevel)
+	}
 }

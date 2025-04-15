@@ -23,14 +23,14 @@ func SaveItem(item *model.Item, ownerID int) error {
 	defer conn.Release()
 
 	query := `
-		INSERT INTO tb_item (item_description, ean13, category, owner_id)
+		INSERT INTO tb_item (item_description, ean13, category_id, owner_id)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at, updated_at`
 
 	err = conn.QueryRow(context.Background(), query,
 		item.Description,
 		item.EAN13,
-		item.Category,
+		item.Category.ID,
 		ownerID,
 	).Scan(&item.ID, &item.CreatedAt, &item.UpdatedAt)
 
@@ -55,10 +55,12 @@ func GetItemByID(id int) (*model.Item, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT i.item_id, i.item_description, i.ean13, i.category,
-		       u.user_id, i.created_at, i.updated_at
+		SELECT i.item_id, i.item_description, i.ean13, 
+			c.category_description, c.category_id,
+		    u.user_id, i.created_at, i.updated_at
 		FROM tb_item i
 		JOIN tb_user u ON i.owner_id = u.user_id
+		JOIN tb_category c ON i.category_id = c.category_id
 		WHERE i.item_id = $1`
 
 	item := &model.Item{}
@@ -68,7 +70,8 @@ func GetItemByID(id int) (*model.Item, error) {
 		&item.ID,
 		&item.Description,
 		&item.EAN13,
-		&item.Category,
+		&item.Category.Description,
+		&item.Category.ID,
 		&owner.ID,
 		&item.CreatedAt,
 		&item.UpdatedAt,
@@ -103,13 +106,13 @@ func UpdateItem(item *model.Item) error {
 		UPDATE tb_item
 		SET item_description = $1,
 		    ean13 = $2,
-		    category = $3
+		    category_id = $3
 		WHERE id = $4`
 
 	cmdTag, err := conn.Exec(context.Background(), query,
 		item.Description,
 		item.EAN13,
-		item.Category,
+		item.Category.ID,
 		item.ID,
 	)
 	if err != nil {
@@ -161,8 +164,12 @@ func ListItems(ownerID int) ([]model.Item, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT i.item_id, i.item_description, i.ean13, i.category, i.created_at, i.updated_at
+		SELECT i.item_id, i.item_description, i.ean13, 
+		c.category_description, c.category_id, u.user_id,
+		i.created_at, i.updated_at
 		FROM tb_item i
+		JOIN tb_user u ON i.owner_id = u.user_id
+		JOIN tb_category c ON i.category_id = c.category_id
 		WHERE i.owner_id = $1`
 
 	rows, err := conn.Query(context.Background(), query, ownerID)
@@ -182,7 +189,8 @@ func ListItems(ownerID int) ([]model.Item, error) {
 			&item.ID,
 			&item.Description,
 			&item.EAN13,
-			&item.Category,
+			&item.Category.Description,
+			&item.Category.ID,
 			&owner.ID,
 			&item.CreatedAt,
 			&item.UpdatedAt,
