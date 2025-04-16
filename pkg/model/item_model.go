@@ -3,8 +3,8 @@ package model
 import "time"
 
 type Item struct {
-	ID          uint     `json:"id"`
-	Description string   `json:"description" binding:"required"`
+	ID          uint     `json:"item_id"`
+	Description string   `json:"item_description" binding:"required"`
 	EAN13       string   `json:"ean13" binding:"required,len=13"`
 	Category    Category `json:"category" binding:"required"`
 

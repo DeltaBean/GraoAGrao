@@ -49,7 +49,7 @@ export async function createItem(item: CreateItemInput): Promise<Item> {
   }
 }
 
-export async function updateItem(item: Partial<Item>): Promise<Item> {
+export async function updateItem(item: Item): Promise<Item> {
   try {
     const token = getAuthToken();
 
@@ -77,7 +77,7 @@ export async function updateItem(item: Partial<Item>): Promise<Item> {
 export async function deleteItem(id: number): Promise<boolean> {
   try {
     const token = getAuthToken();
-    const res = await fetch(`/items/${id}`, {
+    const res = await fetch(`${getAPIUrl()}/items/${id}`, {
       method: 'DELETE',
       headers: {
         "Authorization": `Bearer ${token}`,

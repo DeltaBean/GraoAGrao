@@ -1,12 +1,14 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Flex, Text, Table, Skeleton, Card, Box, Heading, Button, TextField, Select } from "@radix-ui/themes";
+import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton } from "@radix-ui/themes";
 import Header from "@/components/Header";
-import { TagIcon, QrCodeIcon } from "@heroicons/react/16/solid";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import { Category, Item } from "@/model/items_model";
 import * as api from "@/api/items_api";
+import ModalCreateEditItem from "@/components/ModalCreateEditItem";
+
 export default function ItemPage() {
 
   // Items list and loading state.
@@ -18,6 +20,7 @@ export default function ItemPage() {
 
   // State for new item form.
   const [newItem, setNewItem] = useState({
+    item_id: 0,
     item_description: '',
     ean13: '',
     category: {
@@ -27,16 +30,36 @@ export default function ItemPage() {
   });
 
   // State for the item being edited.
-  const [editItem, setEditItem] = useState<Item | null>(null);
+  const [editItem, setEditItem] = useState({
+    item_id: 0,
+    item_description: '',
+    ean13: '',
+    category: {
+      id: 0,
+      description: "",
+    },
+  });
 
   // State for editing modal
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalEdit, setIsModalEdit] = useState(false);
   const [isModalCreate, setIsModalCreate] = useState(true);
 
   // Handlers for open/close modal.
-  const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
+  const handleOpenModal = (type: "edit" | "create") => {
+
+    if (type === "edit") {
+      setIsModalEdit(true);
+      setIsModalCreate(false);
+    }
+    else if (type === "create") {
+      setIsModalEdit(false);
+      setIsModalCreate(true);
+    }
+
+    setIsModalOpen(true)
+  };
 
   // Fetch items when the component mounts.
   useEffect(() => {
@@ -73,8 +96,8 @@ export default function ItemPage() {
     setLoading(true);
 
     try {
-      const data = await api.fetchItems()
-      setItems(data);
+      const data = await api.fetchItems();
+      setItems(data ?? []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -88,11 +111,34 @@ export default function ItemPage() {
     try {
       const created: Item = await api.createItem(newItem);
       setItems((prev) => [...prev, created]);
-      setNewItem({ item_description: '', ean13: '', category: { id: 0, description: "" } });
+      setNewItem({ item_id: 0, item_description: '', ean13: '', category: { id: 0, description: "" } });
+      setIsModalOpen(false);
     } catch (err: any) {
       setError(err.message);
     }
   };
+
+  const handleEdit = async () => {
+    try {
+      const updated: Item = await api.updateItem(editItem);
+      setItems((prev) => prev.map(item => item.item_id === updated.item_id ? updated : item));
+      setEditItem({ item_id: 0, item_description: '', ean13: '', category: { id: 0, description: "" } });
+      setIsModalOpen(false);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+
+    try {
+      await api.deleteItem(id);
+      setItems((prev) => prev.filter(item => item.item_id !== id));
+    } catch (err: any) {
+      setError(err.message);
+    }
+
+  }
 
   return (
     <Flex direction={"column"} justify={"center"} align={"center"} className="min-h-screen">
@@ -113,13 +159,13 @@ export default function ItemPage() {
 
           <Heading size={{ sm: "8" }} weight={"bold"}>Stock Item</Heading>
 
-          <Button>Create</Button>
+          <Button size="3" onClick={() => handleOpenModal("create")}>Create</Button>
         </Flex>
         <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
           <Table.Root>
 
             <Table.Header>
-              <Table.Row>
+              <Table.Row align={"center"}>
                 <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>Category</Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>EAN-13</Table.ColumnHeaderCell>
@@ -128,104 +174,91 @@ export default function ItemPage() {
             </Table.Header>
 
             <Table.Body>
-              <Table.Row>
-                <Table.RowHeaderCell>Danilo Sousa</Table.RowHeaderCell>
-                <Table.Cell>danilo@example.com</Table.Cell>
-                <Table.Cell>Developer</Table.Cell>
-                <Table.Cell><Button>Edit</Button></Table.Cell>
-              </Table.Row>
 
+              {loading ? (null) : (
+                items.map((item) => (
+                  <Table.Row key={item.item_id} align={"center"}>
+                    <Table.RowHeaderCell>{item.item_description}</Table.RowHeaderCell>
+                    <Table.Cell>{item.category.description}</Table.Cell>
+                    <Table.Cell>{item.ean13}</Table.Cell>
+                    <Table.Cell>
+                      <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
+                        <IconButton
+                          size={"1"}
+                          about="Edit"
+                          variant="soft"
+                          onClick={
+                            (ev) => {
+                              ev.stopPropagation();
+                              setEditItem(item);
+                              handleOpenModal("edit");
+                            }
+                          }>
+                          <PencilSquareIcon height="16" width="16" />
+                        </IconButton>
+
+                        <AlertDialog.Root>
+                          <AlertDialog.Trigger>
+
+                            <IconButton
+                              size={"1"}
+                              about="Delete"
+                              variant="soft"
+                              color="red">
+                              <TrashIcon height="16" width="16" />
+                            </IconButton>
+
+                          </AlertDialog.Trigger>
+                          <AlertDialog.Content maxWidth="450px">
+                            <AlertDialog.Title>Delete {item.item_description}</AlertDialog.Title>
+                            <AlertDialog.Description size="2">
+                              Are you sure? This item will no longer exist.
+                            </AlertDialog.Description>
+
+                            <Flex gap="3" mt="4" justify="end">
+                              <AlertDialog.Cancel>
+                                <Button variant="soft" color="gray">
+                                  Cancel
+                                </Button>
+                              </AlertDialog.Cancel>
+                              <AlertDialog.Action>
+                                <Button
+                                  variant="solid"
+                                  color="red"
+                                  onClick={
+                                    (ev) => {
+                                      ev.stopPropagation();
+                                      handleDelete(item.item_id);
+                                    }
+                                  }>
+                                  Delete
+                                </Button>
+                              </AlertDialog.Action>
+                            </Flex>
+                          </AlertDialog.Content>
+                        </AlertDialog.Root>
+
+                      </Flex>
+                    </Table.Cell>
+                  </Table.Row>
+                ))
+              )}
 
             </Table.Body>
           </Table.Root>
         </Skeleton>
       </Card>
-
-      {/* Modal Overlay for Create/Edit Form */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-[var(--color-overlay)]">
-          <Flex
-            id="create-form"
-            direction={"column"}
-            align={"center"}
-            justify={"center"}
-            className="w-full h-full">
-            <Card className="sm:w-4/10 sm:h-4/10 flex-col">
-              <Box p={{ sm: "3" }} mb={{ sm: "2" }}>
-                {isModalEdit ? (<Heading>Editar</Heading>) : isModalCreate ? (<Heading>Create</Heading>) : undefined}
-              </Box>
-
-              <Box className="sm:pl-6 sm:pr-6 sm:pt-2">
-                <Flex direction={"column"} gap="4">
-                  
-                  <Text as="label" size={"3"}>
-                    <Skeleton loading={false}>
-                      <div className="mb-2">EAN-13</div>
-                    </Skeleton>
-                    <Skeleton loading={false}>
-                      <TextField.Root size="3" placeholder="EAN-13">
-                        <TextField.Slot>
-                          <QrCodeIcon height="16" width="16" />
-                        </TextField.Slot>
-                      </TextField.Root>
-                    </Skeleton>
-                  </Text>
-
-                  <Text as="label" size={"3"}>
-                    <Skeleton loading={false}>
-                      <div className="mb-2">Description</div>
-                    </Skeleton>
-                    <Skeleton loading={false}>
-                      <TextField.Root size="3" placeholder="Description">
-                      </TextField.Root>
-                    </Skeleton>
-                  </Text>
-
-                  <Text as="label" size={"3"}>
-                    <Skeleton loading={false}>
-                      <div className="mb-2">Category</div>
-                    </Skeleton>
-                    <Skeleton loading={false}>
-                      <Select.Root
-                        value={String(newItem.category.id)}
-                        onValueChange={(value) => {
-                          const selectedCategory = categories.find((cat) => String(cat.id) === value);
-                          if (selectedCategory) {
-                            setNewItem((prev) => ({
-                              ...prev,
-                              category: {
-                                id: selectedCategory.id,
-                                description: selectedCategory.description,
-                              },
-                            }));
-                          }
-                        }}
-                      >
-                        <Select.Trigger>
-                          <Flex as="span" align="center" gap="2">
-                            <TagIcon height="16" width="16" />
-                            {newItem.category.description}
-                          </Flex>
-                        </Select.Trigger>
-                        <Select.Content position="popper">
-                          {categories.map((category) => (
-                            <Select.Item
-                              key={category.id}
-                              value={String(category.id)}
-                            >
-                              {category.description}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Root>
-                    </Skeleton>
-                  </Text>
-                </Flex>
-              </Box>
-            </Card>
-          </Flex>
-        </div>
-      )};
+        <ModalCreateEditItem isModalEdit={isModalEdit}
+          isModalCreate={isModalCreate}
+          categories={categories}
+          item={isModalEdit ? editItem : newItem}
+          handleCloseModal={handleCloseModal}
+          handleCreate={handleCreate}
+          handleEdit={handleEdit}
+        >
+        </ModalCreateEditItem>
+      )}
     </Flex>
   );
 }

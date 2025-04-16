@@ -5,7 +5,7 @@ import { Box, Flex, Text, Link as RadixLink, IconButton, Avatar, Skeleton, Card 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
-import { isUserLoggedIn } from "@/util/util";
+import { getUserAvatarUrl, getUserEmail, getUserName, isUserLoggedIn } from "@/util/util";
 
 export default function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -17,7 +17,7 @@ export default function Header() {
         const logged = isUserLoggedIn();
         setUserLoggedIn(logged);
         if (!logged) {
-            //router.push("/login");
+            router.push("/login");
         }
     }, [router]);
 
@@ -57,15 +57,15 @@ export default function Header() {
                             fallback="U"
                             radius="full"
                             size={{ initial: "3", sm: "4" }}
-                            src={localStorage.getItem("userPictureUrl") ?? "https://www.gravatar.com/avatar/?d=mp"}
+                            src={getUserAvatarUrl() ?? "https://www.gravatar.com/avatar/?d=mp"}
                             alt="User"
                         />
                         <Box display={{initial: "none", sm: "block"}}>
                             <Text as="div" size="2" weight="bold">
-                                {localStorage.getItem("userName")}
+                                {getUserName()}
                             </Text>
                             <Text as="div" size="2" color="gray">
-                                {localStorage.getItem("userEmail")}
+                                {getUserEmail()}
                             </Text>
                         </Box>
                     </Flex>
@@ -87,26 +87,23 @@ export default function Header() {
 function NavLink({ href, label }: { href: string; label: string }) {
     const pathname = usePathname();
     const isActive = pathname === href || pathname.startsWith(`${href}/`);
-
+  
     return (
-        <Link href={href} passHref>
-            <RadixLink>
-                <Skeleton loading={false}>
-                    <Text
-                        weight="medium"
-                        className={`
-                        py-1 px-4
-                        ${isActive
-                                ? "bg-[var(--accent-8)] text-[var(--gray-1)]"
-                                : "hover:bg-[var(--accent-3)]"}
-                        `}
-
-                        style={{ borderRadius: "var(--radius-6)" }}
-                    >
-                        {label}
-                    </Text>
-                </Skeleton>
-            </RadixLink>
-        </Link>
+      <Link href={href} passHref>
+        <RadixLink>
+          <Text
+            weight="medium"
+            className={`
+              py-1 px-4
+              ${isActive
+                ? "bg-[var(--accent-8)] text-[var(--gray-1)]"
+                : "hover:bg-[var(--accent-3)]"}
+            `}
+            style={{ borderRadius: "var(--radius-6)" }}
+          >
+            {label}
+          </Text>
+        </RadixLink>
+      </Link>
     );
-}
+  }

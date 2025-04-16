@@ -25,7 +25,7 @@ func SaveItem(item *model.Item, ownerID int) error {
 	query := `
 		INSERT INTO tb_item (item_description, ean13, category_id, owner_id)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id, created_at, updated_at`
+		RETURNING item_id, created_at, updated_at`
 
 	err = conn.QueryRow(context.Background(), query,
 		item.Description,
@@ -107,7 +107,7 @@ func UpdateItem(item *model.Item) error {
 		SET item_description = $1,
 		    ean13 = $2,
 		    category_id = $3
-		WHERE id = $4`
+		WHERE item_id = $4`
 
 	cmdTag, err := conn.Exec(context.Background(), query,
 		item.Description,
