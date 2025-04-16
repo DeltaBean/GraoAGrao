@@ -4,8 +4,7 @@
 import { Flex, Text } from "@radix-ui/themes";
 import Header from "@/components/Header";
 
-export default function HomePage() {
-
+export default function StockOutPage() {
   return (
     <Flex direction={"column"} className="min-h-screen">
       <Header></Header>
@@ -16,7 +15,7 @@ export default function HomePage() {
         justify={"center"}
         align={"center"}
       >
-        <Text size={"9"}>HOME</Text>
+        <Text size={"9"}>STOCK OUT</Text>
       </Flex>
     </Flex>
   );
