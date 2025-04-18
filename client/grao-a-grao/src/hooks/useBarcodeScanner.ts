@@ -15,7 +15,7 @@ interface BarcodeOptions {
  */
 export function useBarcodeScanner(
   onScan: (code: string) => void,
-  { minLength = 6, maxDuration = 500 }: BarcodeOptions = {}
+  { minLength = 12, maxDuration = 500 }: BarcodeOptions = {}
 ) {
   const buffer = useRef("");
   const firstTime = useRef(0);

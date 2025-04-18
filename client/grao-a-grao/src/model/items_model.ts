@@ -4,19 +4,13 @@ export type Item = {
     ean13: string;
     category: Category;
 };
+export type CreateItemInput = Omit<Item, "item_id">
+export type UpdateItemInput = Item
 
+    
 export type Category = {
     id: number;
     description: string;
 };
-
-export type CreateItemInput =
-    Omit<Item,
-        "item_id" |
-        "owner_id" |
-        "created_at" |
-        "updated_at" |
-        "category">
-    & {
-        category: Pick<Category, "id" | "description">;
-    };
+export type CreateCategoryInput = Omit<Category, "id">;
+export type UpdateCategoryInput = Category;

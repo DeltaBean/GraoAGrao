@@ -93,26 +93,3 @@ export async function deleteItem(id: number): Promise<boolean> {
     throw err;
   }
 }
-
-export async function fetchCategories(): Promise<Category[]> {
-  try {
-    const token = getAuthToken();
-
-    const res = await fetch(`${getAPIUrl()}/items/categories`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok)
-      throw new Error('Error fetching categories');
-
-    const data = await res.json();
-    return data;
-
-  } catch (err: any) {
-    console.error(err);
-    throw err;
-  }
-}

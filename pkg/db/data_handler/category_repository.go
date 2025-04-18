@@ -22,8 +22,8 @@ func SaveCategory(category *model.Category) error {
 
 	query := `
 		INSERT INTO tb_category (category_description, owner_id)
-		VALUES ($1)
-		RETURNING id, created_at, updated_at`
+		VALUES ($1, $2)
+		RETURNING category_id, created_at, updated_at`
 
 	err = conn.QueryRow(context.Background(), query,
 		category.Description, category.Owner.ID,

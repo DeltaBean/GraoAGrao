@@ -5,8 +5,9 @@ import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton }
 import Header from "@/components/Header";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
-import { Category, Item } from "@/model/items_model";
-import * as api from "@/api/items_api";
+import { Category, Item, CreateItemInput, UpdateItemInput } from "@/model/items_model";
+import * as items_api from "@/api/items_api";
+import * as categories_api from "@/api/categories_api";
 import ModalCreateEditItem from "@/components/ModalCreateEditItem";
 
 export default function ItemPage() {
@@ -17,17 +18,6 @@ export default function ItemPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // State for new item form.
-  const [newItem, setNewItem] = useState({
-    item_id: 0,
-    item_description: '',
-    ean13: '',
-    category: {
-      id: 0,
-      description: "",
-    },
-  });
 
   // State for the item being edited.
   const [editItem, setEditItem] = useState({
@@ -71,19 +61,8 @@ export default function ItemPage() {
     setLoading(true);
 
     try {
-      const data = await api.fetchCategories()
+      const data = await categories_api.fetchCategories()
       setCategories(data);
-
-      if (data.length > 0)
-        setNewItem((prev) => {
-          return {
-            ...prev, category:
-            {
-              id: data[0].id,
-              description: data[0].description
-            }
-          }
-        });
 
     } catch (err: any) {
       setError(err.message);
@@ -96,7 +75,7 @@ export default function ItemPage() {
     setLoading(true);
 
     try {
-      const data = await api.fetchItems();
+      const data = await items_api.fetchItems();
       setItems(data ?? []);
     } catch (err: any) {
       setError(err.message);
@@ -107,20 +86,19 @@ export default function ItemPage() {
   };
 
   // Create a new item.
-  const handleCreate = async () => {
+  const handleCreate = async (newItem: CreateItemInput) => {
     try {
-      const created: Item = await api.createItem(newItem);
+      const created: Item = await items_api.createItem(newItem);
       setItems((prev) => [...prev, created]);
-      setNewItem({ item_id: 0, item_description: '', ean13: '', category: { id: 0, description: "" } });
       setIsModalOpen(false);
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  const handleEdit = async () => {
+  const handleEdit = async (toUpdateItem: UpdateItemInput) => {
     try {
-      const updated: Item = await api.updateItem(editItem);
+      const updated: Item = await items_api.updateItem(toUpdateItem);
       setItems((prev) => prev.map(item => item.item_id === updated.item_id ? updated : item));
       setEditItem({ item_id: 0, item_description: '', ean13: '', category: { id: 0, description: "" } });
       setIsModalOpen(false);
@@ -132,7 +110,7 @@ export default function ItemPage() {
   const handleDelete = async (id: number) => {
 
     try {
-      await api.deleteItem(id);
+      await items_api.deleteItem(id);
       setItems((prev) => prev.filter(item => item.item_id !== id));
     } catch (err: any) {
       setError(err.message);
@@ -141,7 +119,7 @@ export default function ItemPage() {
   }
 
   return (
-    <Flex direction={"column"} justify={"center"} align={"center"} className="min-h-screen">
+    <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen">
 
       <Header></Header>
 
@@ -252,7 +230,7 @@ export default function ItemPage() {
         <ModalCreateEditItem isModalEdit={isModalEdit}
           isModalCreate={isModalCreate}
           categories={categories}
-          item={isModalEdit ? editItem : newItem}
+          editItem={isModalEdit ? editItem : undefined}
           handleCloseModal={handleCloseModal}
           handleCreate={handleCreate}
           handleEdit={handleEdit}
