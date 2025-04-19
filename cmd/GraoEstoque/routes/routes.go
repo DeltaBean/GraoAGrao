@@ -37,6 +37,16 @@ func InitRoutes(router *gin.Engine) {
 			categoryGroup.PUT("", handler.UpdateCategory)
 			categoryGroup.DELETE("/:id", handler.DeleteCategory)
 		}
+
+		// Unit endpoints
+		unitGroup := itemGroup.Group("/units")
+		{
+			unitGroup.GET("", handler.ListUnits)
+			unitGroup.GET("/:id", handler.GetUnitByID)
+			unitGroup.POST("", handler.CreateUnit)
+			unitGroup.PUT("", handler.UpdateUnit)
+			unitGroup.DELETE("/:id", handler.DeleteUnit)
+		}
 	}
 
 	stockGroup := router.Group("/stock")
@@ -63,6 +73,16 @@ func InitRoutes(router *gin.Engine) {
 			stockOutGroup.GET("/:id", handler.GetStockOutByID)
 			stockOutGroup.POST("", handler.CreateStockOut)
 			stockOutGroup.DELETE("/:id", handler.DeleteStockOut)
+		}
+
+		// StockPackaging endpoints
+		stockPackagingGroup := stockGroup.Group("/packaging")
+		{
+			stockPackagingGroup.GET("", handler.ListStockPackagings)
+			stockPackagingGroup.GET("/:id", handler.GetStockPackagingByID)
+			stockPackagingGroup.POST("", handler.CreateStockPackaging)
+			stockPackagingGroup.PUT("", handler.UpdateStockPackaging)
+			stockPackagingGroup.DELETE("/:id", handler.DeleteStockPackaging)
 		}
 	}
 }

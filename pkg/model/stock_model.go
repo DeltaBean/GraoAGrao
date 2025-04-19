@@ -41,3 +41,15 @@ type StockOutItem struct {
 	Item       Item `json:"item" binding:"required"`
 	Quantity   int  `json:"quantity" binding:"required,gt=0"`
 }
+
+type StockPackaging struct {
+	ID          uint   `json:"id"`
+	Item        Item   `json:"item" binding:"required"`
+	Description string `json:"description" binding:"required"`
+	Quantity    int    `json:"quantity" binding:"required,gt=0"`
+
+	Owner User `json:"owner"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}

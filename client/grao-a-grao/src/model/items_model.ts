@@ -14,3 +14,11 @@ export type Category = {
 };
 export type CreateCategoryInput = Omit<Category, "id">;
 export type UpdateCategoryInput = Category;
+
+export type UnitOfMeasure = {
+    id: number;
+    description: string;
+};
+
+export type CreateUnitOfMeasureInput = Omit<UnitOfMeasure, "id">;
+export type UpdateUnitOfMeasureInput = UnitOfMeasure; 

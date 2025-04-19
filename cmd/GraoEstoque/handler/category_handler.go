@@ -84,20 +84,22 @@ func CreateCategory(c *gin.Context) {
 
 func UpdateCategory(c *gin.Context) {
 	logger.Log.Info("UpdateCategory")
-	id, err := strconv.Atoi(c.Param("id"))
 
+	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be a integer"})
+		logger.Log.Error("Error getting user from JWT: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
 	var category model.Category
 	if err := c.ShouldBindJSON(&category); err != nil {
+		logger.Log.Error("Error binding JSON: ", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	if err := data_handler.UpdateCategory(id, &category); err != nil {
+	if err := data_handler.UpdateCategory(authenticatedUser.ID, &category); err != nil {
 		logger.Log.Error("Error updating category: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
