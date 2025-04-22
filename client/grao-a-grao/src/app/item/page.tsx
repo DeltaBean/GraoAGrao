@@ -5,9 +5,10 @@ import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton }
 import Header from "@/components/Header";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
-import { Category, Item, CreateItemInput, UpdateItemInput } from "@/model/items_model";
+import { Category, Item, CreateItemInput, UpdateItemInput, UnitOfMeasure } from "@/model/items_model";
 import * as items_api from "@/api/items_api";
 import * as categories_api from "@/api/categories_api";
+import * as units_api from "@/api/units_api";
 import ModalCreateEditItem from "@/components/ModalCreateEditItem";
 
 export default function ItemPage() {
@@ -15,6 +16,7 @@ export default function ItemPage() {
   // Items list and loading state.
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasure[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,10 @@ export default function ItemPage() {
       id: 0,
       description: "",
     },
+    unit_of_measure: {
+      id: 0,
+      description: "",
+    }
   });
 
   // State for editing modal
@@ -55,14 +61,29 @@ export default function ItemPage() {
   useEffect(() => {
     fetchItems();
     fetchItemsCategories();
+    fetchUnitsOfMeasure();
   }, []);
+
+  const fetchUnitsOfMeasure = async () => {
+    setLoading(true);
+
+    try {
+      const data: UnitOfMeasure[] = await units_api.fetchUnits();
+      setUnitsOfMeasure(data ?? []);
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const fetchItemsCategories = async () => {
     setLoading(true);
 
     try {
       const data = await categories_api.fetchCategories()
-      setCategories(data);
+      setCategories(data ?? []);
 
     } catch (err: any) {
       setError(err.message);
@@ -100,7 +121,7 @@ export default function ItemPage() {
     try {
       const updated: Item = await items_api.updateItem(toUpdateItem);
       setItems((prev) => prev.map(item => item.item_id === updated.item_id ? updated : item));
-      setEditItem({ item_id: 0, item_description: '', ean13: '', category: { id: 0, description: "" } });
+      setEditItem({ item_id: 0, item_description: '', ean13: '', category: { id: 0, description: "" }, unit_of_measure: { id: 0, description: "" } });
       setIsModalOpen(false);
     } catch (err: any) {
       setError(err.message);
@@ -146,6 +167,7 @@ export default function ItemPage() {
               <Table.Row align={"center"}>
                 <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>Category</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Unit</Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>EAN-13</Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
               </Table.Row>
@@ -158,6 +180,7 @@ export default function ItemPage() {
                   <Table.Row key={item.item_id} align={"center"}>
                     <Table.RowHeaderCell>{item.item_description}</Table.RowHeaderCell>
                     <Table.Cell>{item.category.description}</Table.Cell>
+                    <Table.Cell>{item.unit_of_measure.description}</Table.Cell>
                     <Table.Cell>{item.ean13}</Table.Cell>
                     <Table.Cell>
                       <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
@@ -230,6 +253,7 @@ export default function ItemPage() {
         <ModalCreateEditItem isModalEdit={isModalEdit}
           isModalCreate={isModalCreate}
           categories={categories}
+          unitsOfMeasure={unitsOfMeasure}
           editItem={isModalEdit ? editItem : undefined}
           handleCloseModal={handleCloseModal}
           handleCreate={handleCreate}

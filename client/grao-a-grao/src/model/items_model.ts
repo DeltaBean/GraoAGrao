@@ -2,11 +2,13 @@ export type Item = {
     item_id: number;
     item_description: string;
     ean13: string;
+    unit_of_measure: UnitOfMeasure;
     category: Category;
 };
 export type CreateItemInput = Omit<Item, "item_id">
 export type UpdateItemInput = Item
 
+export type ItemOption = Pick<Item, "item_id" | "item_description">
     
 export type Category = {
     id: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Category, CreateItemInput, Item, UpdateItemInput } from "@/model/items_model";
+import { Category, CreateItemInput, Item, UnitOfMeasure, UpdateItemInput } from "@/model/items_model";
 import { Box, Card, Flex, Heading, IconButton, Text, Callout, TextField, Select, Skeleton, Button } from "@radix-ui/themes";
 import { useState } from "react";
 import { TagIcon, QrCodeIcon, XMarkIcon, InformationCircleIcon } from "@heroicons/react/16/solid";
@@ -9,6 +9,7 @@ export type ModalCreateEditItemProps = {
     isModalEdit: boolean;
     isModalCreate: boolean;
     categories: Category[];
+    unitsOfMeasure: UnitOfMeasure[];
     editItem?: Item;
     handleCloseModal: () => void;
     handleCreate: (newItem: CreateItemInput) => void;
@@ -18,6 +19,7 @@ export default function ModalCreateEditItem({
     isModalEdit,
     isModalCreate,
     categories,
+    unitsOfMeasure,
     editItem,
     handleCloseModal,
     handleCreate,
@@ -25,9 +27,11 @@ export default function ModalCreateEditItem({
 }: ModalCreateEditItemProps) {
 
     const [ean13Error, setEan13Error] = useState<string | null>(null);
+    
     const [description, setDescription] = useState<string>(editItem ? editItem.item_description : "");
     const [ean13, setEan13] = useState<string>(editItem ? editItem.ean13 : "");
     const [category, setCategory] = useState<Category>(editItem ? editItem.category : categories[0]);
+    const [unitOfMeasure, setUnitOfMeasure] = useState<UnitOfMeasure>(editItem ? editItem.unit_of_measure : unitsOfMeasure[0]);
 
     const handleEan13Change = (value: string) => {
         if (value.length != 13) {
@@ -127,6 +131,41 @@ export default function ModalCreateEditItem({
                                     </Select.Root>
                                 </Skeleton>
                             </Text>
+
+                            <Text as="label" size={"3"}>
+                                <Skeleton loading={false}>
+                                    <div className="mb-2">Unit</div>
+                                </Skeleton>
+                                <Skeleton loading={false}>
+                                    <Select.Root
+                                        value={String(unitOfMeasure.id)}
+                                        onValueChange={(value) => {
+                                            const selectedUnit = unitsOfMeasure.find((unit) => String(unit.id) === value);
+                                            if (selectedUnit) {
+                                                setUnitOfMeasure(selectedUnit)
+                                            }
+                                        }}
+                                    >
+                                        <Select.Trigger>
+                                            <Flex as="span" align="center" gap="2">
+                                                <TagIcon height="16" width="16" />
+                                                {unitOfMeasure.description}
+                                            </Flex>
+                                        </Select.Trigger>
+                                        <Select.Content position="popper">
+                                            {unitsOfMeasure.map((unit) => (
+                                                <Select.Item
+                                                    key={unit.id}
+                                                    value={String(unit.id)}
+                                                >
+                                                    {unit.description}
+                                                </Select.Item>
+                                            ))}
+                                        </Select.Content>
+                                    </Select.Root>
+                                </Skeleton>
+                            </Text>
+
                             <Flex className="sm:mt-6 mb-4 sm:mb-0" justify={"start"} align={"center"}>
                                 {isModalEdit ?
                                     (<Button size={"3"} onClick={
@@ -136,7 +175,8 @@ export default function ModalCreateEditItem({
                                                 item_id: editItem!.item_id,
                                                 ean13: ean13,
                                                 item_description: description,
-                                                category: category
+                                                category: category,
+                                                unit_of_measure: unitOfMeasure
                                             })
                                         }}>Editar</Button>)
                                     : isModalCreate ? (<Button size={"3"} onClick={
@@ -144,9 +184,9 @@ export default function ModalCreateEditItem({
                                             ev.stopPropagation();
                                             handleCreate({
                                                 ean13: ean13,
-                                                item_description:
-                                                    description,
-                                                category: category
+                                                item_description: description,
+                                                category: category,
+                                                unit_of_measure: unitOfMeasure
                                             })
                                         }}>Create</Button>
                                     )
