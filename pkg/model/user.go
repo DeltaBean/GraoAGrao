@@ -13,7 +13,7 @@ type GoogleUserInfo struct {
 }
 
 type User struct {
-	ID           int       `json:"id"`
+	ID           uint      `json:"id"`
 	Username     string    `json:"username"`
 	Email        string    `json:"email"`
 	PasswordHash string    `json:"password_hash"`

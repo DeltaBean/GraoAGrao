@@ -130,7 +130,7 @@ func GetUserFromJWT(tokenString string) (*model.User, error) {
 
 		// Extract user_id (stored as a number, so we cast to float64 then to int)
 		if idFloat, ok := claims["user_id"].(float64); ok {
-			user.ID = int(idFloat)
+			user.ID = uint(idFloat)
 		} else {
 			return nil, errors.New("user_id not found in token")
 		}

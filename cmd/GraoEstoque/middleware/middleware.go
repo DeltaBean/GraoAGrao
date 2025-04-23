@@ -7,6 +7,7 @@ import (
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/validator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,6 +42,35 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Proceed to the next middleware or handler
+		c.Next()
+	}
+}
+
+// BindAndValidate[T] will:
+// 1) bind JSON → *T
+// 2) run validator.Validate.Struct on it
+// 3) abort with 400/422 if anything fails
+// 4) otherwise put the *T into context under "dto"
+func BindAndValidateMiddleware[T any]() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		dto := new(T)
+
+		// 1) bind
+		if err := c.ShouldBindJSON(dto); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		// 2) validate
+		if err := validator.Validate.Struct(dto); err != nil {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"validation_error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		// 3) stash for handler
+		c.Set("dto", dto)
 		c.Next()
 	}
 }

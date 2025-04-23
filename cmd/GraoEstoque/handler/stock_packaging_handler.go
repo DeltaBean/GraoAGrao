@@ -69,8 +69,8 @@ func ListStockPackagings(c *gin.Context) {
 		return
 	}
 
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
+	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
 	packagings, err := data_handler.ListStockPackagingsPaginated(user.ID, offset, limit)
 	if err != nil {

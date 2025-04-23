@@ -9,7 +9,7 @@ import (
 )
 
 // SaveStockIn saves a stock in transaction and its items
-func SaveStockIn(stockIn *model.StockIn, OwnerID int) error {
+func SaveStockIn(stockIn *model.StockIn, OwnerID uint) error {
 	logger.Log.Info("SaveStockIn")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -103,7 +103,7 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 }
 
 // ListAllStockIn retrieves all StockIn records with their items
-func ListAllStockIn(OwnerID int) ([]*model.StockIn, error) {
+func ListAllStockIn(OwnerID uint) ([]*model.StockIn, error) {
 	logger.Log.Info("ListAllStockIn")
 
 	conn, err := db.GetDB().Acquire(context.Background())

@@ -77,7 +77,7 @@ func GetCategoryByID(id int) (*model.Category, error) {
 	return category, nil
 }
 
-func UpdateCategory(OwnerID int, category *model.Category) error {
+func UpdateCategory(OwnerID uint, category *model.Category) error {
 	logger.Log.Info("UpdateCategory")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -131,7 +131,7 @@ func DeleteCategory(id int) error {
 	return nil
 }
 
-func ListCategories(OwnerID int) ([]*model.Category, error) {
+func ListCategories(OwnerID uint) ([]*model.Category, error) {
 	logger.Log.Info("ListCategories")
 
 	conn, err := db.GetDB().Acquire(context.Background())

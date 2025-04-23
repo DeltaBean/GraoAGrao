@@ -9,7 +9,7 @@ import (
 )
 
 // SaveStockOut saves a stock out transaction and its items
-func SaveStockOut(StockOut *model.StockOut, OwnerID int) error {
+func SaveStockOut(StockOut *model.StockOut, OwnerID uint) error {
 	logger.Log.Info("SaveStockOut")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -103,7 +103,7 @@ func GetStockOutByID(id int) (*model.StockOut, error) {
 }
 
 // ListAllStockOut retrieves all StockOut records with their items
-func ListAllStockOut(OwnerID int) ([]*model.StockOut, error) {
+func ListAllStockOut(OwnerID uint) ([]*model.StockOut, error) {
 	logger.Log.Info("ListAllStockOut")
 
 	conn, err := db.GetDB().Acquire(context.Background())

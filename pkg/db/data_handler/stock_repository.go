@@ -8,7 +8,7 @@ import (
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
-func GetStock(OwnerID int) ([]model.Stock, error) {
+func GetStock(OwnerID uint) ([]model.Stock, error) {
 	logger.Log.Info("GetStock")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -70,7 +70,7 @@ func GetStock(OwnerID int) ([]model.Stock, error) {
 	return stockSlice, nil
 }
 
-func GetStockByCategory(OwnerID int, CategoryID int) ([]model.Stock, error) {
+func GetStockByCategory(OwnerID uint, CategoryID int) ([]model.Stock, error) {
 	logger.Log.Info("GetStockByCategory")
 
 	conn, err := db.GetDB().Acquire(context.Background())

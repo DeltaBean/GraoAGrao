@@ -12,7 +12,7 @@ import (
 )
 
 // SaveItem inserts a new item into the tb_item table
-func SaveItem(item *model.Item, ownerID int) error {
+func SaveItem(item *model.Item, OwnerID uint) error {
 	logger.Log.Info("SaveItem")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -32,7 +32,7 @@ func SaveItem(item *model.Item, ownerID int) error {
 		item.EAN13,
 		item.Category.ID,
 		item.UnitOfMeasure.ID,
-		ownerID,
+		OwnerID,
 	).Scan(&item.ID, &item.CreatedAt, &item.UpdatedAt)
 
 	if err != nil {
@@ -160,7 +160,7 @@ func DeleteItem(id int) error {
 }
 
 // ListItems returns all items with basic user info
-func ListItems(ownerID int) ([]model.Item, error) {
+func ListItems(OwnerID uint) ([]model.Item, error) {
 	logger.Log.Info("ListItems")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -182,7 +182,7 @@ func ListItems(ownerID int) ([]model.Item, error) {
 		JOIN tb_unit_of_measure unt ON i.unit_id = unt.unit_id
 		WHERE i.owner_id = $1`
 
-	rows, err := conn.Query(context.Background(), query, ownerID)
+	rows, err := conn.Query(context.Background(), query, OwnerID)
 	if err != nil {
 		logger.Log.Errorf("Error querying items: %v", err)
 		return nil, err

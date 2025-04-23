@@ -57,7 +57,7 @@ func SaveUser(user *model.User) error {
 }
 
 // GetUserByID retrieves a user from the tb_user table by user_id.
-func GetUserByID(id int) (*model.User, error) {
+func GetUserByID(id uint) (*model.User, error) {
 	logger.Log.Info("GetUserByID")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -201,7 +201,7 @@ func UpdateUser(user *model.User) error {
 }
 
 // DeleteUser deletes a user from the tb_user table by user_id.
-func DeleteUser(id int) error {
+func DeleteUser(id uint) error {
 	logger.Log.Info("DeleteUser")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -277,7 +277,7 @@ func GetUserByGoogleID(googleID string) (*model.User, error) {
 
 // UpdateLastLogin updates the last_login field of a user to the current timestamp,
 // based on the provided user id.
-func StampNowLastLogin(userID int) error {
+func StampNowLastLogin(userID uint) error {
 	logger.Log.Infof("Updating last login for user id: %d", userID)
 
 	conn, err := db.GetDB().Acquire(context.Background())

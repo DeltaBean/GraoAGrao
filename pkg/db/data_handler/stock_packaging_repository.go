@@ -14,7 +14,7 @@ import (
 )
 
 // SaveStockPackaging inserts a new packaging into the tb_stock_packaging table
-func SaveStockPackaging(packaging *model.StockPackaging, ownerID int) error {
+func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
 	logger.Log.Info("SaveStockPackaging")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -32,7 +32,7 @@ func SaveStockPackaging(packaging *model.StockPackaging, ownerID int) error {
 		packaging.Item.ID,
 		packaging.Description,
 		packaging.Quantity,
-		ownerID,
+		OwnerID,
 	).Scan(&packaging.ID, &packaging.CreatedAt, &packaging.UpdatedAt)
 
 	if err != nil {
@@ -45,7 +45,7 @@ func SaveStockPackaging(packaging *model.StockPackaging, ownerID int) error {
 }
 
 // ListStockPackagingsPaginated returns a paginated list of packagings
-func ListStockPackagingsPaginated(ownerID, offset, limit int) ([]model.StockPackaging, error) {
+func ListStockPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.StockPackaging, error) {
 	logger.Log.Infof("ListStockPackagingsPaginated offset=%d limit=%d", offset, limit)
 
 	conn, err := db.GetDB().Acquire(context.Background())

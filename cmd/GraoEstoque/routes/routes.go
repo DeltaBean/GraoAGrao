@@ -2,7 +2,8 @@ package routes
 
 import (
 	handler "github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/handler"
-	"github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/middleware"
+	middleware "github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/middleware"
+	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,18 +25,31 @@ func InitRoutes(router *gin.Engine) {
 	{
 		itemGroup.GET("", handler.GetItems)
 		itemGroup.GET("/:id", handler.GetItemByID)
-		itemGroup.POST("", handler.CreateItem)
-		itemGroup.PUT("", handler.UpdateItem)
 		itemGroup.DELETE("/:id", handler.DeleteItem)
+
+		itemGroup.POST("",
+			middleware.BindAndValidateMiddleware[dtoRequest.CreateItemRequest](),
+			handler.CreateItem,
+		)
+
+		itemGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemRequest](),
+			handler.UpdateItem,
+		)
 
 		// Category endpoints
 		categoryGroup := itemGroup.Group("/categories")
 		{
 			categoryGroup.GET("", handler.GetCategories)
 			categoryGroup.GET("/:id", handler.GetCategoryByID)
-			categoryGroup.POST("", handler.CreateCategory)
-			categoryGroup.PUT("", handler.UpdateCategory)
 			categoryGroup.DELETE("/:id", handler.DeleteCategory)
+
+			categoryGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateCategoryRequest](),
+				handler.CreateCategory,
+			)
+			categoryGroup.PUT("",
+				middleware.BindAndValidateMiddleware[dtoRequest.UpdateCategoryRequest](),
+				handler.UpdateCategory,
+			)
 		}
 
 		// Unit endpoints
@@ -43,9 +57,14 @@ func InitRoutes(router *gin.Engine) {
 		{
 			unitGroup.GET("", handler.ListUnits)
 			unitGroup.GET("/:id", handler.GetUnitByID)
-			unitGroup.POST("", handler.CreateUnit)
-			unitGroup.PUT("", handler.UpdateUnit)
 			unitGroup.DELETE("/:id", handler.DeleteUnit)
+
+			unitGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateUnitOfMeasureRequest](),
+				handler.CreateUnit,
+			)
+			unitGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateUnitOfMeasureRequest](),
+				handler.UpdateUnit,
+			)
 		}
 	}
 
@@ -80,9 +99,14 @@ func InitRoutes(router *gin.Engine) {
 		{
 			stockPackagingGroup.GET("", handler.ListStockPackagings)
 			stockPackagingGroup.GET("/:id", handler.GetStockPackagingByID)
-			stockPackagingGroup.POST("", handler.CreateStockPackaging)
-			stockPackagingGroup.PUT("", handler.UpdateStockPackaging)
 			stockPackagingGroup.DELETE("/:id", handler.DeleteStockPackaging)
+
+			stockPackagingGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateStockPackagingRequest](),
+				handler.CreateStockPackaging,
+			)
+			stockPackagingGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateStockPackagingRequest](),
+				handler.UpdateStockPackaging,
+			)
 		}
 	}
 }
