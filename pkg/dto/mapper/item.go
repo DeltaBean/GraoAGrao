@@ -19,6 +19,7 @@ func CreateItemToModel(req *request.CreateItemRequest, ownerID uint) *model.Item
 
 func UpdateItemToModel(req *request.UpdateItemRequest, ownerID uint) *model.Item {
 	return &model.Item{
+		ID:            req.ID,
 		Description:   req.Description,
 		EAN13:         req.EAN13,
 		Category:      model.Category{ID: req.CategoryID},

@@ -20,6 +20,7 @@ func (r *CreateItemRequest) Validate() error {
 
 // UpdateItemRequest is used when PUT/PATCHing an existing Item.
 type UpdateItemRequest struct {
+	ID              uint   `json:"item_id" validate:"required"`
 	Description     string `json:"description"      validate:"required"`
 	EAN13           string `json:"ean13"            validate:"required,len=13,numeric"`
 	CategoryID      uint   `json:"category_id"      validate:"required"`
