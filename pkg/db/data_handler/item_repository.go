@@ -45,7 +45,7 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 }
 
 // GetItemByID retrieves an item from the tb_item table by ID
-func GetItemByID(id int) (*model.Item, error) {
+func GetItemByID(id uint) (*model.Item, error) {
 	logger.Log.Info("GetItemByID")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -96,46 +96,64 @@ func GetItemByID(id int) (*model.Item, error) {
 	return item, nil
 }
 
-// UpdateItem updates an existing item in the tb_item table
-func UpdateItem(item *model.Item) error {
+// UpdateItem updates an existing item in tb_item and returns the updated model.
+func UpdateItem(item *model.Item) (*model.Item, error) {
 	logger.Log.Info("UpdateItem")
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
 		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
+		return nil, err
 	}
 	defer conn.Release()
 
+	// Update the record, then return all columns we need.
 	query := `
-		UPDATE tb_item
-		SET item_description = $1,
-		    ean13 = $2,
-		    category_id = $3,
-		    unit_id = $4
-		WHERE item_id = $5`
+        UPDATE tb_item
+        SET item_description = $1,
+            ean13            = $2,
+            category_id      = $3,
+            unit_id          = $4
+        WHERE item_id = $5
+        RETURNING
+            item_id,
+            item_description,
+            ean13,
+            category_id,
+            unit_id,
+            created_at,
+            updated_at
+    `
 
-	cmdTag, err := conn.Exec(context.Background(), query,
+	updated := &model.Item{}
+	row := conn.QueryRow(context.Background(), query,
 		item.Description,
 		item.EAN13,
 		item.Category.ID,
 		item.UnitOfMeasure.ID,
 		item.ID,
 	)
-	if err != nil {
-		logger.Log.Errorf("Error updating item: %v", err)
-		return err
-	}
-	if cmdTag.RowsAffected() != 1 {
-		return fmt.Errorf("no item updated")
+
+	// Scan into your model (nested IDs only; keep any existing nested Descriptions
+	if err := row.Scan(
+		&updated.ID,
+		&updated.Description,
+		&updated.EAN13,
+		&updated.Category.ID,
+		&updated.UnitOfMeasure.ID,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
+	); err != nil {
+		logger.Log.Errorf("Error scanning updated item: %v", err)
+		return nil, err
 	}
 
 	logger.Log.Info("Item successfully updated")
-	return nil
+	return updated, nil
 }
 
 // DeleteItem deletes an item from the tb_item table by ID
-func DeleteItem(id int) error {
+func DeleteItem(id uint) error {
 	logger.Log.Info("DeleteItem")
 
 	conn, err := db.GetDB().Acquire(context.Background())

@@ -6,43 +6,52 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	mapper "github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
+	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
+	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
+// GetItems returns all items for the authenticated user
 func GetItems(c *gin.Context) {
 	logger.Log.Info("GetItems")
 
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	token := c.GetHeader("Authorization")
+	user, err := util.GetUserFromJWT(token)
 	if err != nil {
 		logger.Log.Error("Error getting user from JWT: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	items, err := data_handler.ListItems(authenticatedUser.ID)
+	items, err := data_handler.ListItems(user.ID)
 	if err != nil {
 		logger.Log.Error("Error fetching items: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, items)
+	// Map domain models to response DTOs
+	rep := make([]dtoResponse.ItemResponse, len(items))
+	for i, item := range items {
+		rep[i] = mapper.ToItemResponse(&item)
+	}
+
+	c.JSON(http.StatusOK, rep)
 }
 
+// GetItemByID returns a single item by its ID
 func GetItemByID(c *gin.Context) {
 	logger.Log.Info("GetItemByID")
 	id, err := strconv.Atoi(c.Param("id"))
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be a integer"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be an integer"})
 		return
 	}
 
-	item, err := data_handler.GetItemByID(id)
-
+	item, err := data_handler.GetItemByID(uint(id))
 	if err != nil {
 		logger.Log.Error("Error fetching item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -52,73 +61,76 @@ func GetItemByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, item)
+	c.JSON(http.StatusOK, mapper.ToItemResponse(item))
 }
 
+// CreateItem creates a new item from the validated DTO
 func CreateItem(c *gin.Context) {
 	logger.Log.Info("CreateItem")
 
-	var newItem model.Item
+	// Retrieved from BindAndValidate middleware
+	req := c.MustGet("dto").(*dtoRequest.CreateItemRequest)
 
-	if err := c.ShouldBindJSON(&newItem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	token := c.GetHeader("Authorization")
+	user, err := util.GetUserFromJWT(token)
 	if err != nil {
 		logger.Log.Error("Error getting user from JWT: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	err = data_handler.SaveItem(&newItem, authenticatedUser.ID)
-	if err != nil {
+	// Map request DTO to domain model
+	modelItem := mapper.CreateItemToModel(req, user.ID)
+	if err := data_handler.SaveItem(modelItem, user.ID); err != nil {
 		logger.Log.Error("Error saving item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, newItem)
+	c.JSON(http.StatusCreated, mapper.ToItemResponse(modelItem))
 }
 
+// UpdateItem updates an existing item with the validated DTO
 func UpdateItem(c *gin.Context) {
 	logger.Log.Info("UpdateItem")
 
-	var updatedItem model.Item
-
-	if err := c.ShouldBindJSON(&updatedItem); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	token := c.GetHeader("Authorization")
+	user, err := util.GetUserFromJWT(token)
+	if err != nil {
+		logger.Log.Error("Error getting user from JWT: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	err := data_handler.UpdateItem(&updatedItem)
+	// Retrieved from BindAndValidate middleware
+	itemReq := c.MustGet("dto").(*dtoRequest.UpdateItemRequest)
+	itemModel := mapper.UpdateItemToModel(itemReq, user.ID)
+
+	updatedItem, err := data_handler.UpdateItem(itemModel)
+
 	if err != nil {
 		logger.Log.Error("Error updating item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, updatedItem)
+	c.JSON(http.StatusOK, mapper.ToItemResponse(updatedItem))
 }
 
+// DeleteItem removes an item by its ID
 func DeleteItem(c *gin.Context) {
 	logger.Log.Info("DeleteItem")
-
 	id, err := strconv.Atoi(c.Param("id"))
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be a integer"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be an integer"})
 		return
 	}
 
-	err = data_handler.DeleteItem(id)
-
-	if err != nil {
+	if err := data_handler.DeleteItem(uint(id)); err != nil {
 		logger.Log.Error("Error deleting item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Item deleted"})
+	c.Status(http.StatusNoContent)
 }

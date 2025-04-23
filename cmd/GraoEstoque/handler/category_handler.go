@@ -6,106 +6,92 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
 func GetCategories(c *gin.Context) {
 	logger.Log.Info("GetCategories")
-
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate"})
 		return
 	}
 
-	categories, err := data_handler.ListCategories(authenticatedUser.ID)
+	cats, err := data_handler.ListCategories(user.ID)
 	if err != nil {
-		logger.Log.Error("Error fetching categories: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not list categories"})
 		return
 	}
 
-	c.JSON(http.StatusOK, categories)
+	// map slice of model → slice of DTO
+	resp := make([]response.CategoryResponse, len(cats))
+	for i, cat := range cats {
+		resp[i] = *mapper.ToCategoryResponse(cat)
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 func GetCategoryByID(c *gin.Context) {
 	logger.Log.Info("GetCategoryByID")
 	id, err := strconv.Atoi(c.Param("id"))
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be a integer"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	category, err := data_handler.GetCategoryByID(id)
-
+	cat, err := data_handler.GetCategoryByID(uint(id))
 	if err != nil {
-		logger.Log.Error("Error fetching category: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch"})
 		return
-	} else if category == nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Category not found"})
+	} else if cat == nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "not found"})
 		return
 	}
 
-	c.JSON(http.StatusOK, category)
+	c.JSON(http.StatusOK, mapper.ToCategoryResponse(cat))
 }
 
 func CreateCategory(c *gin.Context) {
 	logger.Log.Info("CreateCategory")
+	user, _ := util.GetUserFromJWT(c.GetHeader("Authorization"))
 
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
-	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	// pulled from middleware
+	req := c.MustGet("dto").(*request.CreateCategoryRequest)
+
+	modelCat := mapper.CreateCategoryToModel(req, user.ID)
+	if err := data_handler.SaveCategory(modelCat); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save"})
 		return
 	}
 
-	var category model.Category
-	if err := c.ShouldBindJSON(&category); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
-
-	category.Owner.ID = authenticatedUser.ID
-
-	if err := data_handler.SaveCategory(&category); err != nil {
-		logger.Log.Error("Error creating category: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, category)
+	c.JSON(http.StatusCreated, mapper.ToCategoryResponse(modelCat))
 }
 
 func UpdateCategory(c *gin.Context) {
 	logger.Log.Info("UpdateCategory")
-
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate"})
 		return
 	}
 
-	var category model.Category
-	if err := c.ShouldBindJSON(&category); err != nil {
-		logger.Log.Error("Error binding JSON: ", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+	// pulled from middleware
+	cat := c.MustGet("dto").(*request.UpdateCategoryRequest)
+	catModel := mapper.UpdateCategoryToModel(cat, user.ID)
+
+	updatedCategory, err := data_handler.UpdateCategory(user.ID, catModel)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not update"})
 		return
 	}
 
-	if err := data_handler.UpdateCategory(authenticatedUser.ID, &category); err != nil {
-		logger.Log.Error("Error updating category: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
-
-	c.JSON(http.StatusOK, category)
+	c.JSON(http.StatusOK, mapper.ToCategoryResponse(updatedCategory))
 }
 
 func DeleteCategory(c *gin.Context) {
@@ -113,15 +99,16 @@ func DeleteCategory(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be a integer"})
+		logger.Log.Error("Error invalid id: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	if err := data_handler.DeleteCategory(id); err != nil {
-		logger.Log.Error("Error deleting category: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	if err := data_handler.DeleteCategory(uint(id)); err != nil {
+		logger.Log.Error("Error DeleteCategory: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not delete"})
 		return
 	}
 
-	c.JSON(http.StatusNoContent, nil)
+	c.Status(http.StatusNoContent)
 }

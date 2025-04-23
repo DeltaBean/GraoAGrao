@@ -77,7 +77,7 @@ func ListUnitsPaginated(ownerID uint, offset, limit uint64) ([]model.UnitOfMeasu
 }
 
 // GetUnitOfMeasureByID retrieves a single unit by ID
-func GetUnitOfMeasureByID(id int) (*model.UnitOfMeasure, error) {
+func GetUnitOfMeasureByID(id uint) (*model.UnitOfMeasure, error) {
 	logger.Log.Infof("GetUnitOfMeasureByID: %d", id)
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -104,33 +104,42 @@ func GetUnitOfMeasureByID(id int) (*model.UnitOfMeasure, error) {
 	return &u, nil
 }
 
-// UpdateUnitOfMeasure modifies an existing unit
-func UpdateUnitOfMeasure(u *model.UnitOfMeasure) error {
+// UpdateUnitOfMeasure modifies an existing unit and returns the updated record
+func UpdateUnitOfMeasure(u *model.UnitOfMeasure) (*model.UnitOfMeasure, error) {
 	logger.Log.Infof("UpdateUnitOfMeasure: %d", u.ID)
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer conn.Release()
 
 	query := `
 		UPDATE tb_unit_of_measure
-		SET unit_description = $1, updated_at = NOW()
-		WHERE unit_id = $2`
+		SET unit_description = $1,
+		    updated_at = NOW()
+		WHERE unit_id = $2
+		RETURNING unit_id, unit_description, created_at, updated_at;
+	`
 
-	cmd, err := conn.Exec(context.Background(), query, u.Description, u.ID)
+	updated := &model.UnitOfMeasure{}
+	row := conn.QueryRow(context.Background(), query, u.Description, u.ID)
+
+	err = row.Scan(
+		&updated.ID,
+		&updated.Description,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
+	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if cmd.RowsAffected() == 0 {
-		return fmt.Errorf("no unit updated")
-	}
-	return nil
+
+	return updated, nil
 }
 
 // DeleteUnitOfMeasure removes a unit record
-func DeleteUnitOfMeasure(id int) error {
+func DeleteUnitOfMeasure(id uint) error {
 	logger.Log.Infof("DeleteUnitOfMeasure: %d", id)
 
 	conn, err := db.GetDB().Acquire(context.Background())

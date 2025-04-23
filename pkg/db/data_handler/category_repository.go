@@ -38,7 +38,7 @@ func SaveCategory(category *model.Category) error {
 	return nil
 }
 
-func GetCategoryByID(id int) (*model.Category, error) {
+func GetCategoryByID(id uint) (*model.Category, error) {
 	logger.Log.Info("GetCategoryByID")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -77,35 +77,55 @@ func GetCategoryByID(id int) (*model.Category, error) {
 	return category, nil
 }
 
-func UpdateCategory(OwnerID uint, category *model.Category) error {
+func UpdateCategory(ownerID uint, category *model.Category) (*model.Category, error) {
 	logger.Log.Info("UpdateCategory")
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
 		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
+		return nil, err
 	}
 	defer conn.Release()
 
+	// Then return all the columns you want to populate back into the model.
 	query := `
-		UPDATE tb_category
-		SET category_description = $1
-		WHERE category_id = $2 AND owner_id = $3`
+        UPDATE tb_category
+        SET category_description = $1
+        WHERE category_id = $2
+          AND owner_id = $3
+        RETURNING
+          category_id,
+          category_description,
+          owner_id,
+          created_at,
+          updated_at
+    `
 
-	_, err = conn.Exec(context.Background(), query,
-		category.Description, category.ID, OwnerID,
+	// Prepare a fresh model to scan into:
+	updated := &model.Category{Owner: model.User{ID: ownerID}}
+	row := conn.QueryRow(context.Background(), query,
+		category.Description,
+		category.ID,
+		ownerID,
 	)
 
-	if err != nil {
+	// Scan the returned columns into your model fields:
+	if err := row.Scan(
+		&updated.ID,
+		&updated.Description,
+		&updated.Owner.ID,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
+	); err != nil {
 		logger.Log.Errorf("Error updating category: %v", err)
-		return err
+		return nil, err
 	}
 
 	logger.Log.Info("Category successfully updated")
-	return nil
+	return updated, nil
 }
 
-func DeleteCategory(id int) error {
+func DeleteCategory(id uint) error {
 	logger.Log.Info("DeleteCategory")
 
 	conn, err := db.GetDB().Acquire(context.Background())

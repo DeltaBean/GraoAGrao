@@ -5,10 +5,12 @@ import (
 	"strconv"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 
 	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -16,26 +18,21 @@ import (
 func CreateStockPackaging(c *gin.Context) {
 	logger.Log.Info("CreateStockPackaging")
 
-	var packaging model.StockPackaging
+	req := c.MustGet("dto").(*request.CreateStockPackagingRequest)
 
-	if err := c.ShouldBindJSON(&packaging); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	user, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	err = data_handler.SaveStockPackaging(&packaging, user.ID)
-	if err != nil {
+	modelPackaging := mapper.CreateStockPackagingToModel(req)
+	if err := data_handler.SaveStockPackaging(modelPackaging, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving packaging"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, packaging)
+	c.JSON(http.StatusCreated, mapper.ToStockPackagingResponse(modelPackaging))
 }
 
 func GetStockPackagingByID(c *gin.Context) {
@@ -47,7 +44,7 @@ func GetStockPackagingByID(c *gin.Context) {
 		return
 	}
 
-	packaging, err := data_handler.GetStockPackagingByID(id)
+	packaging, err := data_handler.GetStockPackagingByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving packaging"})
 		return
@@ -57,13 +54,13 @@ func GetStockPackagingByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, packaging)
+	c.JSON(http.StatusOK, mapper.ToStockPackagingResponse(packaging))
 }
 
 func ListStockPackagings(c *gin.Context) {
 	logger.Log.Info("ListStockPackagings")
 
-	user, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -78,26 +75,27 @@ func ListStockPackagings(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, packagings)
+	resp := make([]response.StockPackagingResponse, len(packagings))
+	for i, p := range packagings {
+		resp[i] = *mapper.ToStockPackagingResponse(&p)
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 func UpdateStockPackaging(c *gin.Context) {
 	logger.Log.Info("UpdateStockPackaging")
 
-	var p model.StockPackaging
+	req := c.MustGet("dto").(*request.UpdateStockPackagingRequest)
+	stockPackModel := mapper.UpdateStockPackagingToModel(req)
 
-	if err := c.ShouldBindJSON(&p); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	err := data_handler.UpdateStockPackaging(&p)
+	updated, err := data_handler.UpdateStockPackaging(stockPackModel)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating packaging"})
 		return
 	}
 
-	c.JSON(http.StatusOK, p)
+	c.JSON(http.StatusOK, mapper.ToStockPackagingResponse(updated))
 }
 
 func DeleteStockPackaging(c *gin.Context) {
@@ -109,11 +107,10 @@ func DeleteStockPackaging(c *gin.Context) {
 		return
 	}
 
-	err = data_handler.DeleteStockPackaging(id)
-	if err != nil {
+	if err := data_handler.DeleteStockPackaging(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting packaging"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Packaging deleted"})
+	c.Status(http.StatusNoContent)
 }

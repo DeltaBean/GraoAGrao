@@ -84,7 +84,7 @@ func ListStockPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.S
 }
 
 // GetStockPackagingByID retrieves a single packaging by ID
-func GetStockPackagingByID(id int) (*model.StockPackaging, error) {
+func GetStockPackagingByID(id uint) (*model.StockPackaging, error) {
 	logger.Log.Infof("GetStockPackagingByID: %d", id)
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -122,38 +122,56 @@ func GetStockPackagingByID(id int) (*model.StockPackaging, error) {
 	return &p, nil
 }
 
-// UpdateStockPackaging modifies an existing record
-func UpdateStockPackaging(p *model.StockPackaging) error {
+// UpdateStockPackaging modifies an existing record and returns the updated entity
+func UpdateStockPackaging(p *model.StockPackaging) (*model.StockPackaging, error) {
 	logger.Log.Infof("UpdateStockPackaging: %d", p.ID)
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer conn.Release()
 
 	query := `
 		UPDATE tb_stock_packaging
-		SET item_id = $1, stock_packaging_description = $2, quantity = $3, updated_at = NOW()
-		WHERE stock_packaging_id = $4`
+		SET item_id = $1,
+		    stock_packaging_description = $2,
+		    quantity = $3,
+		    updated_at = NOW()
+		WHERE stock_packaging_id = $4
+		RETURNING
+		    stock_packaging_id,
+		    item_id,
+		    stock_packaging_description,
+		    quantity,
+		    created_at,
+		    updated_at
+	`
 
-	cmd, err := conn.Exec(context.Background(), query,
+	updated := &model.StockPackaging{}
+	row := conn.QueryRow(context.Background(), query,
 		p.Item.ID,
 		p.Description,
 		p.Quantity,
 		p.ID,
 	)
-	if err != nil {
-		return err
+
+	if err := row.Scan(
+		&updated.ID,
+		&updated.Item.ID,
+		&updated.Description,
+		&updated.Quantity,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
+	); err != nil {
+		return nil, err
 	}
-	if cmd.RowsAffected() == 0 {
-		return fmt.Errorf("no stock packaging updated")
-	}
-	return nil
+
+	return updated, nil
 }
 
 // DeleteStockPackaging removes a packaging record
-func DeleteStockPackaging(id int) error {
+func DeleteStockPackaging(id uint) error {
 	logger.Log.Infof("DeleteStockPackaging: %d", id)
 
 	conn, err := db.GetDB().Acquire(context.Background())
