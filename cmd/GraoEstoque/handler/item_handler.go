@@ -5,7 +5,8 @@ import (
 	"strconv"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
-	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/item_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
 	mapper "github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
 	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
@@ -26,7 +27,7 @@ func GetItems(c *gin.Context) {
 		return
 	}
 
-	items, err := data_handler.ListItems(user.ID)
+	items, err := item_repository.ListItems(user.ID)
 	if err != nil {
 		logger.Log.Error("Error fetching items: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -51,7 +52,7 @@ func GetItemByID(c *gin.Context) {
 		return
 	}
 
-	item, err := data_handler.GetItemByID(uint(id))
+	item, err := item_repository.GetItemByID(uint(id))
 	if err != nil {
 		logger.Log.Error("Error fetching item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -81,7 +82,7 @@ func CreateItem(c *gin.Context) {
 
 	// Map request DTO to domain model
 	modelItem := mapper.CreateItemToModel(req, user.ID)
-	if err := data_handler.SaveItem(modelItem, user.ID); err != nil {
+	if err := item_repository.SaveItem(modelItem, user.ID); err != nil {
 		logger.Log.Error("Error saving item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
@@ -106,7 +107,7 @@ func UpdateItem(c *gin.Context) {
 	itemReq := c.MustGet("dto").(*dtoRequest.UpdateItemRequest)
 	itemModel := mapper.UpdateItemToModel(itemReq, user.ID)
 
-	updatedItem, err := data_handler.UpdateItem(itemModel)
+	updatedItem, err := item_repository.UpdateItem(itemModel)
 
 	if err != nil {
 		logger.Log.Error("Error updating item: ", err)
@@ -126,9 +127,9 @@ func DeleteItem(c *gin.Context) {
 		return
 	}
 
-	if err := data_handler.DeleteItem(uint(id)); err != nil {
+	if err := item_repository.DeleteItem(uint(id)); err != nil {
 		logger.Log.Error("Error deleting item: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		error_handler.HandleDBErrorWithContext(c, err, uint(id), item_repository.GetReferencingStockPackagings)
 		return
 	}
 

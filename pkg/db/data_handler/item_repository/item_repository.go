@@ -1,5 +1,5 @@
 // item_repository.go
-package data_handler
+package item_repository
 
 import (
 	"context"
@@ -26,10 +26,11 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 		WITH inserted AS (
   			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, owner_id)
   			VALUES ($1, $2, $3, $4, $5)
-  			RETURNING item_id, category_id, unit_id, created_at, updated_at
+  			RETURNING item_id, item_description, category_id, unit_id, created_at, updated_at
 		)
 		SELECT 
 			i.item_id,
+			i.item_description,
 			i.created_at,
 			i.updated_at,
 			c.category_description,
@@ -47,6 +48,7 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 		OwnerID,
 	).Scan(
 		&item.ID,
+		&item.Description,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 		&item.Category.Description,
@@ -263,4 +265,30 @@ func ListItems(OwnerID uint) ([]model.Item, error) {
 
 	logger.Log.Infof("Retrieved %d items", len(items))
 	return items, nil
+}
+
+func GetReferencingStockPackagings(id uint) (any, error) {
+	conn, err := db.GetDB().Acquire(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(context.Background(), `
+		SELECT stock_packaging_id, stock_packaging_description 
+		FROM tb_stock_packaging WHERE item_id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []model.StockPackaging
+	for rows.Next() {
+		var s model.StockPackaging
+		if err := rows.Scan(&s.ID, &s.Description); err != nil {
+			return nil, err
+		}
+		result = append(result, s)
+	}
+
+	return result, nil
 }

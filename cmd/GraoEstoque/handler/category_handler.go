@@ -5,7 +5,8 @@ import (
 	"strconv"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
-	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/category_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
@@ -22,7 +23,7 @@ func GetCategories(c *gin.Context) {
 		return
 	}
 
-	cats, err := data_handler.ListCategories(user.ID)
+	cats, err := category_repository.ListCategories(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not list categories"})
 		return
@@ -44,7 +45,7 @@ func GetCategoryByID(c *gin.Context) {
 		return
 	}
 
-	cat, err := data_handler.GetCategoryByID(uint(id))
+	cat, err := category_repository.GetCategoryByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch"})
 		return
@@ -64,7 +65,7 @@ func CreateCategory(c *gin.Context) {
 	req := c.MustGet("dto").(*request.CreateCategoryRequest)
 
 	modelCat := mapper.CreateCategoryToModel(req, user.ID)
-	if err := data_handler.SaveCategory(modelCat); err != nil {
+	if err := category_repository.SaveCategory(modelCat); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save"})
 		return
 	}
@@ -84,7 +85,7 @@ func UpdateCategory(c *gin.Context) {
 	cat := c.MustGet("dto").(*request.UpdateCategoryRequest)
 	catModel := mapper.UpdateCategoryToModel(cat, user.ID)
 
-	updatedCategory, err := data_handler.UpdateCategory(user.ID, catModel)
+	updatedCategory, err := category_repository.UpdateCategory(user.ID, catModel)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not update"})
@@ -104,9 +105,9 @@ func DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	if err := data_handler.DeleteCategory(uint(id)); err != nil {
+	if err := category_repository.DeleteCategory(uint(id)); err != nil {
 		logger.Log.Error("Error DeleteCategory: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not delete"})
+		error_handler.HandleDBErrorWithContext(c, err, uint(id), category_repository.GetReferencingItems)
 		return
 	}
 

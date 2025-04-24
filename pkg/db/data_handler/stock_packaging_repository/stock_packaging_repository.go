@@ -1,5 +1,5 @@
 // stock_packaging_repository.go
-package data_handler
+package stock_packaging_repository
 
 import (
 	"context"
@@ -28,10 +28,11 @@ func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
 		WITH inserted AS (
 			INSERT INTO tb_stock_packaging (item_id, stock_packaging_description, quantity, owner_id)
 			VALUES ($1, $2, $3, $4)
-			RETURNING stock_packaging_id, item_id, owner_id, stock_packaging_description, quantity, created_at, updated_at
+			RETURNING stock_packaging_id, stock_packaging_description, item_id, owner_id, stock_packaging_description, quantity, created_at, updated_at
 		)
 		SELECT
 			i.stock_packaging_id,
+			i.stock_packaging_description,
 			i.item_id,
 			it.item_description,
 			i.stock_packaging_description,
@@ -54,6 +55,7 @@ func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
 		OwnerID,
 	).Scan(
 		&packaging.ID,
+		&packaging.Description,
 		&packaging.Item.ID,
 		&packaging.Item.Description,
 		&packaging.Description,

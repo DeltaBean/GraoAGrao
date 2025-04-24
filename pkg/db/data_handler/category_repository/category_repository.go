@@ -1,4 +1,4 @@
-package data_handler
+package category_repository
 
 import (
 	"context"
@@ -21,20 +21,37 @@ func SaveCategory(category *model.Category) error {
 	defer conn.Release()
 
 	query := `
-		INSERT INTO tb_category (category_description, owner_id)
-		VALUES ($1, $2)
-		RETURNING category_id, created_at, updated_at`
+		WITH inserted AS (
+			INSERT INTO tb_category (category_description, owner_id)
+			VALUES ($1, $2)
+			RETURNING category_id, category_description, owner_id, created_at, updated_at
+		)
+		SELECT 
+			c.category_id,
+			c.category_description,
+			c.owner_id,
+			c.created_at,
+			c.updated_at
+		FROM inserted c
+	`
 
 	err = conn.QueryRow(context.Background(), query,
-		category.Description, category.Owner.ID,
-	).Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
+		category.Description,
+		category.Owner.ID,
+	).Scan(
+		&category.ID,
+		&category.Description,
+		&category.Owner.ID,
+		&category.CreatedAt,
+		&category.UpdatedAt,
+	)
 
 	if err != nil {
 		logger.Log.Errorf("Error saving category: %v", err)
 		return err
 	}
 
-	logger.Log.Info("Category successfully created")
+	logger.Log.Info("Category successfully created with CTE")
 	return nil
 }
 
@@ -199,4 +216,30 @@ func ListCategories(OwnerID uint) ([]*model.Category, error) {
 
 	logger.Log.Infof("Retrieved %d categories", len(categories))
 	return categories, nil
+}
+
+func GetReferencingItems(id uint) (any, error) {
+	conn, err := db.GetDB().Acquire(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(context.Background(), `
+		SELECT item_id, item_description 
+		FROM tb_item WHERE category_id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []model.Item
+	for rows.Next() {
+		var i model.Item
+		if err := rows.Scan(&i.ID, &i.Description); err != nil {
+			return nil, err
+		}
+		result = append(result, i)
+	}
+
+	return result, nil
 }

@@ -1,4 +1,4 @@
-package data_handler
+package unit_of_measure_repository
 
 import (
 	"context"
@@ -26,10 +26,10 @@ func SaveUnitOfMeasure(unit *model.UnitOfMeasure, OwnerID uint) error {
 	query := `
 		INSERT INTO tb_unit_of_measure (unit_description, owner_id)
 		VALUES ($1, $2)
-		RETURNING unit_id, created_at, updated_at`
+		RETURNING unit_id, unit_description, created_at, updated_at`
 
 	err = conn.QueryRow(context.Background(), query, unit.Description, OwnerID).
-		Scan(&unit.ID, &unit.CreatedAt, &unit.UpdatedAt)
+		Scan(&unit.ID, &unit.Description, &unit.CreatedAt, &unit.UpdatedAt)
 
 	if err != nil {
 		logger.Log.Errorf("Error saving unit: %v", err)
@@ -157,4 +157,30 @@ func DeleteUnitOfMeasure(id uint) error {
 		return fmt.Errorf("no unit deleted")
 	}
 	return nil
+}
+
+func GetReferencingItems(id uint) (any, error) {
+	conn, err := db.GetDB().Acquire(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(context.Background(), `
+		SELECT item_id, item_description 
+		FROM tb_item WHERE unit_id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []model.Item
+	for rows.Next() {
+		var i model.Item
+		if err := rows.Scan(&i.ID, &i.Description); err != nil {
+			return nil, err
+		}
+		result = append(result, i)
+	}
+
+	return result, nil
 }

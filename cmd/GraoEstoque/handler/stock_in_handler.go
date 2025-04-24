@@ -7,7 +7,7 @@ import (
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
-	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_in_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/gin-gonic/gin"
@@ -31,7 +31,7 @@ func CreateStockIn(c *gin.Context) {
 		return
 	}
 
-	err = data_handler.SaveStockIn(&stockIn, authenticatedUser.ID)
+	err = stock_in_repository.SaveStockIn(&stockIn, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock in: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock in"})
@@ -52,7 +52,7 @@ func GetStockInByID(c *gin.Context) {
 		return
 	}
 
-	stockIn, err := data_handler.GetStockInByID(id)
+	stockIn, err := stock_in_repository.GetStockInByID(id)
 	if err != nil {
 		logger.Log.Errorf("Failed to retrieve stock in: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "StockIn not found"})
@@ -73,7 +73,7 @@ func ListAllStockIn(c *gin.Context) {
 		return
 	}
 
-	stockIns, err := data_handler.ListAllStockIn(authenticatedUser.ID)
+	stockIns, err := stock_in_repository.ListAllStockIn(authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Error listing stock in: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stock in list"})
@@ -95,7 +95,7 @@ func DeleteStockIn(c *gin.Context) {
 		return
 	}
 
-	err = data_handler.DeleteStockIn(id)
+	err = stock_in_repository.DeleteStockIn(id)
 	if err != nil {
 		logger.Log.Errorf("Failed to delete stock in: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete stock in"})

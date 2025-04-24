@@ -11,7 +11,8 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 
-	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/unit_of_measure_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 )
@@ -28,7 +29,7 @@ func ListUnits(c *gin.Context) {
 	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
 	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
-	models, err := data_handler.ListUnitsPaginated(user.ID, offset, limit)
+	models, err := unit_of_measure_repository.ListUnitsPaginated(user.ID, offset, limit)
 	if err != nil {
 		logger.Log.Error("Error listing units: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing units"})
@@ -52,7 +53,7 @@ func GetUnitByID(c *gin.Context) {
 		return
 	}
 
-	modelUnit, err := data_handler.GetUnitOfMeasureByID(uint(id))
+	modelUnit, err := unit_of_measure_repository.GetUnitOfMeasureByID(uint(id))
 	if err != nil {
 		logger.Log.Error("Error retrieving unit: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving unit"})
@@ -79,7 +80,7 @@ func CreateUnit(c *gin.Context) {
 	}
 
 	modelUnit := mapper.CreateUnitOfMeasureToModel(req, user.ID)
-	if err := data_handler.SaveUnitOfMeasure(modelUnit, user.ID); err != nil {
+	if err := unit_of_measure_repository.SaveUnitOfMeasure(modelUnit, user.ID); err != nil {
 		logger.Log.Error("Error saving unit: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving unit"})
 		return
@@ -101,7 +102,7 @@ func UpdateUnit(c *gin.Context) {
 	req := c.MustGet("dto").(*request.UpdateUnitOfMeasureRequest)
 	unitModel := mapper.UpdateUnitOfMeasureToModel(req, user.ID)
 
-	updated, err := data_handler.UpdateUnitOfMeasure(unitModel)
+	updated, err := unit_of_measure_repository.UpdateUnitOfMeasure(unitModel)
 
 	if err != nil {
 		logger.Log.Error("Error updating unit: ", err)
@@ -121,9 +122,9 @@ func DeleteUnit(c *gin.Context) {
 		return
 	}
 
-	if err := data_handler.DeleteUnitOfMeasure(uint(id)); err != nil {
+	if err := unit_of_measure_repository.DeleteUnitOfMeasure(uint(id)); err != nil {
 		logger.Log.Error("Error deleting unit: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting unit"})
+		error_handler.HandleDBErrorWithContext(c, err, uint(id), unit_of_measure_repository.GetReferencingItems)
 		return
 	}
 

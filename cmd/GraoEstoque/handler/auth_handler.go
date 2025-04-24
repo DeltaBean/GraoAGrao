@@ -7,12 +7,13 @@ import (
 	"os"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/user_repository"
+
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 
 	"net/http"
 
 	auth "github.com/IlfGauhnith/GraoAGrao/pkg/auth"
-	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
 	data_errors "github.com/IlfGauhnith/GraoAGrao/pkg/errors"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
@@ -99,14 +100,14 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 		return
 	}
 
-	userStruct, err := data_handler.GetUserByGoogleID(googleUserInfoStruct.ID)
+	userStruct, err := user_repository.GetUserByGoogleID(googleUserInfoStruct.ID)
 	if err != nil {
 		var googleUserNotFound *data_errors.GoogleIDUserNotFound
 		if errors.As(err, &googleUserNotFound) {
 			logger.Log.Info("Google user not found in DB. Creating new user.")
 			// Update the outer variable, not creating a new one.
 			userStruct = util.NewUserFromGoogleUserInfo(googleUserInfoStruct)
-			if err = data_handler.SaveUser(userStruct); err != nil {
+			if err = user_repository.SaveUser(userStruct); err != nil {
 				logger.Log.Error("Error saving user: ", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving user"})
 				return
@@ -127,7 +128,7 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 	}
 
 	// stamping last login with now
-	data_handler.StampNowLastLogin(userStruct.ID)
+	user_repository.StampNowLastLogin(userStruct.ID)
 
 	// Redirect to frontend with JWT and user info as query parameters
 	frontendURL := os.Getenv("FRONTEND_URL")

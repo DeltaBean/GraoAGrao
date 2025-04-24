@@ -7,7 +7,7 @@ import (
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
-	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_out_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/gin-gonic/gin"
@@ -31,7 +31,7 @@ func CreateStockOut(c *gin.Context) {
 		return
 	}
 
-	err = data_handler.SaveStockOut(&StockOut, authenticatedUser.ID)
+	err = stock_out_repository.SaveStockOut(&StockOut, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock out"})
@@ -52,7 +52,7 @@ func GetStockOutByID(c *gin.Context) {
 		return
 	}
 
-	StockOut, err := data_handler.GetStockOutByID(id)
+	StockOut, err := stock_out_repository.GetStockOutByID(id)
 	if err != nil {
 		logger.Log.Errorf("Failed to retrieve stock out: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "StockOut not found"})
@@ -73,7 +73,7 @@ func ListAllStockOut(c *gin.Context) {
 		return
 	}
 
-	StockOuts, err := data_handler.ListAllStockOut(authenticatedUser.ID)
+	StockOuts, err := stock_out_repository.ListAllStockOut(authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Error listing stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stock out list"})
@@ -95,7 +95,7 @@ func DeleteStockOut(c *gin.Context) {
 		return
 	}
 
-	err = data_handler.DeleteStockOut(id)
+	err = stock_out_repository.DeleteStockOut(id)
 	if err != nil {
 		logger.Log.Errorf("Failed to delete stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete stock out"})

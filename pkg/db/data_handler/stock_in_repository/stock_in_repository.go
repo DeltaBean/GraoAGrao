@@ -1,4 +1,4 @@
-package data_handler
+package stock_in_repository
 
 import (
 	"context"

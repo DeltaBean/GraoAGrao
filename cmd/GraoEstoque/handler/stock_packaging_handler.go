@@ -9,7 +9,7 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 
-	data_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_packaging_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
@@ -27,7 +27,7 @@ func CreateStockPackaging(c *gin.Context) {
 	}
 
 	modelPackaging := mapper.CreateStockPackagingToModel(req)
-	if err := data_handler.SaveStockPackaging(modelPackaging, user.ID); err != nil {
+	if err := stock_packaging_repository.SaveStockPackaging(modelPackaging, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving packaging"})
 		return
 	}
@@ -44,7 +44,7 @@ func GetStockPackagingByID(c *gin.Context) {
 		return
 	}
 
-	packaging, err := data_handler.GetStockPackagingByID(uint(id))
+	packaging, err := stock_packaging_repository.GetStockPackagingByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving packaging"})
 		return
@@ -69,7 +69,7 @@ func ListStockPackagings(c *gin.Context) {
 	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
 	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
-	packagings, err := data_handler.ListStockPackagingsPaginated(user.ID, offset, limit)
+	packagings, err := stock_packaging_repository.ListStockPackagingsPaginated(user.ID, offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing packagings"})
 		return
@@ -89,7 +89,7 @@ func UpdateStockPackaging(c *gin.Context) {
 	req := c.MustGet("dto").(*request.UpdateStockPackagingRequest)
 	stockPackModel := mapper.UpdateStockPackagingToModel(req)
 
-	updated, err := data_handler.UpdateStockPackaging(stockPackModel)
+	updated, err := stock_packaging_repository.UpdateStockPackaging(stockPackModel)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating packaging"})
 		return
@@ -107,7 +107,7 @@ func DeleteStockPackaging(c *gin.Context) {
 		return
 	}
 
-	if err := data_handler.DeleteStockPackaging(uint(id)); err != nil {
+	if err := stock_packaging_repository.DeleteStockPackaging(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting packaging"})
 		return
 	}

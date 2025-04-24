@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
-	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_repository"
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/logger"
@@ -22,7 +22,7 @@ func GetStock(c *gin.Context) {
 		return
 	}
 
-	stock, err := data_handler.GetStock(authenticatedUser.ID)
+	stock, err := stock_repository.GetStock(authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Error("Error fetching stock: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -49,7 +49,7 @@ func GetStockByCategory(c *gin.Context) {
 		return
 	}
 
-	stock, err := data_handler.GetStockByCategory(authenticatedUser.ID, categoryID)
+	stock, err := stock_repository.GetStockByCategory(authenticatedUser.ID, categoryID)
 	if err != nil {
 		logger.Log.Error("Error fetching stock: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
