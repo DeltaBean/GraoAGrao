@@ -5,26 +5,28 @@ import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton }
 import Header from "@/components/Header";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
-import { Category, Item, CreateItemInput, UpdateItemInput, UnitOfMeasure } from "@/model/items_model";
 import * as items_api from "@/api/items_api";
 import * as categories_api from "@/api/categories_api";
 import * as units_api from "@/api/units_api";
-import ModalCreateEditItem from "@/components/ModalCreateEditItem";
+import ModalFormItem from "@/components/Form/Modal/ModalFormItem";
+import { ItemModel, ItemRequest, ItemResponse, normalizeItemResponse, toItemRequest } from "@/model/item";
+import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse } from "@/model/category";
+import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/model/unit_of_measure";
 
 export default function ItemPage() {
 
   // Items list and loading state.
-  const [items, setItems] = useState<Item[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasure[]>([]);
+  const [items, setItems] = useState<ItemModel[]>([]);
+  const [categories, setCategories] = useState<CategoryModel[]>([]);
+  const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasureModel[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // State for the item being edited.
-  const [editItem, setEditItem] = useState({
-    item_id: 0,
-    item_description: '',
+  const defaultItem = {
+    id: 0,
+    description: '',
     ean13: '',
     category: {
       id: 0,
@@ -34,12 +36,13 @@ export default function ItemPage() {
       id: 0,
       description: "",
     }
-  });
+  };
+  const [editItem, setEditItem] = useState<ItemModel>(defaultItem);
 
   // State for editing modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalEdit, setIsModalEdit] = useState(false);
-  const [isModalCreate, setIsModalCreate] = useState(true);
+  const [_, setIsModalCreate] = useState(true);
 
   // Handlers for open/close modal.
   const handleCloseModal = () => setIsModalOpen(false);
@@ -60,7 +63,7 @@ export default function ItemPage() {
   // Fetch items when the component mounts.
   useEffect(() => {
     fetchItems();
-    fetchItemsCategories();
+    fetchCategories();
     fetchUnitsOfMeasure();
   }, []);
 
@@ -68,8 +71,12 @@ export default function ItemPage() {
     setLoading(true);
 
     try {
-      const data: UnitOfMeasure[] = await units_api.fetchUnits();
-      setUnitsOfMeasure(data ?? []);
+      const unitOfMeasureResponse: UnitOfMeasureResponse[] = await units_api.fetchUnits();
+      const unitOfMeasureModel: UnitOfMeasureModel[] = unitOfMeasureResponse.map(
+        (unit) => {return normalizeUnitOfMeasureResponse(unit)}  
+      );
+
+      setUnitsOfMeasure(unitOfMeasureModel ?? []);
 
     } catch (err: any) {
       setError(err.message);
@@ -78,12 +85,16 @@ export default function ItemPage() {
     }
   }
 
-  const fetchItemsCategories = async () => {
+  const fetchCategories = async () => {
     setLoading(true);
 
     try {
-      const data = await categories_api.fetchCategories()
-      setCategories(data ?? []);
+      const categoryResponse: CategoryResponse[] = await categories_api.fetchCategories();
+      const categoryModel: CategoryModel[] = categoryResponse.map(
+        (cat) => {return normalizeCategoryResponse(cat)}
+      );
+
+      setCategories(categoryModel ?? []);
 
     } catch (err: any) {
       setError(err.message);
@@ -96,8 +107,12 @@ export default function ItemPage() {
     setLoading(true);
 
     try {
-      const data = await items_api.fetchItems();
-      setItems(data ?? []);
+      const itemResponse: ItemResponse[] = await items_api.fetchItems(); 
+      const itemModel: ItemModel[] = itemResponse.map(
+        (it) => {return normalizeItemResponse(it)}
+      );
+      
+      setItems(itemModel ?? []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -107,9 +122,13 @@ export default function ItemPage() {
   };
 
   // Create a new item.
-  const handleCreate = async (newItem: CreateItemInput) => {
+  const handleCreate = async (newItem: ItemModel) => {
     try {
-      const created: Item = await items_api.createItem(newItem);
+      console.log(newItem);
+      const itemRequest: ItemRequest = toItemRequest(newItem);
+      const itemResponse: ItemResponse = await items_api.createItem(itemRequest);
+      const created: ItemModel = normalizeItemResponse(itemResponse);
+
       setItems((prev) => [...prev, created]);
       setIsModalOpen(false);
     } catch (err: any) {
@@ -117,11 +136,16 @@ export default function ItemPage() {
     }
   };
 
-  const handleEdit = async (toUpdateItem: UpdateItemInput) => {
+  const handleEdit = async (toUpdateItem: ItemModel) => {
     try {
-      const updated: Item = await items_api.updateItem(toUpdateItem);
-      setItems((prev) => prev.map(item => item.item_id === updated.item_id ? updated : item));
-      setEditItem({ item_id: 0, item_description: '', ean13: '', category: { id: 0, description: "" }, unit_of_measure: { id: 0, description: "" } });
+
+      const itemRequest: ItemRequest = toItemRequest(toUpdateItem);
+      const itemResponse: ItemResponse = await items_api.createItem(itemRequest);
+      const updated: ItemModel = normalizeItemResponse(itemResponse);
+
+      setItems((prev) => prev.map(item => item.id === updated.id ? updated : item));
+      setEditItem(defaultItem);
+
       setIsModalOpen(false);
     } catch (err: any) {
       setError(err.message);
@@ -132,7 +156,7 @@ export default function ItemPage() {
 
     try {
       await items_api.deleteItem(id);
-      setItems((prev) => prev.filter(item => item.item_id !== id));
+      setItems((prev) => prev.filter(item => item.id !== id));
     } catch (err: any) {
       setError(err.message);
     }
@@ -177,10 +201,10 @@ export default function ItemPage() {
 
               {loading ? (null) : (
                 items.map((item) => (
-                  <Table.Row key={item.item_id} align={"center"}>
-                    <Table.RowHeaderCell>{item.item_description}</Table.RowHeaderCell>
-                    <Table.Cell>{item.category.description}</Table.Cell>
-                    <Table.Cell>{item.unit_of_measure.description}</Table.Cell>
+                  <Table.Row key={item.id} align={"center"}>
+                    <Table.RowHeaderCell>{item.description}</Table.RowHeaderCell>
+                    <Table.Cell>{item.category ? item.category.description : undefined}</Table.Cell>
+                    <Table.Cell>{item.unit_of_measure ? item.unit_of_measure.description : undefined}</Table.Cell>
                     <Table.Cell>{item.ean13}</Table.Cell>
                     <Table.Cell>
                       <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
@@ -211,7 +235,7 @@ export default function ItemPage() {
 
                           </AlertDialog.Trigger>
                           <AlertDialog.Content maxWidth="450px">
-                            <AlertDialog.Title>Delete {item.item_description}</AlertDialog.Title>
+                            <AlertDialog.Title>Delete {item.description}</AlertDialog.Title>
                             <AlertDialog.Description size="2">
                               Are you sure? This item will no longer exist.
                             </AlertDialog.Description>
@@ -229,7 +253,7 @@ export default function ItemPage() {
                                   onClick={
                                     (ev) => {
                                       ev.stopPropagation();
-                                      handleDelete(item.item_id);
+                                      handleDelete(item.id ? item.id : 0);
                                     }
                                   }>
                                   Delete
@@ -250,16 +274,16 @@ export default function ItemPage() {
         </Skeleton>
       </Card>
       {isModalOpen && (
-        <ModalCreateEditItem isModalEdit={isModalEdit}
-          isModalCreate={isModalCreate}
-          categories={categories}
-          unitsOfMeasure={unitsOfMeasure}
+        <ModalFormItem 
+          mode={isModalEdit ? "edit" : "create"}
           editItem={isModalEdit ? editItem : undefined}
-          handleCloseModal={handleCloseModal}
-          handleCreate={handleCreate}
-          handleEdit={handleEdit}
-        >
-        </ModalCreateEditItem>
+          categoryOptions={categories} 
+          unitOfMeasureOptions={unitsOfMeasure} 
+          onClose={handleCloseModal} 
+          onSubmitCreate={handleCreate} 
+          onSubmitEdit={handleEdit}
+          >
+        </ModalFormItem>
       )}
     </Flex>
   );

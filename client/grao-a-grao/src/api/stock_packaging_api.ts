@@ -1,7 +1,7 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { StockPackaging, CreateStockPackaging, UpdateStockPackaging } from "@/model/stock_model";
+import { StockPackagingRequest, StockPackagingResponse } from "@/model/stock_packaging";
 
-export async function fetchStockPackaging(): Promise<StockPackaging[]> {
+export async function fetchStockPackaging(): Promise<StockPackagingResponse[]> {
   try {
     const token = getAuthToken();
 
@@ -15,7 +15,7 @@ export async function fetchStockPackaging(): Promise<StockPackaging[]> {
     if (!res.ok)
       throw new Error('Error fetching stock packaging');
 
-    const data: StockPackaging[] = await res.json();
+    const data: StockPackagingResponse[] = await res.json();
     return data;
 
   } catch (err: any) {
@@ -24,7 +24,7 @@ export async function fetchStockPackaging(): Promise<StockPackaging[]> {
   }
 }
 
-export async function createStockPackaging(stockPackaging: CreateStockPackaging): Promise<StockPackaging> {
+export async function createStockPackaging(stockPackaging: StockPackagingRequest): Promise<StockPackagingResponse> {
   try {
     const token = getAuthToken();;
 
@@ -40,7 +40,7 @@ export async function createStockPackaging(stockPackaging: CreateStockPackaging)
     if (!res.ok)
       throw new Error('Error creating stock packaging');
 
-    const created: StockPackaging = await res.json();
+    const created: StockPackagingResponse = await res.json();
     return created;
 
   } catch (err: any) {
@@ -49,7 +49,7 @@ export async function createStockPackaging(stockPackaging: CreateStockPackaging)
   }
 }
 
-export async function updateStockPackaging(stockPackaging: UpdateStockPackaging): Promise<StockPackaging> {
+export async function updateStockPackaging(stockPackaging: StockPackagingRequest): Promise<StockPackagingResponse> {
   try {
     const token = getAuthToken();
 
@@ -65,7 +65,7 @@ export async function updateStockPackaging(stockPackaging: UpdateStockPackaging)
     if (!res.ok)
       throw new Error('Error updating stock packaging');
 
-    const updated: StockPackaging = await res.json();
+    const updated: StockPackagingResponse = await res.json();
     return updated;
 
   } catch (err: any) {

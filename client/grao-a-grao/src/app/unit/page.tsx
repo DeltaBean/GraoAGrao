@@ -1,24 +1,26 @@
 "use client";
 
 import Header from "@/components/Header";
-import { UnitOfMeasure, CreateUnitOfMeasureInput, UpdateUnitOfMeasureInput } from "@/model/items_model";
 import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton } from "@radix-ui/themes";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import * as units_api from "@/api/units_api";
-import ModalCreateEditUnit from "@/components/ModalCreateEditUnit";
+import { UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse, toUnitOfMeasureRequest, normalizeUnitOfMeasureResponse } from "@/model/unit_of_measure";
+import ModalFormUnitOfMeasure from "@/components/Form/Modal/ModalFormUnitOfMeasure";
+
 
 export default function UnitPage() {
 
-    const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasure[]>([]);
+    const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasureModel[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // State for the unit of measure being edited.
-    const [editUnitOfMeasure, setEditUnitOfMeasure] = useState({
+    const defaultUnitOfMeasure = {
         id: 0,
         description: "",
-    });
+    };
+    const [editUnitOfMeasure, setEditUnitOfMeasure] = useState<UnitOfMeasureModel>(defaultUnitOfMeasure);
 
     // State for editing modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,8 +52,12 @@ export default function UnitPage() {
         setLoading(true);
 
         try {
-            const data = await units_api.fetchUnits()
-            setUnitsOfMeasure(data ?? []);
+            const unitOfMeasureResponse: UnitOfMeasureResponse[] = await units_api.fetchUnits();
+            const unitOfMeasureModel: UnitOfMeasureModel[] = unitOfMeasureResponse.map(
+                (unit) => { return normalizeUnitOfMeasureResponse(unit) }
+            );
+
+            setUnitsOfMeasure(unitOfMeasureModel ?? []);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -59,9 +65,12 @@ export default function UnitPage() {
         }
     }
 
-    const handleCreate = async (newUnit: CreateUnitOfMeasureInput) => {
+    const handleCreate = async (newUnit: UnitOfMeasureModel) => {
         try {
-            const created: UnitOfMeasure = await units_api.createUnit(newUnit);
+            const unitOfMeasureRequest: UnitOfMeasureRequest = toUnitOfMeasureRequest(newUnit);
+            const unitOfMeasureResponse: UnitOfMeasureResponse = await units_api.createUnit(unitOfMeasureRequest);
+            const created: UnitOfMeasureModel = normalizeUnitOfMeasureResponse(unitOfMeasureResponse);
+
             setUnitsOfMeasure((prev) => [...prev, created]);
             setIsModalOpen(false);
         } catch (err: any) {
@@ -69,11 +78,15 @@ export default function UnitPage() {
         }
     };
 
-    const handleEdit = async (toUpdateUnit: UpdateUnitOfMeasureInput) => {
+    const handleEdit = async (toUpdateUnit: UnitOfMeasureModel) => {
         try {
-            const updated: UnitOfMeasure = await units_api.updateUnit(toUpdateUnit);
+
+            const unitOfMeasureRequest: UnitOfMeasureRequest = toUnitOfMeasureRequest(toUpdateUnit);
+            const unitOfMeasureResponse: UnitOfMeasureResponse = await units_api.createUnit(unitOfMeasureRequest);
+            const updated: UnitOfMeasureModel = normalizeUnitOfMeasureResponse(unitOfMeasureResponse);
+
             setUnitsOfMeasure((prev) => prev.map(unit => unit.id === updated.id ? updated : unit));
-            setEditUnitOfMeasure({id: 0, description: "" });
+            setEditUnitOfMeasure(defaultUnitOfMeasure);
             setIsModalOpen(false);
         } catch (err: any) {
             setError(err.message);
@@ -177,7 +190,7 @@ export default function UnitPage() {
                                                                     onClick={
                                                                         (ev) => {
                                                                             ev.stopPropagation();
-                                                                            handleDelete(unit.id);
+                                                                            handleDelete(unit.id ?? 0);
                                                                         }
                                                                     }>
                                                                     Delete
@@ -199,14 +212,14 @@ export default function UnitPage() {
             </Card>
 
             {isModalOpen && (
-                <ModalCreateEditUnit isModalEdit={isModalEdit}
-                    isModalCreate={isModalCreate}
-                    editUnit={isModalEdit ? editUnitOfMeasure : undefined}
-                    handleCloseModal={handleCloseModal}
-                    handleCreate={handleCreate}
-                    handleEdit={handleEdit}
-                >
-                </ModalCreateEditUnit>
+                <ModalFormUnitOfMeasure 
+                    mode={isModalEdit ? "edit" : "create"}
+                    editUnitOfMeasure={isModalEdit ? editUnitOfMeasure : undefined}
+                    onClose={handleCloseModal} 
+                    onSubmitCreate={handleCreate} 
+                    onSubmitEdit={handleEdit}
+                    >
+                </ModalFormUnitOfMeasure>
             )}
 
         </Flex>

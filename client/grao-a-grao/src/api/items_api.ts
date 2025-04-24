@@ -1,7 +1,7 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { Category, CreateItemInput, Item } from "@/model/items_model";
+import { ItemRequest, ItemResponse } from "@/model/item";
 
-export async function fetchItems(): Promise<Item[]> {
+export async function fetchItems(): Promise<ItemResponse[]> {
   try {
     const token = getAuthToken();
 
@@ -15,7 +15,7 @@ export async function fetchItems(): Promise<Item[]> {
     if (!res.ok)
       throw new Error('Error fetching items');
 
-    const data = await res.json();
+    const data: ItemResponse[] = await res.json();
     return data;
 
   } catch (err: any) {
@@ -24,7 +24,7 @@ export async function fetchItems(): Promise<Item[]> {
   }
 }
 
-export async function createItem(item: CreateItemInput): Promise<Item> {
+export async function createItem(item: ItemRequest): Promise<ItemResponse> {
   try {
     const token = getAuthToken();;
 
@@ -40,7 +40,7 @@ export async function createItem(item: CreateItemInput): Promise<Item> {
     if (!res.ok)
       throw new Error('Error creating item');
 
-    const created: Item = await res.json();
+    const created: ItemResponse = await res.json();
     return created;
 
   } catch (err: any) {
@@ -49,7 +49,7 @@ export async function createItem(item: CreateItemInput): Promise<Item> {
   }
 }
 
-export async function updateItem(item: Item): Promise<Item> {
+export async function updateItem(item: ItemRequest): Promise<ItemResponse> {
   try {
     const token = getAuthToken();
 
@@ -65,7 +65,7 @@ export async function updateItem(item: Item): Promise<Item> {
     if (!res.ok)
       throw new Error('Error updating item');
 
-    const updated: Item = await res.json();
+    const updated: ItemResponse = await res.json();
     return updated;
 
   } catch (err: any) {

@@ -1,40 +1,40 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton } from "@radix-ui/themes";
+import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton, Badge } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
-import { Item, Category, ItemOption } from "@/model/items_model";
-import { StockPackaging, CreateStockPackaging, UpdateStockPackaging } from "@/model/stock_model";
 import * as items_api from "@/api/items_api";
-import * as categories_api from "@/api/categories_api";
 import * as stock_api from "@/api/stock_packaging_api";
-import ModalCreateEditStockPackaging from "@/components/ModalCreateEditStockPackaging";
+import { StockPackagingModel, StockPackagingRequest, StockPackagingResponse, toStockPackagingRequest, normalizeStockPackagingResponse } from "@/model/stock_packaging";
+import { ItemModel, ItemResponse, normalizeItemResponse } from "@/model/item";
+import ModalFormStockPackaging from "@/components/Form/Modal/ModalFormStockPackaging";
 
 export default function StockPackagingPage() {
 
 
-    const [stockPackagings, setStockPackagings] = useState<StockPackaging[]>([]);
-    const [stockItems, setStockItems] = useState<ItemOption[]>([]);
+    const [stockPackagings, setStockPackagings] = useState<StockPackagingModel[]>([]);
+    const [items, setItems] = useState<ItemModel[]>([]);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
 
-    const [editStockPackaging, setEditStockPackaging] = useState({
+    const defaultStockPackaging = {
         id: 0,
         description: '',
         quantity: 0,
         item: {
-            item_id: 0,
-            item_description: '',
+            id: 0,
+            description: '',
             category: {
                 id: 0,
                 description: "",
             },
         },
-    });
+    }
+    const [editStockPackaging, setEditStockPackaging] = useState<StockPackagingModel>(defaultStockPackaging);
 
     // State for editing modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,11 +66,12 @@ export default function StockPackagingPage() {
         setLoading(true);
 
         try {
-            const data: Item[] = await items_api.fetchItems();
-            setStockItems(data.map(item => ({
-                item_id: item.item_id,
-                item_description: item.item_description,
-            })) ?? []);
+            const itemResponse: ItemResponse[] = await items_api.fetchItems();
+            const itemModel: ItemModel[] = itemResponse.map(
+                (it) => { return normalizeItemResponse(it) }
+            );
+
+            setItems(itemModel ?? []);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -83,9 +84,12 @@ export default function StockPackagingPage() {
         setLoading(true);
 
         try {
-            const data: StockPackaging[] = await stock_api.fetchStockPackaging();
-            setStockPackagings(data ?? []);
+            const stockPackagingResponse: StockPackagingResponse[] = await stock_api.fetchStockPackaging();
+            const stockPackagingModel: StockPackagingModel[] = stockPackagingResponse.map(
+                (sp) => { return normalizeStockPackagingResponse(sp) }
+            );
 
+            setStockPackagings(stockPackagingModel ?? []);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -93,9 +97,13 @@ export default function StockPackagingPage() {
         }
     }
 
-    const handleCreate = async (newPackaging: CreateStockPackaging) => {
+    const handleCreate = async (newPackaging: StockPackagingModel) => {
         try {
-            const created: StockPackaging = await stock_api.createStockPackaging(newPackaging);
+
+            const stockPackagingRequest: StockPackagingRequest = toStockPackagingRequest(newPackaging);
+            const stockPackagingResponse: StockPackagingResponse = await stock_api.createStockPackaging(stockPackagingRequest);
+            const created: StockPackagingModel = normalizeStockPackagingResponse(stockPackagingResponse);
+
             setStockPackagings((prev) => [...prev, created]);
             setIsModalOpen(false);
         } catch (err: any) {
@@ -103,23 +111,15 @@ export default function StockPackagingPage() {
         }
     };
 
-    const handleEdit = async (toUpdatePackaging: UpdateStockPackaging) => {
+    const handleEdit = async (toUpdatePackaging: StockPackagingModel) => {
         try {
-            const updated: StockPackaging = await stock_api.updateStockPackaging(toUpdatePackaging);
+            const stockPackagingRequest: StockPackagingRequest = toStockPackagingRequest(toUpdatePackaging);
+            const stockPackagingResponse: StockPackagingResponse = await stock_api.createStockPackaging(stockPackagingRequest);
+            const updated: StockPackagingModel = normalizeStockPackagingResponse(stockPackagingResponse);
+
             setStockPackagings((prev) => prev.map(pack => pack.id === updated.id ? updated : pack));
-            setEditStockPackaging({
-                id: 0,
-                description: '',
-                quantity: 0,
-                item: {
-                    item_id: 0,
-                    item_description: '',
-                    category: {
-                        id: 0,
-                        description: "",
-                    },
-                },
-            });
+
+            setEditStockPackaging(defaultStockPackaging);
             setIsModalOpen(false);
         } catch (err: any) {
             setError(err.message);
@@ -176,8 +176,8 @@ export default function StockPackagingPage() {
                                 stockPackagings.map((pack) => (
                                     <Table.Row key={pack.id} align={"center"}>
                                         <Table.RowHeaderCell>{pack.description}</Table.RowHeaderCell>
-                                        <Table.Cell>{pack.item.item_description}</Table.Cell>
-                                        <Table.Cell>{pack.quantity}</Table.Cell>
+                                        <Table.Cell>{pack.item?.description} <Badge color="iris" className="ml-1" size="1" variant="surface">{pack.item?.category?.description}</Badge> </Table.Cell>
+                                        <Table.Cell>{pack.quantity} <Badge color="purple" className="ml-1" size="1" variant="surface">{pack.item?.unit_of_measure?.description}</Badge> </Table.Cell>
                                         <Table.Cell>
                                             <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
                                                 <IconButton
@@ -225,7 +225,7 @@ export default function StockPackagingPage() {
                                                                     onClick={
                                                                         (ev) => {
                                                                             ev.stopPropagation();
-                                                                            handleDelete(pack.id);
+                                                                            handleDelete(pack.id ?? 0);
                                                                         }
                                                                     }>
                                                                     Delete
@@ -246,14 +246,15 @@ export default function StockPackagingPage() {
                 </Skeleton>
             </Card>
             {isModalOpen && (
-                <ModalCreateEditStockPackaging isModalEdit={isModalEdit}
-                    isModalCreate={isModalCreate}
-                    editPackage={isModalEdit ? editStockPackaging : undefined}
-                    handleCloseModal={handleCloseModal}
-                    handleCreate={handleCreate}
-                    handleEdit={handleEdit}
-                    items={stockItems}>
-                </ModalCreateEditStockPackaging>
+                <ModalFormStockPackaging
+                    mode={isModalEdit ? "edit" : "create"}
+                    editStockPackaging={isModalEdit ? editStockPackaging : undefined}
+                    itemOptions={items}
+                    onClose={handleCloseModal}
+                    onSubmitCreate={handleCreate}
+                    onSubmitEdit={handleEdit}
+                >
+                </ModalFormStockPackaging>
             )}
         </Flex>
     );

@@ -22,5 +22,10 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), var(--font-mono);
+}
+
+.radix-themes {
+	--default-font-family: var(--font-roboto);
+  --default-letter-spacing: 0.03em;
 }

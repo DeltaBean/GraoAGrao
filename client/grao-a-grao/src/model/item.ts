@@ -12,8 +12,8 @@ export interface ItemRequest {
 
 // Received from the backend
 export interface ItemResponse {
-    item_id: number;
-    item_description: string;
+    id: number;
+    description: string;
     ean13: string;
     category: {
         id: number;
@@ -31,19 +31,19 @@ export interface ItemResponse {
 
 // Frontend UI model
 export interface ItemModel {
-    item_id: number;
-    item_description: string;
-    ean13: string;
-    category: CategoryModel;
-    unit_of_measure: UnitOfMeasureModel;
-    created_at: Date;
-    updated_at: Date;
+    id?: number;
+    description: string;
+    ean13?: string;
+    category?: CategoryModel;
+    unit_of_measure?: UnitOfMeasureModel;
+    created_at?: Date;
+    updated_at?: Date;
 }
 
 export function normalizeItemResponse(res: ItemResponse): ItemModel {
     return {
-        item_id: res.item_id,
-        item_description: res.item_description,
+        id: res.id,
+        description: res.description,
         ean13: res.ean13,
         category: {
             ...res.category,
@@ -57,11 +57,24 @@ export function normalizeItemResponse(res: ItemResponse): ItemModel {
 }
 
 export function toItemRequest(model: ItemModel): ItemRequest {
+  
+    if (!model.ean13) {
+      throw new Error("Item EAN-13 is required.");
+    }
+  
+    if (!model.category || typeof model.category.id !== "number") {
+      throw new Error("Category with a valid ID is required.");
+    }
+  
+    if (!model.unit_of_measure || typeof model.unit_of_measure.id !== "number") {
+      throw new Error("Unit of Measure with a valid ID is required.");
+    }
+  
     return {
-        id: model.item_id,
-        description: model.item_description,
-        ean13: model.ean13,
-        category_id: model.category.id,
-        unit_of_measure_id: model.unit_of_measure.id,
+      id: model.id, // optional, can be undefined
+      description: model.description,
+      ean13: model.ean13,
+      category_id: model.category.id,
+      unit_of_measure_id: model.unit_of_measure.id,
     };
-}
+  }

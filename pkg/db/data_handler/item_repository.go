@@ -23,9 +23,21 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 	defer conn.Release()
 
 	query := `
-		INSERT INTO tb_item (item_description, ean13, category_id, unit_id, owner_id)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING item_id, created_at, updated_at`
+		WITH inserted AS (
+  			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, owner_id)
+  			VALUES ($1, $2, $3, $4, $5)
+  			RETURNING item_id, category_id, unit_id, created_at, updated_at
+		)
+		SELECT 
+			i.item_id,
+			i.created_at,
+			i.updated_at,
+			c.category_description,
+			u.unit_description
+		FROM inserted i
+			JOIN tb_category c ON i.category_id = c.category_id
+			JOIN tb_unit_of_measure u ON i.unit_id = u.unit_id;	
+	`
 
 	err = conn.QueryRow(context.Background(), query,
 		item.Description,
@@ -33,7 +45,13 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 		item.Category.ID,
 		item.UnitOfMeasure.ID,
 		OwnerID,
-	).Scan(&item.ID, &item.CreatedAt, &item.UpdatedAt)
+	).Scan(
+		&item.ID,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+		&item.Category.Description,
+		&item.UnitOfMeasure.Description,
+	)
 
 	if err != nil {
 		logger.Log.Errorf("Error saving item: %v", err)
@@ -96,7 +114,6 @@ func GetItemByID(id uint) (*model.Item, error) {
 	return item, nil
 }
 
-// UpdateItem updates an existing item in tb_item and returns the updated model.
 func UpdateItem(item *model.Item) (*model.Item, error) {
 	logger.Log.Info("UpdateItem")
 
@@ -107,23 +124,31 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 	}
 	defer conn.Release()
 
-	// Update the record, then return all columns we need.
 	query := `
-        UPDATE tb_item
-        SET item_description = $1,
-            ean13            = $2,
-            category_id      = $3,
-            unit_id          = $4
-        WHERE item_id = $5
-        RETURNING
-            item_id,
-            item_description,
-            ean13,
-            category_id,
-            unit_id,
-            created_at,
-            updated_at
-    `
+		WITH updated AS (
+			UPDATE tb_item
+			SET item_description = $1,
+				ean13            = $2,
+				category_id      = $3,
+				unit_id          = $4
+			WHERE item_id = $5
+			RETURNING item_id, item_description, ean13, category_id, unit_id, owner_id, created_at, updated_at
+		)
+		SELECT 
+			u.item_id,
+			u.item_description,
+			u.ean13,
+			u.created_at,
+			u.updated_at,
+			u.category_id,
+			c.category_description,
+			u.unit_id,
+			um.unit_description,
+			u.owner_id
+		FROM updated u
+		JOIN tb_category c ON u.category_id = c.category_id
+		JOIN tb_unit_of_measure um ON u.unit_id = um.unit_id;
+	`
 
 	updated := &model.Item{}
 	row := conn.QueryRow(context.Background(), query,
@@ -134,21 +159,24 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 		item.ID,
 	)
 
-	// Scan into your model (nested IDs only; keep any existing nested Descriptions
-	if err := row.Scan(
+	err = row.Scan(
 		&updated.ID,
 		&updated.Description,
 		&updated.EAN13,
-		&updated.Category.ID,
-		&updated.UnitOfMeasure.ID,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
-	); err != nil {
+		&updated.Category.ID,
+		&updated.Category.Description,
+		&updated.UnitOfMeasure.ID,
+		&updated.UnitOfMeasure.Description,
+		&updated.Owner.ID,
+	)
+	if err != nil {
 		logger.Log.Errorf("Error scanning updated item: %v", err)
 		return nil, err
 	}
 
-	logger.Log.Info("Item successfully updated")
+	logger.Log.Info("Item successfully updated with category and unit info")
 	return updated, nil
 }
 

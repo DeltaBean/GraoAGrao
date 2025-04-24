@@ -14,8 +14,8 @@ export interface StockPackagingResponse {
     description: string;
     quantity: number;
     item: {
-        item_id: number;
-        item_description: string;
+        id: number;
+        description: string;
         ean13: string;
         category: {
             id: number;
@@ -33,10 +33,10 @@ export interface StockPackagingResponse {
 }
 
 export interface StockPackagingModel {
-    id: number;
+    id?: number;
     description: string;
     quantity: number;
-    item: ItemModel
+    item?: ItemModel
 }
 
 export function normalizeStockPackagingResponse(res: StockPackagingResponse): StockPackagingModel {
@@ -50,7 +50,7 @@ export function normalizeStockPackagingResponse(res: StockPackagingResponse): St
                 ...res.item.category,
                 created_at: new Date(res.item.category.created_at),
                 updated_at: new Date(res.item.category.updated_at),
-            }, 
+            },
             created_at: new Date(res.item.created_at),
             updated_at: new Date(res.item.updated_at),
         },
@@ -58,10 +58,15 @@ export function normalizeStockPackagingResponse(res: StockPackagingResponse): St
 }
 
 export function toStockPackagingRequest(model: StockPackagingModel): StockPackagingRequest {
+    
+    if (!model.item || typeof model.item.id !== "number") {
+        throw new Error("Item with a valid ID is required.");
+    }
+
     return {
         id: model.id,
         description: model.description,
         quantity: model.quantity,
-        item_id: model.item.item_id,
+        item_id: model.item.id,
     };
 }

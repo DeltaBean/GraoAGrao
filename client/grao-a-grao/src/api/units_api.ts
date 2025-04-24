@@ -1,7 +1,7 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { CreateUnitOfMeasureInput, UpdateUnitOfMeasureInput, UnitOfMeasure } from "@/model/items_model";
+import { UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/model/unit_of_measure";
 
-export async function fetchUnits(): Promise<UnitOfMeasure[]> {
+export async function fetchUnits(): Promise<UnitOfMeasureResponse[]> {
   try {
     const token = getAuthToken();
 
@@ -15,7 +15,7 @@ export async function fetchUnits(): Promise<UnitOfMeasure[]> {
     if (!res.ok)
       throw new Error('Error fetching units of measure');
 
-    const data: UnitOfMeasure[] = await res.json();
+    const data: UnitOfMeasureResponse[] = await res.json();
     return data;
 
   } catch (err: any) {
@@ -24,7 +24,7 @@ export async function fetchUnits(): Promise<UnitOfMeasure[]> {
   }
 }
 
-export async function createUnit(unit: CreateUnitOfMeasureInput): Promise<UnitOfMeasure> {
+export async function createUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeasureResponse> {
   try {
     const token = getAuthToken();;
 
@@ -40,7 +40,7 @@ export async function createUnit(unit: CreateUnitOfMeasureInput): Promise<UnitOf
     if (!res.ok)
       throw new Error('Error creating unit of measure');
 
-    const created: UnitOfMeasure = await res.json();
+    const created: UnitOfMeasureResponse = await res.json();
     return created;
 
   } catch (err: any) {
@@ -49,7 +49,7 @@ export async function createUnit(unit: CreateUnitOfMeasureInput): Promise<UnitOf
   }
 }
 
-export async function updateUnit(unit: UnitOfMeasure): Promise<UnitOfMeasure> {
+export async function updateUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeasureResponse> {
   try {
     const token = getAuthToken();
 
@@ -65,7 +65,7 @@ export async function updateUnit(unit: UnitOfMeasure): Promise<UnitOfMeasure> {
     if (!res.ok)
       throw new Error('Error updating unit of measure');
 
-    const updated: UnitOfMeasure = await res.json();
+    const updated: UnitOfMeasureResponse = await res.json();
     return updated;
 
   } catch (err: any) {

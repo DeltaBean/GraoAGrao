@@ -12,7 +12,7 @@ export interface UnitOfMeasureResponse {
 
 // Internal UI model (can be extended later with local-only state)
 export interface UnitOfMeasureModel {
-    id: number;
+    id?: number;
     description: string;
 }
 

@@ -1,24 +1,26 @@
 "use client";
 
-import Header from "@/components/Header";
-import { Category, CreateCategoryInput, UpdateCategoryInput } from "@/model/items_model";
 import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton } from "@radix-ui/themes";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
+
 import * as categories_api from "@/api/categories_api";
-import ModalCreateEditCategory from "@/components/ModalCreateEditCategory";
+import Header from "@/components/Header";
+import ModalFormCategory from "@/components/Form/Modal/ModalFormCategory";
+import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse, toCategoryRequest } from "@/model/category";
 
 export default function CategoryPage() {
 
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // State for the category being edited.
-    const [editCategory, setEditCategory] = useState({
+    const defaultCategory: CategoryModel = {
         id: 0,
         description: "",
-    });
+      };
+    const [editCategory, setEditCategory] = useState<CategoryModel>(defaultCategory);
 
     // State for editing modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,8 +52,11 @@ export default function CategoryPage() {
         setLoading(true);
 
         try {
-            const data = await categories_api.fetchCategories()
-            setCategories(data);
+
+            const categoryResponse: CategoryResponse[] = await categories_api.fetchCategories()
+            const categoryModel: CategoryModel[] = categoryResponse.map((cat) => normalizeCategoryResponse(cat));
+
+            setCategories(categoryModel);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -59,9 +64,13 @@ export default function CategoryPage() {
         }
     }
 
-    const handleCreate = async (newCategory: CreateCategoryInput) => {
+    const handleCreate = async (newCategory: CategoryModel) => {
         try {
-            const created: Category = await categories_api.createCategory(newCategory);
+
+            const categoryRequest: CategoryRequest = toCategoryRequest(newCategory);
+            const categoryResponse: CategoryResponse = await categories_api.createCategory(categoryRequest);
+            const created = normalizeCategoryResponse(categoryResponse);
+
             setCategories((prev) => [...prev, created]);
             setIsModalOpen(false);
         } catch (err: any) {
@@ -69,11 +78,14 @@ export default function CategoryPage() {
         }
     };
 
-    const handleEdit = async (toUpdateCategory: UpdateCategoryInput) => {
+    const handleEdit = async (toUpdateCategory: CategoryModel) => {
         try {
-            const updated: Category = await categories_api.updateCategory(toUpdateCategory);
+            const categoryRequest: CategoryRequest = toCategoryRequest(toUpdateCategory);
+            const categoryResponse: CategoryResponse = await categories_api.updateCategory(categoryRequest);
+            const updated: CategoryModel = normalizeCategoryResponse(categoryResponse);
+
             setCategories((prev) => prev.map(category => category.id === updated.id ? updated : category));
-            setEditCategory({id: 0, description: "" });
+            setEditCategory(defaultCategory);
             setIsModalOpen(false);
         } catch (err: any) {
             setError(err.message);
@@ -177,7 +189,8 @@ export default function CategoryPage() {
                                                                     onClick={
                                                                         (ev) => {
                                                                             ev.stopPropagation();
-                                                                            handleDelete(category.id);
+                                                                            if (category.id)
+                                                                                handleDelete(category.id);
                                                                         }
                                                                     }>
                                                                     Delete
@@ -197,16 +210,15 @@ export default function CategoryPage() {
                     </Table.Root>
                 </Skeleton>
             </Card>
-
             {isModalOpen && (
-                <ModalCreateEditCategory isModalEdit={isModalEdit}
-                    isModalCreate={isModalCreate}
+                <ModalFormCategory
+                    mode={isModalCreate ? "create" : "edit"}
                     editCategory={isModalEdit ? editCategory : undefined}
-                    handleCloseModal={handleCloseModal}
-                    handleCreate={handleCreate}
-                    handleEdit={handleEdit}
+                    onClose={handleCloseModal}
+                    onSubmitCreate={handleCreate}
+                    onSubmitEdit={handleEdit}
                 >
-                </ModalCreateEditCategory>
+                </ModalFormCategory>
             )}
 
         </Flex>

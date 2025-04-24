@@ -1,8 +1,8 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { Category, CreateCategoryInput } from "@/model/items_model";
+import { CategoryRequest, CategoryResponse } from "@/model/category";
 
 
-export async function fetchCategories(): Promise<Category[]> {
+export async function fetchCategories(): Promise<CategoryResponse[]> {
     try {
         const token = getAuthToken();
 
@@ -16,7 +16,7 @@ export async function fetchCategories(): Promise<Category[]> {
         if (!res.ok)
             throw new Error('Error fetching categories');
 
-        const data = await res.json();
+        const data: CategoryResponse[] = await res.json();
         return data;
 
     } catch (err: any) {
@@ -25,9 +25,8 @@ export async function fetchCategories(): Promise<Category[]> {
     }
 }
 
-export async function createCategory(category: CreateCategoryInput): Promise<Category> {
+export async function createCategory(category: CategoryRequest): Promise<CategoryResponse> {
   try {
-    console.log(category);
     const token = getAuthToken();;
 
     const res = await fetch(`${getAPIUrl()}/items/categories`, {
@@ -42,7 +41,7 @@ export async function createCategory(category: CreateCategoryInput): Promise<Cat
     if (!res.ok)
       throw new Error('Error creating category');
 
-    const created: Category = await res.json();
+    const created: CategoryResponse = await res.json();
     return created;
 
   } catch (err: any) {
@@ -51,7 +50,7 @@ export async function createCategory(category: CreateCategoryInput): Promise<Cat
   }
 }
 
-export async function updateCategory(category: Category): Promise<Category> {
+export async function updateCategory(category: CategoryRequest): Promise<CategoryResponse> {
   try {
     const token = getAuthToken();
 
@@ -67,7 +66,7 @@ export async function updateCategory(category: Category): Promise<Category> {
     if (!res.ok)
       throw new Error('Error updating category');
 
-    const updated: Category = await res.json();
+    const updated: CategoryResponse = await res.json();
     return updated;
 
   } catch (err: any) {

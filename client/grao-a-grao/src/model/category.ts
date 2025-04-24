@@ -14,10 +14,10 @@ export interface CategoryResponse {
 
 // Internal model used in frontend components (editable, typed)
 export interface CategoryModel {
-    id: number;
+    id?: number;
     description: string;
-    created_at: Date;
-    updated_at: Date;
+    created_at?: Date;
+    updated_at?: Date; 
 }
 
 export function normalizeCategoryResponse(res: CategoryResponse): CategoryModel {

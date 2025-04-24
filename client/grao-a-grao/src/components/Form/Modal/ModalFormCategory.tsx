@@ -1,0 +1,55 @@
+import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
+import { TextField, Skeleton, Text } from "@radix-ui/themes";
+import { useState, useEffect } from "react";
+import { CategoryModel } from "@/model/category";
+
+type ModalFormCategoryProps = {
+  mode: "create" | "edit";
+  editCategory?: CategoryModel;
+  onClose: () => void;
+  onSubmitCreate: (data: CategoryModel) => void;
+  onSubmitEdit: (data: CategoryModel) => void;
+};
+
+export default function ModalFormCategory({ mode, editCategory, onClose, onSubmitCreate, onSubmitEdit }: ModalFormCategoryProps) {
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    if (editCategory) {
+      setDescription(editCategory.description);
+    }
+  }, [editCategory]);
+
+  const handleSubmit = () => {
+    if (mode === "edit" && editCategory) {
+      editCategory.description = description;
+      onSubmitEdit(editCategory);
+    } else {
+      onSubmitCreate({ description });
+    }
+  };
+
+  return (
+    <ModalFormShell
+      title="Category"
+      mode={mode}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+    >
+      <Text as="label" size="3">
+        <Skeleton loading={false}>
+          <div className="mb-2">Description</div>
+        </Skeleton>
+        <Skeleton loading={false}>
+          <TextField.Root
+            size="3"
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </Skeleton>
+      </Text>
+      
+    </ModalFormShell>
+  );
+}
