@@ -7,6 +7,10 @@ import { useEffect, useState } from "react";
 import * as units_api from "@/api/units_api";
 import { UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse, toUnitOfMeasureRequest, normalizeUnitOfMeasureResponse } from "@/types/unit_of_measure";
 import ModalFormUnitOfMeasure from "@/components/Form/Modal/ModalFormUnitOfMeasure";
+import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/UnitOfMeasure/ModalDeleteReferencedErrorItem";
+import ModalGenericError from "@/components/Error/ModalGenericError";
+import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
+import { ItemResponse } from "@/types/item";
 
 
 export default function UnitPage() {
@@ -14,6 +18,13 @@ export default function UnitPage() {
     const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasureModel[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    type ErrorModalState =
+        | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; unit: UnitOfMeasureModel }
+        | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
+        | { type: "none" };
+    const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
+
 
     // State for the unit of measure being edited.
     const defaultUnitOfMeasure = {
@@ -25,7 +36,7 @@ export default function UnitPage() {
     // State for editing modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalEdit, setIsModalEdit] = useState(false);
-    const [isModalCreate, setIsModalCreate] = useState(true);
+    const [_, setIsModalCreate] = useState(true);
 
     // Handlers for open/close modal.
     const handleCloseModal = () => setIsModalOpen(false);
@@ -93,13 +104,36 @@ export default function UnitPage() {
         }
     }
 
+    const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemResponse>, unit: UnitOfMeasureModel) => {
+        setErrorModal({ type: "delete-referenced", unit, data: err });
+    };
+
+    const handleDeleteGenericError = (err: GenericPostgreSQLErrorResponse) => {
+        setErrorModal({ type: "generic-error", data: err });
+    };
+
     const handleDelete = async (id: number) => {
 
         try {
+
             await units_api.deleteUnit(id);
             setUnitsOfMeasure((prev) => prev.filter(unit => unit.id !== id));
+
         } catch (err: any) {
-            setError(err.message);
+
+            if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+
+                const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemResponse> = err.data;
+                handleDeleteReferencedError(errorData, unitsOfMeasure.find((un) => un.id == id) ?? defaultUnitOfMeasure);
+
+            } else if (err?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
+
+                const genericError: GenericPostgreSQLErrorResponse = err.data;
+                handleDeleteGenericError(genericError);
+
+            } else {
+                alert("Unexpected error occurred while deleting the item.");
+            }
         }
 
     }
@@ -212,16 +246,30 @@ export default function UnitPage() {
             </Card>
 
             {isModalOpen && (
-                <ModalFormUnitOfMeasure 
+                <ModalFormUnitOfMeasure
                     mode={isModalEdit ? "edit" : "create"}
                     editUnitOfMeasure={isModalEdit ? editUnitOfMeasure : undefined}
-                    onClose={handleCloseModal} 
-                    onSubmitCreate={handleCreate} 
+                    onClose={handleCloseModal}
+                    onSubmitCreate={handleCreate}
                     onSubmitEdit={handleEdit}
-                    >
+                >
                 </ModalFormUnitOfMeasure>
             )}
 
+            {errorModal.type === "delete-referenced" && (
+                <ModalDeleteReferencedErrorItem
+                    error={errorModal.data}
+                    unit={errorModal.unit}
+                    onClose={() => setErrorModal({ type: "none" })}
+                />
+            )}
+
+            {errorModal.type === "generic-error" && (
+                <ModalGenericError
+                    error={errorModal.data}
+                    onClose={() => setErrorModal({ type: "none" })}
+                />
+            )}
         </Flex>
     )
 }

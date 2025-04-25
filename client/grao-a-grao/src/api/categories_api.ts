@@ -3,26 +3,26 @@ import { CategoryRequest, CategoryResponse } from "@/types/category";
 
 
 export async function fetchCategories(): Promise<CategoryResponse[]> {
-    try {
-        const token = getAuthToken();
+  try {
+    const token = getAuthToken();
 
-        const res = await fetch(`${getAPIUrl()}/items/categories`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            },
-        });
+    const res = await fetch(`${getAPIUrl()}/items/categories`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
 
-        if (!res.ok)
-            throw new Error('Error fetching categories');
+    if (!res.ok)
+      throw new Error('Error fetching categories');
 
-        const data: CategoryResponse[] = await res.json();
-        return data;
+    const data: CategoryResponse[] = await res.json();
+    return data;
 
-    } catch (err: any) {
-        console.error(err);
-        throw err;
-    }
+  } catch (err: any) {
+    console.error(err);
+    throw err;
+  }
 }
 
 export async function createCategory(category: CategoryRequest): Promise<CategoryResponse> {
@@ -75,22 +75,29 @@ export async function updateCategory(category: CategoryRequest): Promise<Categor
   }
 }
 
-export async function deleteCategory(id: number): Promise<boolean> {
-    try {
-      const token = getAuthToken();
-      const res = await fetch(`${getAPIUrl()}/items/categories/${id}`, {
-        method: 'DELETE',
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-  
-      if (!res.ok)
-        throw new Error('Error deleting category');
-  
-      return true;
-    } catch (err: any) {
-      console.error(err);
-      throw err;
+export async function deleteCategory(id: number): Promise<void> {
+
+  const token = getAuthToken();
+  const res = await fetch(`${getAPIUrl()}/items/categories/${id}`, {
+    method: 'DELETE',
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const contentType = res.headers.get("Content-Type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
+
+      // throw structured error with type attached
+      throw {
+        status: res.status,
+        data,
+      };
     }
+
+    throw new Error('Unknown server error while deleting item.');
   }
+
+}

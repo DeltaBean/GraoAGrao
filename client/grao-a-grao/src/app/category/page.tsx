@@ -8,6 +8,11 @@ import * as categories_api from "@/api/categories_api";
 import Header from "@/components/Header";
 import ModalFormCategory from "@/components/Form/Modal/ModalFormCategory";
 import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse, toCategoryRequest } from "@/types/category";
+import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
+import { ItemResponse } from "@/types/item";
+import ModalDeleteReferencedErrorStockPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorStockPackage";
+import ModalGenericError from "@/components/Error/ModalGenericError";
+import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/Category/ModalDeleteReferencedErrorItem";
 
 export default function CategoryPage() {
 
@@ -15,11 +20,18 @@ export default function CategoryPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    type ErrorModalState =
+        | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; category: CategoryModel }
+        | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
+        | { type: "none" };
+    const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
+
+
     // State for the category being edited.
     const defaultCategory: CategoryModel = {
         id: 0,
         description: "",
-      };
+    };
     const [editCategory, setEditCategory] = useState<CategoryModel>(defaultCategory);
 
     // State for editing modal
@@ -92,13 +104,36 @@ export default function CategoryPage() {
         }
     }
 
+    const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemResponse>, category: CategoryModel) => {
+        setErrorModal({ type: "delete-referenced", category, data: err });
+    };
+
+    const handleDeleteGenericError = (err: GenericPostgreSQLErrorResponse) => {
+        setErrorModal({ type: "generic-error", data: err });
+    };
+
     const handleDelete = async (id: number) => {
 
         try {
+
             await categories_api.deleteCategory(id);
             setCategories((prev) => prev.filter(category => category.id !== id));
+
         } catch (err: any) {
-            setError(err.message);
+
+            if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+
+                const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemResponse> = err.data;
+                handleDeleteReferencedError(errorData, categories.find((cat) => cat.id == id) ?? defaultCategory);
+
+            } else if (err?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
+
+                const genericError: GenericPostgreSQLErrorResponse = err.data;
+                handleDeleteGenericError(genericError);
+
+            } else {
+                alert("Unexpected error occurred while deleting the item.");
+            }
         }
 
     }
@@ -221,6 +256,20 @@ export default function CategoryPage() {
                 </ModalFormCategory>
             )}
 
+            {errorModal.type === "delete-referenced" && (
+                <ModalDeleteReferencedErrorItem
+                    error={errorModal.data}
+                    category={errorModal.category}
+                    onClose={() => setErrorModal({ type: "none" })}
+                />
+            )}
+
+            {errorModal.type === "generic-error" && (
+                <ModalGenericError
+                    error={errorModal.data}
+                    onClose={() => setErrorModal({ type: "none" })}
+                />
+            )}
         </Flex>
     )
 }

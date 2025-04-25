@@ -9,6 +9,7 @@ import (
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 
 	dto "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
+	errorCodes "github.com/IlfGauhnith/GraoAGrao/pkg/errors"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -91,6 +92,7 @@ func HandleDBErrorWithContext(c *gin.Context, err error, id uint, fetcher RefFet
 				dto.ForeignKeyDeleteReferencedErrorResponse{
 					Error:               "Cannot delete this record because it's still referenced.",
 					Code:                pgErr.Code,
+					InternalCode:        errorCodes.CodeDeleteRereferencedEntity,
 					Details:             pgErr.Detail,
 					ReferencedTable:     GetReferencedTableName(pgErr),
 					ReferencingEntities: dtoEntities,
@@ -102,6 +104,7 @@ func HandleDBErrorWithContext(c *gin.Context, err error, id uint, fetcher RefFet
 			c.JSON(http.StatusBadRequest,
 				dto.ForeignKeyReferenceMissingErrorResponse{
 					Error:           "Cannot reference a non-existent record.",
+					InternalCode:    errorCodes.CodeForeignKeyReferenceMissing,
 					Details:         "There are references to this record it cannot be deleted",
 					ReferencedTable: GetReferencedTableName(pgErr),
 					Code:            pgErr.Code,
@@ -111,9 +114,10 @@ func HandleDBErrorWithContext(c *gin.Context, err error, id uint, fetcher RefFet
 
 		c.JSON(http.StatusInternalServerError,
 			dto.GenericPostgreSQLErrorResponse{
-				Error:   "Generic PostgreSQL Error",
-				Details: pgErr.Detail,
-				Code:    pgErr.Code,
+				Error:        "Generic PostgreSQL Error",
+				InternalCode: errorCodes.CodeGenericDataBaseError,
+				Details:      pgErr.Detail,
+				Code:         pgErr.Code,
 			})
 		return
 	}

@@ -12,8 +12,10 @@ import ModalFormItem from "@/components/Form/Modal/ModalFormItem";
 import { ItemModel, ItemRequest, ItemResponse, normalizeItemResponse, toItemRequest } from "@/types/item";
 import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse } from "@/types/category";
 import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/types/unit_of_measure";
-import { ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
-import { StockPackagingResponse } from "@/types/stock_packaging";
+import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
+import { StockPackagingModel, StockPackagingResponse } from "@/types/stock_packaging";
+import ModalDeleteReferencedErrorStockPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorStockPackage";
+import ModalGenericError from "@/components/Error/ModalGenericError";
 
 export default function ItemPage() {
 
@@ -23,7 +25,12 @@ export default function ItemPage() {
   const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasureModel[]>([]);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  type ErrorModalState =
+    | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; item: ItemModel}
+    | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
+    | { type: "none" };
+  const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
 
   // State for the item being edited.
   const defaultItem = {
@@ -81,7 +88,7 @@ export default function ItemPage() {
       setUnitsOfMeasure(unitOfMeasureModel ?? []);
 
     } catch (err: any) {
-      setError(err.message);
+      console.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -99,7 +106,7 @@ export default function ItemPage() {
       setCategories(categoryModel ?? []);
 
     } catch (err: any) {
-      setError(err.message);
+      console.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -116,7 +123,7 @@ export default function ItemPage() {
 
       setItems(itemModel ?? []);
     } catch (err: any) {
-      setError(err.message);
+      console.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -134,7 +141,7 @@ export default function ItemPage() {
       setItems((prev) => [...prev, created]);
       setIsModalOpen(false);
     } catch (err: any) {
-      setError(err.message);
+      console.error(err.message);
     }
   };
 
@@ -150,17 +157,17 @@ export default function ItemPage() {
 
       setIsModalOpen(false);
     } catch (err: any) {
-      setError(err.message);
+      console.error(err.message);
     }
   }
 
-  const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse) => {
-
-  } 
+  const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<StockPackagingResponse>, item: ItemModel) => {
+    setErrorModal({ type: "delete-referenced", item, data: err });
+  };
 
   const handleDeleteGenericError = (err: GenericPostgreSQLErrorResponse) => {
-    
-  }
+    setErrorModal({ type: "generic-error", data: err });
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -169,17 +176,17 @@ export default function ItemPage() {
       setItems((prev) => prev.filter(item => item.id !== id));
 
     } catch (err: any) {
-      
-      if (err?.data?.code === "FOREIGN_KEY_VIOLATION") {
-       
+
+      if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+
         const errorData: ForeignKeyDeleteReferencedErrorResponse<StockPackagingResponse> = err.data;
-        handleDeleteReferencedError(errorData);
-      
-      } else if (err?.data?.code) {
-        
+        handleDeleteReferencedError(errorData, items.find((it) => it.id == id) ?? defaultItem);
+
+      } else if (err?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
+
         const genericError: GenericPostgreSQLErrorResponse = err.data;
         handleDeleteGenericError(genericError);
-     
+
       } else {
         alert("Unexpected error occurred while deleting the item.");
       }
@@ -296,6 +303,7 @@ export default function ItemPage() {
           </Table.Root>
         </Skeleton>
       </Card>
+
       {isModalOpen && (
         <ModalFormItem
           mode={isModalEdit ? "edit" : "create"}
@@ -307,6 +315,21 @@ export default function ItemPage() {
           onSubmitEdit={handleEdit}
         >
         </ModalFormItem>
+      )}
+
+      {errorModal.type === "delete-referenced" && (
+        <ModalDeleteReferencedErrorStockPackage
+          error={errorModal.data}
+          item={errorModal.item}
+          onClose={() => setErrorModal({ type: "none" })}
+        />
+      )}
+
+      {errorModal.type === "generic-error" && (
+        <ModalGenericError
+          error={errorModal.data}
+          onClose={() => setErrorModal({ type: "none" })}
+        />
       )}
     </Flex>
   );

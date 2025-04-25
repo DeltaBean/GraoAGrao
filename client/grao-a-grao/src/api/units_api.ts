@@ -74,22 +74,28 @@ export async function updateUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeas
   }
 }
 
-export async function deleteUnit(id: number): Promise<boolean> {
-  try {
-    const token = getAuthToken();
-    const res = await fetch(`${getAPIUrl()}/items/units/${id}`, {
-      method: 'DELETE',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-    });
+export async function deleteUnit(id: number): Promise<void> {
+  const token = getAuthToken();
+  const res = await fetch(`${getAPIUrl()}/items/units/${id}`, {
+    method: 'DELETE',
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
 
-    if (!res.ok)
-      throw new Error('Error deleting unit of measure');
+  if (!res.ok) {
+    const contentType = res.headers.get("Content-Type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
 
-    return true;
-  } catch (err: any) {
-    console.error(err);
-    throw err;
+      // throw structured error with type attached
+      throw {
+        status: res.status,
+        data,
+      };
+    }
+
+    throw new Error('Unknown server error while deleting item.');
   }
+  ;
 }
