@@ -1,5 +1,5 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { ItemRequest, ItemResponse } from "@/model/item";
+import { ItemRequest, ItemResponse } from "@/types/item";
 
 export async function fetchItems(): Promise<ItemResponse[]> {
   try {
@@ -74,22 +74,27 @@ export async function updateItem(item: ItemRequest): Promise<ItemResponse> {
   }
 }
 
-export async function deleteItem(id: number): Promise<boolean> {
-  try {
-    const token = getAuthToken();
-    const res = await fetch(`${getAPIUrl()}/items/${id}`, {
-      method: 'DELETE',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-    });
+export async function deleteItem(id: number): Promise<void> {
+  const token = getAuthToken();
+  const res = await fetch(`${getAPIUrl()}/items/${id}`, {
+    method: 'DELETE',
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
 
-    if (!res.ok)
-      throw new Error('Error deleting item');
+  if (!res.ok) {
+    const contentType = res.headers.get("Content-Type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
 
-    return true;
-  } catch (err: any) {
-    console.error(err);
-    throw err;
+      // throw structured error with type attached
+      throw {
+        status: res.status,
+        data,
+      };
+    }
+
+    throw new Error('Unknown server error while deleting item.');
   }
 }

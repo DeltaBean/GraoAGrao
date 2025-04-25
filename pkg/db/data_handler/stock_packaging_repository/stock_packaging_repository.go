@@ -28,14 +28,13 @@ func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
 		WITH inserted AS (
 			INSERT INTO tb_stock_packaging (item_id, stock_packaging_description, quantity, owner_id)
 			VALUES ($1, $2, $3, $4)
-			RETURNING stock_packaging_id, stock_packaging_description, item_id, owner_id, stock_packaging_description, quantity, created_at, updated_at
+			RETURNING stock_packaging_id, stock_packaging_description, item_id, owner_id, quantity, created_at, updated_at
 		)
 		SELECT
 			i.stock_packaging_id,
 			i.stock_packaging_description,
 			i.item_id,
 			it.item_description,
-			i.stock_packaging_description,
 			i.quantity,
 			i.owner_id,
 			i.created_at,
@@ -58,7 +57,6 @@ func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
 		&packaging.Description,
 		&packaging.Item.ID,
 		&packaging.Item.Description,
-		&packaging.Description,
 		&packaging.Quantity,
 		&packaging.Owner.ID,
 		&packaging.CreatedAt,

@@ -5,7 +5,7 @@ import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton }
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import * as units_api from "@/api/units_api";
-import { UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse, toUnitOfMeasureRequest, normalizeUnitOfMeasureResponse } from "@/model/unit_of_measure";
+import { UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse, toUnitOfMeasureRequest, normalizeUnitOfMeasureResponse } from "@/types/unit_of_measure";
 import ModalFormUnitOfMeasure from "@/components/Form/Modal/ModalFormUnitOfMeasure";
 
 

@@ -10,6 +10,7 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
+	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/unit_of_measure_repository"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
@@ -124,7 +125,18 @@ func DeleteUnit(c *gin.Context) {
 
 	if err := unit_of_measure_repository.DeleteUnitOfMeasure(uint(id)); err != nil {
 		logger.Log.Error("Error deleting unit: ", err)
-		error_handler.HandleDBErrorWithContext(c, err, uint(id), unit_of_measure_repository.GetReferencingItems)
+		error_handler.HandleDBErrorWithContext(c,
+			err,
+			uint(id),
+			unit_of_measure_repository.GetReferencingItems,
+			func(entities any) any {
+				internal := entities.([]model.Item)
+				var dtos []response.ItemResponse
+				for _, i := range internal {
+					dtos = append(dtos, mapper.ToItemResponse(&i))
+				}
+				return dtos
+			})
 		return
 	}
 

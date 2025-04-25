@@ -1,7 +1,7 @@
 import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
 import { TextField, Skeleton, Text } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
-import { CategoryModel } from "@/model/category";
+import { CategoryModel } from "@/types/category";
 
 type ModalFormCategoryProps = {
   mode: "create" | "edit";

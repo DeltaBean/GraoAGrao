@@ -1,5 +1,5 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { CategoryRequest, CategoryResponse } from "@/model/category";
+import { CategoryRequest, CategoryResponse } from "@/types/category";
 
 
 export async function fetchCategories(): Promise<CategoryResponse[]> {

@@ -1,7 +1,7 @@
 import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
 import { TextField, Skeleton, Text } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
-import { UnitOfMeasureModel } from "@/model/unit_of_measure";
+import { UnitOfMeasureModel } from "@/types/unit_of_measure";
 
 type ModalFormUnitOfMeasureProps = {
   mode: "create" | "edit";

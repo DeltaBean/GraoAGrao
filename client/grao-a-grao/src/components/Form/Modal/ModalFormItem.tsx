@@ -1,9 +1,9 @@
 import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
 import { TextField, Skeleton, Text, Callout, Select, Flex } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
-import { ItemModel } from "@/model/item";
-import { CategoryModel } from "@/model/category";
-import { UnitOfMeasureModel } from "@/model/unit_of_measure";
+import { ItemModel } from "@/types/item";
+import { CategoryModel } from "@/types/category";
+import { UnitOfMeasureModel } from "@/types/unit_of_measure";
 import { QrCodeIcon, TagIcon, InformationCircleIcon, ScaleIcon } from "@heroicons/react/16/solid";
 
 

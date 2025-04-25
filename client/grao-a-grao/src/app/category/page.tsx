@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import * as categories_api from "@/api/categories_api";
 import Header from "@/components/Header";
 import ModalFormCategory from "@/components/Form/Modal/ModalFormCategory";
-import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse, toCategoryRequest } from "@/model/category";
+import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse, toCategoryRequest } from "@/types/category";
 
 export default function CategoryPage() {
 

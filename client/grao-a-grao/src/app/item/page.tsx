@@ -9,9 +9,11 @@ import * as items_api from "@/api/items_api";
 import * as categories_api from "@/api/categories_api";
 import * as units_api from "@/api/units_api";
 import ModalFormItem from "@/components/Form/Modal/ModalFormItem";
-import { ItemModel, ItemRequest, ItemResponse, normalizeItemResponse, toItemRequest } from "@/model/item";
-import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse } from "@/model/category";
-import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/model/unit_of_measure";
+import { ItemModel, ItemRequest, ItemResponse, normalizeItemResponse, toItemRequest } from "@/types/item";
+import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse } from "@/types/category";
+import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/types/unit_of_measure";
+import { ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
+import { StockPackagingResponse } from "@/types/stock_packaging";
 
 export default function ItemPage() {
 
@@ -73,7 +75,7 @@ export default function ItemPage() {
     try {
       const unitOfMeasureResponse: UnitOfMeasureResponse[] = await units_api.fetchUnits();
       const unitOfMeasureModel: UnitOfMeasureModel[] = unitOfMeasureResponse.map(
-        (unit) => {return normalizeUnitOfMeasureResponse(unit)}  
+        (unit) => { return normalizeUnitOfMeasureResponse(unit) }
       );
 
       setUnitsOfMeasure(unitOfMeasureModel ?? []);
@@ -91,7 +93,7 @@ export default function ItemPage() {
     try {
       const categoryResponse: CategoryResponse[] = await categories_api.fetchCategories();
       const categoryModel: CategoryModel[] = categoryResponse.map(
-        (cat) => {return normalizeCategoryResponse(cat)}
+        (cat) => { return normalizeCategoryResponse(cat) }
       );
 
       setCategories(categoryModel ?? []);
@@ -107,11 +109,11 @@ export default function ItemPage() {
     setLoading(true);
 
     try {
-      const itemResponse: ItemResponse[] = await items_api.fetchItems(); 
+      const itemResponse: ItemResponse[] = await items_api.fetchItems();
       const itemModel: ItemModel[] = itemResponse.map(
-        (it) => {return normalizeItemResponse(it)}
+        (it) => { return normalizeItemResponse(it) }
       );
-      
+
       setItems(itemModel ?? []);
     } catch (err: any) {
       setError(err.message);
@@ -152,16 +154,37 @@ export default function ItemPage() {
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse) => {
 
+  } 
+
+  const handleDeleteGenericError = (err: GenericPostgreSQLErrorResponse) => {
+    
+  }
+
+  const handleDelete = async (id: number) => {
     try {
+
       await items_api.deleteItem(id);
       setItems((prev) => prev.filter(item => item.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-    }
 
-  }
+    } catch (err: any) {
+      
+      if (err?.data?.code === "FOREIGN_KEY_VIOLATION") {
+       
+        const errorData: ForeignKeyDeleteReferencedErrorResponse<StockPackagingResponse> = err.data;
+        handleDeleteReferencedError(errorData);
+      
+      } else if (err?.data?.code) {
+        
+        const genericError: GenericPostgreSQLErrorResponse = err.data;
+        handleDeleteGenericError(genericError);
+     
+      } else {
+        alert("Unexpected error occurred while deleting the item.");
+      }
+    }
+  };
 
   return (
     <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen">
@@ -274,15 +297,15 @@ export default function ItemPage() {
         </Skeleton>
       </Card>
       {isModalOpen && (
-        <ModalFormItem 
+        <ModalFormItem
           mode={isModalEdit ? "edit" : "create"}
           editItem={isModalEdit ? editItem : undefined}
-          categoryOptions={categories} 
-          unitOfMeasureOptions={unitsOfMeasure} 
-          onClose={handleCloseModal} 
-          onSubmitCreate={handleCreate} 
+          categoryOptions={categories}
+          unitOfMeasureOptions={unitsOfMeasure}
+          onClose={handleCloseModal}
+          onSubmitCreate={handleCreate}
           onSubmitEdit={handleEdit}
-          >
+        >
         </ModalFormItem>
       )}
     </Flex>

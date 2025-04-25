@@ -1,5 +1,5 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/model/unit_of_measure";
+import { UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/types/unit_of_measure";
 
 export async function fetchUnits(): Promise<UnitOfMeasureResponse[]> {
   try {

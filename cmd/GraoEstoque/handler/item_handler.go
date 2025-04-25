@@ -9,8 +9,10 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
 	mapper "github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
 	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -129,7 +131,18 @@ func DeleteItem(c *gin.Context) {
 
 	if err := item_repository.DeleteItem(uint(id)); err != nil {
 		logger.Log.Error("Error deleting item: ", err)
-		error_handler.HandleDBErrorWithContext(c, err, uint(id), item_repository.GetReferencingStockPackagings)
+		error_handler.HandleDBErrorWithContext(c,
+			err,
+			uint(id),
+			item_repository.GetReferencingStockPackagings,
+			func(entities any) any {
+				internal := entities.([]model.StockPackaging)
+				var dtos []response.StockPackagingResponse
+				for _, s := range internal {
+					dtos = append(dtos, *mapper.ToStockPackagingResponse(&s))
+				}
+				return dtos
+			})
 		return
 	}
 

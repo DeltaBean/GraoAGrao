@@ -1,5 +1,5 @@
 import { getAPIUrl, getAuthToken } from "@/util/util";
-import { StockPackagingRequest, StockPackagingResponse } from "@/model/stock_packaging";
+import { StockPackagingRequest, StockPackagingResponse } from "@/types/stock_packaging";
 
 export async function fetchStockPackaging(): Promise<StockPackagingResponse[]> {
   try {

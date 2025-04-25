@@ -11,6 +11,7 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
+	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -107,7 +108,18 @@ func DeleteCategory(c *gin.Context) {
 
 	if err := category_repository.DeleteCategory(uint(id)); err != nil {
 		logger.Log.Error("Error DeleteCategory: ", err)
-		error_handler.HandleDBErrorWithContext(c, err, uint(id), category_repository.GetReferencingItems)
+		error_handler.HandleDBErrorWithContext(c,
+			err,
+			uint(id),
+			category_repository.GetReferencingItems,
+			func(entities any) any {
+				internal := entities.([]model.Item)
+				var dtos []response.ItemResponse
+				for _, i := range internal {
+					dtos = append(dtos, mapper.ToItemResponse(&i))
+				}
+				return dtos
+			})
 		return
 	}
 

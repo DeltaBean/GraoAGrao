@@ -7,8 +7,8 @@ import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import * as items_api from "@/api/items_api";
 import * as stock_api from "@/api/stock_packaging_api";
-import { StockPackagingModel, StockPackagingRequest, StockPackagingResponse, toStockPackagingRequest, normalizeStockPackagingResponse } from "@/model/stock_packaging";
-import { ItemModel, ItemResponse, normalizeItemResponse } from "@/model/item";
+import { StockPackagingModel, StockPackagingRequest, StockPackagingResponse, toStockPackagingRequest, normalizeStockPackagingResponse } from "@/types/stock_packaging";
+import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
 import ModalFormStockPackaging from "@/components/Form/Modal/ModalFormStockPackaging";
 
 export default function StockPackagingPage() {
