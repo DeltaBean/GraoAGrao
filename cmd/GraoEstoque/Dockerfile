@@ -1,5 +1,5 @@
-# Use Golang 1.24.1 based on Alpine
-FROM golang:1.24.1-alpine
+# Use Golang 1.24.2 based on Alpine
+FROM golang:1.24.2-alpine
 
 RUN apk update && apk add --no-cache bash
 

@@ -1,0 +1,25 @@
+# ------------------------------------------------------------------------
+# BuildKit DNS configuration
+#
+# This file is read by buildkitd when it starts.  The settings below are
+# copied verbatim into every worker container’s /etc/resolv.conf, so all
+# RUN / COPY / ADD commands in your Dockerfiles inherit the same, reliable
+# name-resolution behaviour.
+# ------------------------------------------------------------------------
+
+[dns]
+
+# Public DNS servers to query **in order**.  Using 8.8.8.8 (Google) and
+# 1.1.1.1 (Cloudflare) avoids the systemd-resolved stub address that often
+# breaks resolution inside build containers.
+nameservers = ["8.8.8.8", "1.1.1.1"]
+
+# Additional resolver options.  “edns0” enables Extension Mechanisms for
+# DNS so responses larger than 512 bytes can still travel over UDP, which
+# helps with some large TXT/SOA answers and DNSSEC chains.
+options = ["edns0"]
+
+# Domain suffixes automatically appended to single-label hostnames when
+# searching.  We keep this list empty to ensure only fully-qualified
+# queries are sent, eliminating unintended lookup attempts.
+searchDomains = []
