@@ -66,6 +66,21 @@ func InitRoutes(router *gin.Engine) {
 				handler.UpdateUnit,
 			)
 		}
+
+		// ItemPackaging endpoints
+		itemPackagingGroup := itemGroup.Group("/packaging")
+		{
+			itemPackagingGroup.GET("", handler.ListItemPackagings)
+			itemPackagingGroup.GET("/:id", handler.GetItemPackagingByID)
+			itemPackagingGroup.DELETE("/:id", handler.DeleteItemPackaging)
+
+			itemPackagingGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateItemPackagingRequest](),
+				handler.CreateItemPackaging,
+			)
+			itemPackagingGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemPackagingRequest](),
+				handler.UpdateItemPackaging,
+			)
+		}
 	}
 
 	stockGroup := router.Group("/stock")
@@ -92,21 +107,6 @@ func InitRoutes(router *gin.Engine) {
 			stockOutGroup.GET("/:id", handler.GetStockOutByID)
 			stockOutGroup.POST("", handler.CreateStockOut)
 			stockOutGroup.DELETE("/:id", handler.DeleteStockOut)
-		}
-
-		// StockPackaging endpoints
-		stockPackagingGroup := stockGroup.Group("/packaging")
-		{
-			stockPackagingGroup.GET("", handler.ListStockPackagings)
-			stockPackagingGroup.GET("/:id", handler.GetStockPackagingByID)
-			stockPackagingGroup.DELETE("/:id", handler.DeleteStockPackaging)
-
-			stockPackagingGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateStockPackagingRequest](),
-				handler.CreateStockPackaging,
-			)
-			stockPackagingGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateStockPackagingRequest](),
-				handler.UpdateStockPackaging,
-			)
 		}
 	}
 }

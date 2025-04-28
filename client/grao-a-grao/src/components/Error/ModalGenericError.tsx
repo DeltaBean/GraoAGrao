@@ -2,7 +2,7 @@ import { TextField, Skeleton, Text } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
 import ModalErrorShell from "./ModalErrorShell";
 import { ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
-import { StockPackagingModel } from "@/types/stock_packaging";
+import { ItemPackagingModel } from "@/types/item_packaging";
 
 type ModalGenericErrorProps = {
   onClose: () => void;

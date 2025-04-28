@@ -1,5 +1,5 @@
-// stock_packaging_repository.go
-package stock_packaging_repository
+// item_packaging_repository.go
+package item_packaging_repository
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
-// SaveStockPackaging inserts a new packaging into the tb_stock_packaging table,
+// SaveItemPackaging inserts a new packaging into the tb_item_packaging table,
 // and returns the item description via a CTE join.
-func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
-	logger.Log.Info("SaveStockPackaging")
+func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
+	logger.Log.Info("SaveItemPackaging")
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
@@ -26,13 +26,13 @@ func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
 
 	query := `
 		WITH inserted AS (
-			INSERT INTO tb_stock_packaging (item_id, stock_packaging_description, quantity, owner_id)
+			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, owner_id)
 			VALUES ($1, $2, $3, $4)
-			RETURNING stock_packaging_id, stock_packaging_description, item_id, owner_id, quantity, created_at, updated_at
+			RETURNING item_packaging_id, item_packaging_description, item_id, owner_id, quantity, created_at, updated_at
 		)
 		SELECT
-			i.stock_packaging_id,
-			i.stock_packaging_description,
+			i.item_packaging_id,
+			i.item_packaging_description,
 			i.item_id,
 			it.item_description,
 			i.quantity,
@@ -66,17 +66,17 @@ func SaveStockPackaging(packaging *model.StockPackaging, OwnerID uint) error {
 	)
 
 	if err != nil {
-		logger.Log.Errorf("Error saving stock packaging: %v", err)
+		logger.Log.Errorf("Error saving item packaging: %v", err)
 		return err
 	}
 
-	logger.Log.Info("Stock packaging successfully created with item description")
+	logger.Log.Info("Item packaging successfully created with item description")
 	return nil
 }
 
-// ListStockPackagingsPaginated returns a paginated list of packagings
-func ListStockPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.StockPackaging, error) {
-	logger.Log.Infof("ListStockPackagingsPaginated offset=%d limit=%d", offset, limit)
+// ListItemPackagingsPaginated returns a paginated list of packagings
+func ListItemPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.ItemPackaging, error) {
+	logger.Log.Infof("ListItemPackagingsPaginated offset=%d limit=%d", offset, limit)
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
@@ -85,12 +85,12 @@ func ListStockPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.S
 	defer conn.Release()
 
 	query := `
-		SELECT sp.stock_packaging_id, sp.stock_packaging_description, sp.quantity,
+		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
 		       i.item_id, i.item_description,
 		       sp.owner_id, sp.created_at, sp.updated_at,
 			   cat.category_id, cat.category_description,
 			   uom.unit_id, uom.unit_description
-		FROM tb_stock_packaging sp
+		FROM tb_item_packaging sp
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
 		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
@@ -104,9 +104,9 @@ func ListStockPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.S
 	}
 	defer rows.Close()
 
-	var results []model.StockPackaging
+	var results []model.ItemPackaging
 	for rows.Next() {
-		var p model.StockPackaging
+		var p model.ItemPackaging
 		err := rows.Scan(
 			&p.ID,
 			&p.Description,
@@ -130,9 +130,9 @@ func ListStockPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.S
 	return results, nil
 }
 
-// GetStockPackagingByID retrieves a single packaging by ID
-func GetStockPackagingByID(id uint) (*model.StockPackaging, error) {
-	logger.Log.Infof("GetStockPackagingByID: %d", id)
+// GetItemPackagingByID retrieves a single packaging by ID
+func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
+	logger.Log.Infof("GetItemPackagingByID: %d", id)
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
@@ -141,18 +141,18 @@ func GetStockPackagingByID(id uint) (*model.StockPackaging, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT sp.stock_packaging_id, sp.stock_packaging_description, sp.quantity,
+		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
 		       i.item_id, i.item_description,
 		       sp.owner_id, sp.created_at, sp.updated_at,
 			   cat.category_id, cat.category_description,
 			   uom.unit_id, uom.unit_description
-		FROM tb_stock_packaging sp
+		FROM tb_item_packaging sp
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
 		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
-		WHERE sp.stock_packaging_id = $1`
+		WHERE sp.item_packaging_id = $1`
 
-	var p model.StockPackaging
+	var p model.ItemPackaging
 	err = conn.QueryRow(context.Background(), query, id).Scan(
 		&p.ID,
 		&p.Description,
@@ -177,10 +177,10 @@ func GetStockPackagingByID(id uint) (*model.StockPackaging, error) {
 	return &p, nil
 }
 
-// UpdateStockPackaging modifies an existing record and returns the updated entity,
+// UpdateItemPackaging modifies an existing record and returns the updated entity,
 // including the joined item description from tb_item.
-func UpdateStockPackaging(p *model.StockPackaging) (*model.StockPackaging, error) {
-	logger.Log.Infof("UpdateStockPackaging: %d", p.ID)
+func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
+	logger.Log.Infof("UpdateItemPackaging: %d", p.ID)
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
@@ -190,19 +190,19 @@ func UpdateStockPackaging(p *model.StockPackaging) (*model.StockPackaging, error
 
 	query := `
 		WITH updated AS (
-			UPDATE tb_stock_packaging
+			UPDATE tb_item_packaging
 			SET item_id = $1,
-			    stock_packaging_description = $2,
+			    item_packaging_description = $2,
 			    quantity = $3,
 			    updated_at = NOW()
-			WHERE stock_packaging_id = $4
-			RETURNING stock_packaging_id, item_id, stock_packaging_description, quantity, owner_id, created_at, updated_at
+			WHERE item_packaging_id = $4
+			RETURNING item_packaging_id, item_id, item_packaging_description, quantity, owner_id, created_at, updated_at
 		)
 		SELECT
-			u.stock_packaging_id,
+			u.item_packaging_id,
 			u.item_id,
 			it.item_description,
-			u.stock_packaging_description,
+			u.item_packaging_description,
 			u.quantity,
 			u.owner_id,
 			u.created_at,
@@ -217,7 +217,7 @@ func UpdateStockPackaging(p *model.StockPackaging) (*model.StockPackaging, error
 		JOIN tb_unit_of_measure uom ON it.unit_id = uom.unit_id;
 	`
 
-	updated := &model.StockPackaging{}
+	updated := &model.ItemPackaging{}
 	row := conn.QueryRow(context.Background(), query,
 		p.Item.ID,
 		p.Description,
@@ -241,17 +241,17 @@ func UpdateStockPackaging(p *model.StockPackaging) (*model.StockPackaging, error
 	)
 
 	if err != nil {
-		logger.Log.Errorf("Error scanning updated stock packaging: %v", err)
+		logger.Log.Errorf("Error scanning updated item packaging: %v", err)
 		return nil, err
 	}
 
-	logger.Log.Info("Stock packaging successfully updated with item description")
+	logger.Log.Info("Item packaging successfully updated with item description")
 	return updated, nil
 }
 
-// DeleteStockPackaging removes a packaging record
-func DeleteStockPackaging(id uint) error {
-	logger.Log.Infof("DeleteStockPackaging: %d", id)
+// DeleteItemPackaging removes a packaging record
+func DeleteItemPackaging(id uint) error {
+	logger.Log.Infof("DeleteItemPackaging: %d", id)
 
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
@@ -260,12 +260,12 @@ func DeleteStockPackaging(id uint) error {
 	defer conn.Release()
 
 	cmd, err := conn.Exec(context.Background(),
-		`DELETE FROM tb_stock_packaging WHERE stock_packaging_id = $1`, id)
+		`DELETE FROM tb_item_packaging WHERE item_packaging_id = $1`, id)
 	if err != nil {
 		return err
 	}
 	if cmd.RowsAffected() == 0 {
-		return fmt.Errorf("no stock packaging deleted")
+		return fmt.Errorf("no item packaging deleted")
 	}
 	return nil
 }

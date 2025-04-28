@@ -36,7 +36,7 @@ export default function Header() {
                     <NavLink href="/item" label="Items" />
                     <NavLink href="/category" label="Category" />
                     <NavLink href="/unit" label="Units" />
-                    <NavLink href="/stockPackaging" label="Packaging" />
+                    <NavLink href="/itemPackaging" label="Packaging" />
                     <NavLink href="/stockin" label="Stock In" />
                     <NavLink href="/stockout" label="Stock Out" />
                 </Flex>
@@ -81,7 +81,7 @@ export default function Header() {
                     <NavLink href="/item" label="Items" />
                     <NavLink href="/category" label="Category" />
                     <NavLink href="/unit" label="Units" />
-                    <NavLink href="/stockPackaging" label="Packaging" />
+                    <NavLink href="/itemPackaging" label="Packaging" />
                     <NavLink href="/stockin" label="Stock In" />
                     <NavLink href="/stockout" label="Stock Out" />
                 </Flex>

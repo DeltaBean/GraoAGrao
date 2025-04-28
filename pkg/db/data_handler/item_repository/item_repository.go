@@ -267,7 +267,7 @@ func ListItems(OwnerID uint) ([]model.Item, error) {
 	return items, nil
 }
 
-func GetReferencingStockPackagings(id uint) (any, error) {
+func GetReferencingItemPackagings(id uint) (any, error) {
 	conn, err := db.GetDB().Acquire(context.Background())
 	if err != nil {
 		return nil, err
@@ -275,19 +275,19 @@ func GetReferencingStockPackagings(id uint) (any, error) {
 	defer conn.Release()
 
 	rows, err := conn.Query(context.Background(), `
-		SELECT stock_packaging_id, stock_packaging_description 
-		FROM tb_stock_packaging WHERE item_id = $1`, id)
+		SELECT item_packaging_id, item_packaging_description 
+		FROM tb_item_packaging WHERE item_id = $1`, id)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []model.StockPackaging
+	var result []model.ItemPackaging
 	for rows.Next() {
-		var s model.StockPackaging
-		if err := rows.Scan(&s.ID, &s.Description); err != nil {
+		var ip model.ItemPackaging
+		if err := rows.Scan(&ip.ID, &ip.Description); err != nil {
 			return nil, err
 		}
-		result = append(result, s)
+		result = append(result, ip)
 	}
 
 	return result, nil

@@ -3,8 +3,12 @@
 
 import { Flex, Text } from "@radix-ui/themes";
 import Header from "@/components/Header";
+import { useState } from "react";
 
 export default function StockInPage() {
+
+  const [stockIn, SetStockIn] = useState<StockInModel[]>();
+  
   return (
     <Flex direction={"column"} className="min-h-screen">
       <Header></Header>

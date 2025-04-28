@@ -10,11 +10,11 @@ import * as categories_api from "@/api/categories_api";
 import * as units_api from "@/api/units_api";
 import ModalFormItem from "@/components/Form/Modal/ModalFormItem";
 import { ItemModel, ItemRequest, ItemResponse, normalizeItemResponse, toItemRequest } from "@/types/item";
-import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse } from "@/types/category";
-import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse } from "@/types/unit_of_measure";
+import { CategoryModel, CategoryResponse, normalizeCategoryResponse } from "@/types/category";
+import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureResponse } from "@/types/unit_of_measure";
 import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
-import { StockPackagingModel, StockPackagingResponse } from "@/types/stock_packaging";
-import ModalDeleteReferencedErrorStockPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorStockPackage";
+import { ItemPackagingResponse } from "@/types/item_packaging";
+import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorItemPackage";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 
 export default function ItemPage() {
@@ -161,7 +161,7 @@ export default function ItemPage() {
     }
   }
 
-  const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<StockPackagingResponse>, item: ItemModel) => {
+  const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingResponse>, item: ItemModel) => {
     setErrorModal({ type: "delete-referenced", item, data: err });
   };
 
@@ -179,7 +179,7 @@ export default function ItemPage() {
 
       if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
 
-        const errorData: ForeignKeyDeleteReferencedErrorResponse<StockPackagingResponse> = err.data;
+        const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingResponse> = err.data;
         handleDeleteReferencedError(errorData, items.find((it) => it.id == id) ?? defaultItem);
 
       } else if (err?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
@@ -318,7 +318,7 @@ export default function ItemPage() {
       )}
 
       {errorModal.type === "delete-referenced" && (
-        <ModalDeleteReferencedErrorStockPackage
+        <ModalDeleteReferencedErrorItemPackage
           error={errorModal.data}
           item={errorModal.item}
           onClose={() => setErrorModal({ type: "none" })}

@@ -6,16 +6,16 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
-func CreateStockPackagingToModel(r *request.CreateStockPackagingRequest) *model.StockPackaging {
-	return &model.StockPackaging{
+func CreateItemPackagingToModel(r *request.CreateItemPackagingRequest) *model.ItemPackaging {
+	return &model.ItemPackaging{
 		Description: r.Description,
 		Quantity:    r.Quantity,
 		Item:        model.Item{ID: r.ItemID},
 	}
 }
 
-func UpdateStockPackagingToModel(r *request.UpdateStockPackagingRequest) *model.StockPackaging {
-	return &model.StockPackaging{
+func UpdateItemPackagingToModel(r *request.UpdateItemPackagingRequest) *model.ItemPackaging {
+	return &model.ItemPackaging{
 		ID:          r.ID,
 		Description: r.Description,
 		Quantity:    r.Quantity,
@@ -23,8 +23,8 @@ func UpdateStockPackagingToModel(r *request.UpdateStockPackagingRequest) *model.
 	}
 }
 
-func ToStockPackagingResponse(m *model.StockPackaging) *response.StockPackagingResponse {
-	return &response.StockPackagingResponse{
+func ToItemPackagingResponse(m *model.ItemPackaging) *response.ItemPackagingResponse {
+	return &response.ItemPackagingResponse{
 		ID:          m.ID,
 		Description: m.Description,
 		Quantity:    m.Quantity,

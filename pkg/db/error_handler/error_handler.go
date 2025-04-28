@@ -47,6 +47,7 @@ func GetReferencedTableName(pgErr *pgconn.PgError) string {
 
 // RefFetcherFunc abstracts how to retrieve entities referenced by
 // a foreign key <id>.
+// For a example check GetReferencingItemPackagings in item_repository.
 type RefFetcherFunc func(id uint) (any, error)
 
 // Represents a function that takes the repository's return (usually a slice of models)

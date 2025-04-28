@@ -9,16 +9,16 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 
-	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_packaging_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/item_packaging_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
-func CreateStockPackaging(c *gin.Context) {
-	logger.Log.Info("CreateStockPackaging")
+func CreateItemPackaging(c *gin.Context) {
+	logger.Log.Info("CreateItemPackaging")
 
-	req := c.MustGet("dto").(*request.CreateStockPackagingRequest)
+	req := c.MustGet("dto").(*request.CreateItemPackagingRequest)
 
 	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
 	if err != nil {
@@ -26,17 +26,17 @@ func CreateStockPackaging(c *gin.Context) {
 		return
 	}
 
-	modelPackaging := mapper.CreateStockPackagingToModel(req)
-	if err := stock_packaging_repository.SaveStockPackaging(modelPackaging, user.ID); err != nil {
+	modelPackaging := mapper.CreateItemPackagingToModel(req)
+	if err := item_packaging_repository.SaveItemPackaging(modelPackaging, user.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving packaging"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, mapper.ToStockPackagingResponse(modelPackaging))
+	c.JSON(http.StatusCreated, mapper.ToItemPackagingResponse(modelPackaging))
 }
 
-func GetStockPackagingByID(c *gin.Context) {
-	logger.Log.Info("GetStockPackagingByID")
+func GetItemPackagingByID(c *gin.Context) {
+	logger.Log.Info("GetItemPackagingByID")
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -44,7 +44,7 @@ func GetStockPackagingByID(c *gin.Context) {
 		return
 	}
 
-	packaging, err := stock_packaging_repository.GetStockPackagingByID(uint(id))
+	packaging, err := item_packaging_repository.GetItemPackagingByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving packaging"})
 		return
@@ -54,11 +54,11 @@ func GetStockPackagingByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, mapper.ToStockPackagingResponse(packaging))
+	c.JSON(http.StatusOK, mapper.ToItemPackagingResponse(packaging))
 }
 
-func ListStockPackagings(c *gin.Context) {
-	logger.Log.Info("ListStockPackagings")
+func ListItemPackagings(c *gin.Context) {
+	logger.Log.Info("ListItemPackagings")
 
 	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
 	if err != nil {
@@ -69,37 +69,37 @@ func ListStockPackagings(c *gin.Context) {
 	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
 	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
-	packagings, err := stock_packaging_repository.ListStockPackagingsPaginated(user.ID, offset, limit)
+	packagings, err := item_packaging_repository.ListItemPackagingsPaginated(user.ID, offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing packagings"})
 		return
 	}
 
-	resp := make([]response.StockPackagingResponse, len(packagings))
+	resp := make([]response.ItemPackagingResponse, len(packagings))
 	for i, p := range packagings {
-		resp[i] = *mapper.ToStockPackagingResponse(&p)
+		resp[i] = *mapper.ToItemPackagingResponse(&p)
 	}
 
 	c.JSON(http.StatusOK, resp)
 }
 
-func UpdateStockPackaging(c *gin.Context) {
-	logger.Log.Info("UpdateStockPackaging")
+func UpdateItemPackaging(c *gin.Context) {
+	logger.Log.Info("UpdateItemPackaging")
 
-	req := c.MustGet("dto").(*request.UpdateStockPackagingRequest)
-	stockPackModel := mapper.UpdateStockPackagingToModel(req)
+	req := c.MustGet("dto").(*request.UpdateItemPackagingRequest)
+	itemPackModel := mapper.UpdateItemPackagingToModel(req)
 
-	updated, err := stock_packaging_repository.UpdateStockPackaging(stockPackModel)
+	updated, err := item_packaging_repository.UpdateItemPackaging(itemPackModel)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating packaging"})
 		return
 	}
 
-	c.JSON(http.StatusOK, mapper.ToStockPackagingResponse(updated))
+	c.JSON(http.StatusOK, mapper.ToItemPackagingResponse(updated))
 }
 
-func DeleteStockPackaging(c *gin.Context) {
-	logger.Log.Info("DeleteStockPackaging")
+func DeleteItemPackaging(c *gin.Context) {
+	logger.Log.Info("DeleteItemPackaging")
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -107,7 +107,7 @@ func DeleteStockPackaging(c *gin.Context) {
 		return
 	}
 
-	if err := stock_packaging_repository.DeleteStockPackaging(uint(id)); err != nil {
+	if err := item_packaging_repository.DeleteItemPackaging(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting packaging"})
 		return
 	}

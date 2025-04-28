@@ -6,22 +6,22 @@ import Header from "@/components/Header";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import * as items_api from "@/api/items_api";
-import * as stock_api from "@/api/stock_packaging_api";
-import { StockPackagingModel, StockPackagingRequest, StockPackagingResponse, toStockPackagingRequest, normalizeStockPackagingResponse } from "@/types/stock_packaging";
+import * as item_pack_api from "@/api/item_packaging_api";
+import { ItemPackagingModel, ItemPackagingRequest, ItemPackagingResponse, toItemPackagingRequest, normalizeItemPackagingResponse } from "@/types/item_packaging";
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
-import ModalFormStockPackaging from "@/components/Form/Modal/ModalFormStockPackaging";
+import ModalFormItemPackaging from "@/components/Form/Modal/ModalFormItemPackaging";
 
-export default function StockPackagingPage() {
+export default function ItemPackagingPage() {
 
 
-    const [stockPackagings, setStockPackagings] = useState<StockPackagingModel[]>([]);
+    const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
     const [items, setItems] = useState<ItemModel[]>([]);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
 
-    const defaultStockPackaging = {
+    const defaultItemPackaging = {
         id: 0,
         description: '',
         quantity: 0,
@@ -34,7 +34,7 @@ export default function StockPackagingPage() {
             },
         },
     }
-    const [editStockPackaging, setEditStockPackaging] = useState<StockPackagingModel>(defaultStockPackaging);
+    const [editItemPackaging, setEditItemPackaging] = useState<ItemPackagingModel>(defaultItemPackaging);
 
     // State for editing modal
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,7 +58,7 @@ export default function StockPackagingPage() {
     };
 
     useEffect(() => {
-        fetchStockPackaging();
+        fetchItemPackagings();
         fetchItems();
     }, []);
 
@@ -80,16 +80,16 @@ export default function StockPackagingPage() {
 
     };
 
-    const fetchStockPackaging = async () => {
+    const fetchItemPackagings = async () => {
         setLoading(true);
 
         try {
-            const stockPackagingResponse: StockPackagingResponse[] = await stock_api.fetchStockPackaging();
-            const stockPackagingModel: StockPackagingModel[] = stockPackagingResponse.map(
-                (sp) => { return normalizeStockPackagingResponse(sp) }
+            const itemPackagingResponse: ItemPackagingResponse[] = await item_pack_api.fetchItemPackaging();
+            const itemPackagingModel: ItemPackagingModel[] = itemPackagingResponse.map(
+                (sp) => { return normalizeItemPackagingResponse(sp) }
             );
 
-            setStockPackagings(stockPackagingModel ?? []);
+            setItemPackagings(itemPackagingModel ?? []);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -97,29 +97,29 @@ export default function StockPackagingPage() {
         }
     }
 
-    const handleCreate = async (newPackaging: StockPackagingModel) => {
+    const handleCreate = async (newPackaging: ItemPackagingModel) => {
         try {
 
-            const stockPackagingRequest: StockPackagingRequest = toStockPackagingRequest(newPackaging);
-            const stockPackagingResponse: StockPackagingResponse = await stock_api.createStockPackaging(stockPackagingRequest);
-            const created: StockPackagingModel = normalizeStockPackagingResponse(stockPackagingResponse);
+            const itemPackagingRequest: ItemPackagingRequest = toItemPackagingRequest(newPackaging);
+            const itemPackagingResponse: ItemPackagingResponse = await item_pack_api.createItemPackaging(itemPackagingRequest);
+            const created: ItemPackagingModel = normalizeItemPackagingResponse(itemPackagingResponse);
 
-            setStockPackagings((prev) => [...prev, created]);
+            setItemPackagings((prev) => [...prev, created]);
             setIsModalOpen(false);
         } catch (err: any) {
             setError(err.message);
         }
     };
 
-    const handleEdit = async (toUpdatePackaging: StockPackagingModel) => {
+    const handleEdit = async (toUpdatePackaging: ItemPackagingModel) => {
         try {
-            const stockPackagingRequest: StockPackagingRequest = toStockPackagingRequest(toUpdatePackaging);
-            const stockPackagingResponse: StockPackagingResponse = await stock_api.createStockPackaging(stockPackagingRequest);
-            const updated: StockPackagingModel = normalizeStockPackagingResponse(stockPackagingResponse);
+            const itemPackagingRequest: ItemPackagingRequest = toItemPackagingRequest(toUpdatePackaging);
+            const itemPackagingResponse: ItemPackagingResponse = await item_pack_api.createItemPackaging(itemPackagingRequest);
+            const updated: ItemPackagingModel = normalizeItemPackagingResponse(itemPackagingResponse);
 
-            setStockPackagings((prev) => prev.map(pack => pack.id === updated.id ? updated : pack));
+            setItemPackagings((prev) => prev.map(pack => pack.id === updated.id ? updated : pack));
 
-            setEditStockPackaging(defaultStockPackaging);
+            setEditItemPackaging(defaultItemPackaging);
             setIsModalOpen(false);
         } catch (err: any) {
             setError(err.message);
@@ -129,8 +129,8 @@ export default function StockPackagingPage() {
     const handleDelete = async (id: number) => {
 
         try {
-            await stock_api.deleteStockPackaging(id);
-            setStockPackagings((prev) => prev.filter(pack => pack.id !== id));
+            await item_pack_api.deleteItemPackaging(id);
+            setItemPackagings((prev) => prev.filter(pack => pack.id !== id));
         } catch (err: any) {
             setError(err.message);
         }
@@ -154,7 +154,7 @@ export default function StockPackagingPage() {
                     align={"center"}
                 >
 
-                    <Heading size={{ sm: "8" }} weight={"bold"}>Stock Packaging</Heading>
+                    <Heading size={{ sm: "8" }} weight={"bold"}>Item Packaging</Heading>
 
                     <Button size="3" onClick={() => handleOpenModal("create")}>Create</Button>
                 </Flex>
@@ -173,7 +173,7 @@ export default function StockPackagingPage() {
                         <Table.Body>
 
                             {loading ? (null) : (
-                                stockPackagings.map((pack) => (
+                                itemPackagings.map((pack) => (
                                     <Table.Row key={pack.id} align={"center"}>
                                         <Table.RowHeaderCell>{pack.description}</Table.RowHeaderCell>
                                         <Table.Cell>{pack.item?.description} <Badge color="iris" className="ml-1" size="1" variant="surface">{pack.item?.category?.description}</Badge> </Table.Cell>
@@ -187,7 +187,7 @@ export default function StockPackagingPage() {
                                                     onClick={
                                                         (ev) => {
                                                             ev.stopPropagation();
-                                                            setEditStockPackaging(pack);
+                                                            setEditItemPackaging(pack);
                                                             handleOpenModal("edit");
                                                         }
                                                     }>
@@ -246,15 +246,15 @@ export default function StockPackagingPage() {
                 </Skeleton>
             </Card>
             {isModalOpen && (
-                <ModalFormStockPackaging
+                <ModalFormItemPackaging
                     mode={isModalEdit ? "edit" : "create"}
-                    editStockPackaging={isModalEdit ? editStockPackaging : undefined}
+                    editItemPackaging={isModalEdit ? editItemPackaging : undefined}
                     itemOptions={items}
                     onClose={handleCloseModal}
                     onSubmitCreate={handleCreate}
                     onSubmitEdit={handleEdit}
                 >
-                </ModalFormStockPackaging>
+                </ModalFormItemPackaging>
             )}
         </Flex>
     );

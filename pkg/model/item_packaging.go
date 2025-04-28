@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type StockPackaging struct {
+type ItemPackaging struct {
 	ID          uint
 	Item        Item
 	Description string

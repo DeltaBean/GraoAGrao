@@ -1,7 +1,7 @@
 import { ItemModel } from "./item";
 
 // Used for POST and PUT requests
-export interface StockPackagingRequest {
+export interface ItemPackagingRequest {
     id?: number; // Optional for create, required for update
     item_id: number;
     description: string;
@@ -9,7 +9,7 @@ export interface StockPackagingRequest {
 }
 
 // API response format
-export interface StockPackagingResponse {
+export interface ItemPackagingResponse {
     id: number;
     description: string;
     quantity: number;
@@ -32,14 +32,14 @@ export interface StockPackagingResponse {
     };
 }
 
-export interface StockPackagingModel {
+export interface ItemPackagingModel {
     id?: number;
     description: string;
     quantity: number;
     item?: ItemModel
 }
 
-export function normalizeStockPackagingResponse(res: StockPackagingResponse): StockPackagingModel {
+export function normalizeItemPackagingResponse(res: ItemPackagingResponse): ItemPackagingModel {
     return {
         id: res.id,
         description: res.description,
@@ -57,7 +57,7 @@ export function normalizeStockPackagingResponse(res: StockPackagingResponse): St
     };
 }
 
-export function toStockPackagingRequest(model: StockPackagingModel): StockPackagingRequest {
+export function toItemPackagingRequest(model: ItemPackagingModel): ItemPackagingRequest {
     
     if (!model.item || typeof model.item.id !== "number") {
         throw new Error("Item with a valid ID is required.");

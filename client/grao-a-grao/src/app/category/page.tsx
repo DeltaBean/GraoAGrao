@@ -10,7 +10,7 @@ import ModalFormCategory from "@/components/Form/Modal/ModalFormCategory";
 import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse, toCategoryRequest } from "@/types/category";
 import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
 import { ItemResponse } from "@/types/item";
-import ModalDeleteReferencedErrorStockPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorStockPackage";
+import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorItemPackage";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/Category/ModalDeleteReferencedErrorItem";
 

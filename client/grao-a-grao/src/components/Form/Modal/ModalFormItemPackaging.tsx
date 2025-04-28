@@ -2,21 +2,21 @@ import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
 import { TextField, Skeleton, Text, Callout, Select, Flex, Box, Badge } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
 import { ItemModel } from "@/types/item";
-import { StockPackagingModel } from "@/types/stock_packaging";
+import { ItemPackagingModel } from "@/types/item_packaging";
 import { QrCodeIcon, TagIcon, InformationCircleIcon, ScaleIcon } from "@heroicons/react/16/solid";
 import { init } from "next/dist/compiled/webpack/webpack";
 
 
-type ModalFormStockPackagingProps = {
+type ModalFormItemPackagingProps = {
     mode: "create" | "edit";
-    editStockPackaging?: StockPackagingModel;
+    editItemPackaging?: ItemPackagingModel;
     itemOptions: ItemModel[] | [];
     onClose: () => void;
-    onSubmitCreate: (data: StockPackagingModel) => void;
-    onSubmitEdit: (data: StockPackagingModel) => void;
+    onSubmitCreate: (data: ItemPackagingModel) => void;
+    onSubmitEdit: (data: ItemPackagingModel) => void;
 };
 
-export default function ModalFormStockPackaging({ mode, editStockPackaging, onClose, itemOptions, onSubmitCreate, onSubmitEdit }: ModalFormStockPackagingProps) {
+export default function ModalFormItemPackaging({ mode, editItemPackaging, onClose, itemOptions, onSubmitCreate, onSubmitEdit }: ModalFormItemPackagingProps) {
     const [description, setDescription] = useState<string>("");
     const [quantity, setQuantity] = useState<number>(1);
 
@@ -37,15 +37,15 @@ export default function ModalFormStockPackaging({ mode, editStockPackaging, onCl
     const [selectedItem, setSelectedItem] = useState<ItemModel>(defaultItemOption);
 
     useEffect(() => {
-        if (editStockPackaging) {
-            setDescription(editStockPackaging.description);
-            setQuantity(editStockPackaging.quantity);
+        if (editItemPackaging) {
+            setDescription(editItemPackaging.description);
+            setQuantity(editItemPackaging.quantity);
 
             const selectedItem = itemOptions.find(
                 (it) => {
                     return it.id == (
-                        editStockPackaging.item ?
-                            editStockPackaging.item.id
+                        editItemPackaging.item ?
+                        editItemPackaging.item.id
                             :
                             itemOptions[0].id
                     )
@@ -53,16 +53,16 @@ export default function ModalFormStockPackaging({ mode, editStockPackaging, onCl
 
             setSelectedItem(selectedItem);
         }
-    }, [editStockPackaging]);
+    }, [editItemPackaging]);
 
     const handleSubmit = () => {
-        if (mode === "edit" && editStockPackaging) {
+        if (mode === "edit" && editItemPackaging) {
 
-            editStockPackaging.description = description;
-            editStockPackaging.quantity = quantity;
-            editStockPackaging.item = selectedItem;
+            editItemPackaging.description = description;
+            editItemPackaging.quantity = quantity;
+            editItemPackaging.item = selectedItem;
 
-            onSubmitEdit(editStockPackaging);
+            onSubmitEdit(editItemPackaging);
         } else {
             onSubmitCreate(
                 {
@@ -76,7 +76,7 @@ export default function ModalFormStockPackaging({ mode, editStockPackaging, onCl
 
     return (
         <ModalFormShell
-            title="Stock Packaging"
+            title="Item Packaging"
             mode={mode}
             onClose={onClose}
             onSubmit={handleSubmit}

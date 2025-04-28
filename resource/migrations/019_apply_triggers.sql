@@ -34,21 +34,21 @@ EXECUTE FUNCTION trg_capitalize_category_description();
 
 
 
--- applying description capitalization for tb_stock_packaging
-CREATE OR REPLACE FUNCTION trg_capitalize_stock_packaging_description()
+-- applying description capitalization for tb_item_packaging
+CREATE OR REPLACE FUNCTION trg_capitalize_item_packaging_description()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.stock_packaging_description := fn_capitalize_proper_noun(NEW.stock_packaging_description);
+    NEW.item_packaging_description := fn_capitalize_proper_noun(NEW.item_packaging_description);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 
-DROP TRIGGER IF EXISTS trg_capitalize_stock_packaging_description ON tb_stock_packaging;
-CREATE TRIGGER trg_capitalize_stock_packaging_description
-BEFORE INSERT OR UPDATE ON tb_stock_packaging
+DROP TRIGGER IF EXISTS trg_capitalize_item_packaging_description ON tb_item_packaging;
+CREATE TRIGGER trg_capitalize_item_packaging_description
+BEFORE INSERT OR UPDATE ON tb_item_packaging
 FOR EACH ROW
-EXECUTE FUNCTION trg_capitalize_stock_packaging_description();
+EXECUTE FUNCTION trg_capitalize_item_packaging_description();
 
 
 

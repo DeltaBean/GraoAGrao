@@ -11,11 +11,11 @@ type StockIn struct {
 }
 
 type StockInItem struct {
-	ID        uint
-	StockInID uint
-	Item      Item
-	BuyPrice  float64
-	Quantity  int
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID            uint
+	StockInID     uint
+	ItemPackaging ItemPackaging
+	BuyPrice      float64
+	Quantity      int
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
