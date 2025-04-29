@@ -12,6 +12,7 @@ func CreateStockInToModel(r *request.CreateStockInRequest) *model.StockIn {
 
 	for _, itr := range r.Items {
 		stockInItem := model.StockInItem{
+			Item:          model.Item{ID: itr.ItemID},
 			ItemPackaging: model.ItemPackaging{ID: itr.ItemPackagingID},
 			BuyPrice:      itr.BuyPrice,
 			Quantity:      itr.Quantity,
@@ -33,6 +34,7 @@ func UpdateStockInToModel(r *request.UpdateStockInRequest) *model.StockIn {
 			ID:            *itr.ID,
 			StockInID:     r.ID,
 			ItemPackaging: model.ItemPackaging{ID: itr.ItemPackagingID},
+			Item:          model.Item{ID: itr.ItemID},
 			BuyPrice:      itr.BuyPrice,
 			Quantity:      itr.Quantity,
 		}
@@ -52,10 +54,8 @@ func ToStockInResponse(m *model.StockIn) *response.StockInResponse {
 	for _, itr := range m.Items {
 		stockInItem := response.StockInItemResponse{
 			ID:                    itr.ID,
-			ItemPackagingID:       itr.ItemPackaging.ID,
-			ItemPackagingDesc:     itr.ItemPackaging.Description,
-			ItemPackagingItemDesc: itr.ItemPackaging.Item.Description,
-			ItemPackagingUnit:     itr.ItemPackaging.Item.UnitOfMeasure.Description,
+			ItemPackagingResponse: ToItemPackagingResponse(&itr.ItemPackaging),
+			ItemResponse:          ToItemResponse(&itr.Item),
 			BuyPrice:              itr.BuyPrice,
 			Quantity:              itr.Quantity,
 		}

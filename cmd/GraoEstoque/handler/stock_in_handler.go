@@ -5,24 +5,20 @@ import (
 	"strconv"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+
+	dtoMapper "github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
+	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
+
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_in_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/gin-gonic/gin"
 )
 
 // CreateStockIn handles the creation of a StockIn record with its items.
 func CreateStockIn(c *gin.Context) {
 	logger.Log.Info("CreateStockIn")
-
-	var stockIn model.StockIn
-	if err := c.ShouldBindJSON(&stockIn); err != nil {
-		logger.Log.Errorf("Invalid payload: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
 
 	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
 	if err != nil {
@@ -31,14 +27,18 @@ func CreateStockIn(c *gin.Context) {
 		return
 	}
 
-	err = stock_in_repository.SaveStockIn(&stockIn, authenticatedUser.ID)
+	// Retrieved from BindAndValidate middleware
+	cir := c.MustGet("dto").(*dtoRequest.CreateStockInRequest)
+	mcir := dtoMapper.CreateStockInToModel(cir)
+
+	err = stock_in_repository.SaveStockIn(mcir, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock in: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock in"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, stockIn)
+	c.JSON(http.StatusCreated, cir)
 }
 
 // GetStockInByID retrieves a StockIn by its ID and includes the items.

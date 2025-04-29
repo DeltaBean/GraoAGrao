@@ -77,7 +77,7 @@ func ListItemPackagings(c *gin.Context) {
 
 	resp := make([]response.ItemPackagingResponse, len(packagings))
 	for i, p := range packagings {
-		resp[i] = *mapper.ToItemPackagingResponse(&p)
+		resp[i] = mapper.ToItemPackagingResponse(&p)
 	}
 
 	c.JSON(http.StatusOK, resp)

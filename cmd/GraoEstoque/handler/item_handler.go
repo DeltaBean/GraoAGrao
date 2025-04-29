@@ -138,7 +138,7 @@ func DeleteItem(c *gin.Context) {
 				internal := entities.([]model.ItemPackaging)
 				var dtos []dtoResponse.ItemPackagingResponse
 				for _, s := range internal {
-					dtos = append(dtos, *mapper.ToItemPackagingResponse(&s))
+					dtos = append(dtos, mapper.ToItemPackagingResponse(&s))
 				}
 				return dtos
 			})

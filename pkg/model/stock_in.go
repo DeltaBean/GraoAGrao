@@ -13,6 +13,7 @@ type StockIn struct {
 type StockInItem struct {
 	ID            uint
 	StockInID     uint
+	Item          Item
 	ItemPackaging ItemPackaging
 	BuyPrice      float64
 	Quantity      int

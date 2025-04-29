@@ -10,11 +10,9 @@ type StockInResponse struct {
 }
 
 type StockInItemResponse struct {
-	ID                    uint    `json:"id"`
-	ItemPackagingID       uint    `json:"item_packaging_id"`
-	ItemPackagingDesc     string  `json:"item_packaging_description"`
-	ItemPackagingItemDesc string  `json:"item_packaging_item_description"`
-	ItemPackagingUnit     string  `json:"item_packaging_unit"`
-	BuyPrice              float64 `json:"buy_price"`
-	Quantity              int     `json:"quantity"`
+	ID                    uint                  `json:"id"`
+	ItemPackagingResponse ItemPackagingResponse `json:"item_packaging"`
+	ItemResponse          ItemResponse          `json:"item"`
+	BuyPrice              float64               `json:"buy_price"`
+	Quantity              int                   `json:"quantity"`
 }

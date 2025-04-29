@@ -96,7 +96,9 @@ func InitRoutes(router *gin.Engine) {
 		{
 			stockInGroup.GET("", handler.ListAllStockIn)
 			stockInGroup.GET("/:id", handler.GetStockInByID)
-			stockInGroup.POST("", handler.CreateStockIn)
+			stockInGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateStockInRequest](),
+				handler.CreateStockIn,
+			)
 			stockInGroup.DELETE("/:id", handler.DeleteStockIn)
 		}
 

@@ -1,11 +1,12 @@
 package request
 
 type CreateStockInRequest struct {
-	Items []CreateStockInItemRequest `json:"items" validate:"required,dive,gt=0"`
+	Items []CreateStockInItemRequest `json:"items" validate:"required,dive"`
 }
 
 type CreateStockInItemRequest struct {
 	ItemPackagingID uint    `json:"item_packaging_id" validate:"required"`
+	ItemID          uint    `json:"item_id" validate:"required"`
 	BuyPrice        float64 `json:"buy_price" validate:"required,gt=0"`
 	Quantity        int     `json:"quantity" validate:"required,gt=0"`
 }
@@ -18,6 +19,7 @@ type UpdateStockInRequest struct {
 type UpdateStockInItemRequest struct {
 	ID              *uint   `json:"id,omitempty"` // pointer to allow nil (new items)
 	ItemPackagingID uint    `json:"item_packaging_id" validate:"required"`
+	ItemID          uint    `json:"item_id" validate:"required"`
 	BuyPrice        float64 `json:"buy_price" validate:"required,gt=0"`
 	Quantity        int     `json:"quantity" validate:"required,gt=0"`
 }

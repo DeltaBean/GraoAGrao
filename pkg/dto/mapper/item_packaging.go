@@ -23,8 +23,8 @@ func UpdateItemPackagingToModel(r *request.UpdateItemPackagingRequest) *model.It
 	}
 }
 
-func ToItemPackagingResponse(m *model.ItemPackaging) *response.ItemPackagingResponse {
-	return &response.ItemPackagingResponse{
+func ToItemPackagingResponse(m *model.ItemPackaging) response.ItemPackagingResponse {
+	return response.ItemPackagingResponse{
 		ID:          m.ID,
 		Description: m.Description,
 		Quantity:    m.Quantity,

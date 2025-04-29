@@ -39,12 +39,12 @@ func SaveStockIn(stockIn *model.StockIn, OwnerID uint) error {
 	}
 
 	insertItem := `
-		INSERT INTO tb_stock_in_item (stock_in_id, item_packaging_id, buy_price, quantity)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO tb_stock_in_item (stock_in_id, item_id, item_packaging_id, buy_price, quantity)
+		VALUES ($1, $2, $3, $4, $5)
 	`
 	for _, item := range stockIn.Items {
 		_, err := tx.Exec(context.Background(), insertItem,
-			stockIn.ID, item.ItemPackaging.ID, item.BuyPrice, item.Quantity)
+			stockIn.ID, item.Item.ID, item.ItemPackaging.ID, item.BuyPrice, item.Quantity)
 		if err != nil {
 			logger.Log.Errorf("Error inserting stock in item: %v", err)
 			return err
@@ -81,8 +81,11 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 	}
 
 	itemRows, err := conn.Query(context.Background(), `
-		SELECT stock_in_item_id, item_packaging_id, buy_price, quantity
-		FROM tb_stock_in_item
+		SELECT sit.stock_in_item_id, sit.item_packaging_id, sit.buy_price, sit.quantity,
+		it.item_description, it.item_id, cat.category_description
+		FROM tb_stock_in_item sit
+		JOIN tb_item it ON (sit.item_id = it.item_id)
+		JOIN tb_category cat ON (cat.category_id = it.category_id)
 		WHERE stock_in_id = $1
 	`, stockIn.ID)
 	if err != nil {
@@ -92,7 +95,14 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 
 	for itemRows.Next() {
 		var stockInItem model.StockInItem
-		err := itemRows.Scan(&stockInItem.ID, &stockInItem.ItemPackaging.ID, &stockInItem.BuyPrice, &stockInItem.Quantity)
+		err := itemRows.Scan(&stockInItem.ID,
+			&stockInItem.ItemPackaging.ID,
+			&stockInItem.BuyPrice,
+			&stockInItem.Quantity,
+			&stockInItem.Item.Description,
+			&stockInItem.Item.ID,
+			&stockInItem.Item.Category.Description,
+		)
 		if err != nil {
 			return nil, err
 		}
