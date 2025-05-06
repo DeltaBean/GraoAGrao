@@ -1,7 +1,7 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton, Badge } from "@radix-ui/themes";
+import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton, Badge, Tooltip } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
@@ -154,19 +154,20 @@ export default function ItemPackagingPage() {
                     align={"center"}
                 >
 
-                    <Heading size={{ sm: "8" }} weight={"bold"}>Item Packaging</Heading>
-
-                    <Button size="3" onClick={() => handleOpenModal("create")}>Create</Button>
+                    <Heading size={{ sm: "8" }} weight={"bold"}>Fracionamento</Heading>
+                    <Tooltip content="Criar novo fracionamento de item de estoque">
+                        <Button size="3" onClick={() => handleOpenModal("create")}>Criar</Button>
+                    </Tooltip>
                 </Flex>
                 <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
                     <Table.Root>
 
                         <Table.Header>
                             <Table.Row align={"center"}>
-                                <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
-                                <Table.ColumnHeaderCell>Item</Table.ColumnHeaderCell>
-                                <Table.ColumnHeaderCell>Quantity</Table.ColumnHeaderCell>
-                                <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
+                                <Table.ColumnHeaderCell>Descrição</Table.ColumnHeaderCell>
+                                <Table.ColumnHeaderCell>Item de Estoque</Table.ColumnHeaderCell>
+                                <Table.ColumnHeaderCell>Quantidade</Table.ColumnHeaderCell>
+                                <Table.ColumnHeaderCell>Ações</Table.ColumnHeaderCell>
                             </Table.Row>
                         </Table.Header>
 
@@ -180,31 +181,32 @@ export default function ItemPackagingPage() {
                                         <Table.Cell>{pack.quantity} <Badge color="purple" className="ml-1" size="1" variant="surface">{pack.item?.unit_of_measure?.description}</Badge> </Table.Cell>
                                         <Table.Cell>
                                             <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
-                                                <IconButton
-                                                    size={"1"}
-                                                    about="Edit"
-                                                    variant="soft"
-                                                    onClick={
-                                                        (ev) => {
-                                                            ev.stopPropagation();
-                                                            setEditItemPackaging(pack);
-                                                            handleOpenModal("edit");
-                                                        }
-                                                    }>
-                                                    <PencilSquareIcon height="16" width="16" />
-                                                </IconButton>
-
+                                                <Tooltip content="Editar fracionamento de item de estoque">
+                                                    <IconButton
+                                                        size={"1"}
+                                                        about="Edit"
+                                                        variant="soft"
+                                                        onClick={
+                                                            (ev) => {
+                                                                ev.stopPropagation();
+                                                                setEditItemPackaging(pack);
+                                                                handleOpenModal("edit");
+                                                            }
+                                                        }>
+                                                        <PencilSquareIcon height="16" width="16" />
+                                                    </IconButton>
+                                                </Tooltip>
                                                 <AlertDialog.Root>
                                                     <AlertDialog.Trigger>
-
-                                                        <IconButton
-                                                            size={"1"}
-                                                            about="Delete"
-                                                            variant="soft"
-                                                            color="red">
-                                                            <TrashIcon height="16" width="16" />
-                                                        </IconButton>
-
+                                                        <Tooltip content="Excluir fracionamento de item de estoque">
+                                                            <IconButton
+                                                                size={"1"}
+                                                                about="Delete"
+                                                                variant="soft"
+                                                                color="red">
+                                                                <TrashIcon height="16" width="16" />
+                                                            </IconButton>
+                                                        </Tooltip>
                                                     </AlertDialog.Trigger>
                                                     <AlertDialog.Content maxWidth="450px">
                                                         <AlertDialog.Title>Delete {pack.description}</AlertDialog.Title>

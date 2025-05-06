@@ -33,12 +33,12 @@ export default function Header() {
 
                 {/* Desktop nav links */}
                 <Flex gap="4" align="center" display={{ initial: "none", sm: "flex" }}>
-                    <NavLink href="/item" label="Items" />
-                    <NavLink href="/category" label="Category" />
-                    <NavLink href="/unit" label="Units" />
-                    <NavLink href="/itemPackaging" label="Packaging" />
-                    <NavLink href="/stockin" label="Stock In" />
-                    <NavLink href="/stockout" label="Stock Out" />
+                    <NavLink href="/item" label="Item" />
+                    <NavLink href="/category" label="Categoria" />
+                    <NavLink href="/unit" label="Unidade" />
+                    <NavLink href="/itemPackaging" label="Fracionamento" />
+                    <NavLink href="/stockin" label="Entrada" />
+                    <NavLink href="/stockout" label="Saída" />
                 </Flex>
 
                 {/* Mobile menu toggle */}
@@ -78,12 +78,12 @@ export default function Header() {
             {/* Mobile nav menu (shown only when open) */}
             {menuOpen && (
                 <Flex direction="row" gap="4" className="sm:hidden mt-3 px-2">
-                    <NavLink href="/item" label="Items" />
-                    <NavLink href="/category" label="Category" />
-                    <NavLink href="/unit" label="Units" />
-                    <NavLink href="/itemPackaging" label="Packaging" />
-                    <NavLink href="/stockin" label="Stock In" />
-                    <NavLink href="/stockout" label="Stock Out" />
+                    <NavLink href="/item" label="Item" />
+                    <NavLink href="/category" label="Categoria" />
+                    <NavLink href="/unit" label="Unidade" />
+                    <NavLink href="/itemPackaging" label="Fracionamento" />
+                    <NavLink href="/stockin" label="Entrada" />
+                    <NavLink href="/stockout" label="Saída" />
                 </Flex>
             )}
         </Box>

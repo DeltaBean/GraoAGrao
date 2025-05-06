@@ -1,7 +1,7 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton } from "@radix-ui/themes";
+import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton, Badge, Tooltip } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
@@ -27,7 +27,7 @@ export default function ItemPage() {
   const [loading, setLoading] = useState(false);
 
   type ErrorModalState =
-    | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; item: ItemModel}
+    | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; item: ItemModel }
     | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
     | { type: "none" };
   const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
@@ -210,20 +210,21 @@ export default function ItemPage() {
           align={"center"}
         >
 
-          <Heading size={{ sm: "8" }} weight={"bold"}>Stock Item</Heading>
-
-          <Button size="3" onClick={() => handleOpenModal("create")}>Create</Button>
+          <Heading size={{ sm: "8" }} weight={"bold"}>Item de Estoque</Heading>
+          <Tooltip content="Criar novo item de estoque">
+          <Button size="3" onClick={() => handleOpenModal("create")}>Criar</Button>
+          </Tooltip>
         </Flex>
         <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
           <Table.Root>
 
             <Table.Header>
               <Table.Row align={"center"}>
-                <Table.ColumnHeaderCell>Description</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Category</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Unit</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Descrição</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Categoria</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Unidade de Medida</Table.ColumnHeaderCell>
                 <Table.ColumnHeaderCell>EAN-13</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
+                <Table.ColumnHeaderCell>Ações</Table.ColumnHeaderCell>
               </Table.Row>
             </Table.Header>
 
@@ -233,36 +234,38 @@ export default function ItemPage() {
                 items.map((item) => (
                   <Table.Row key={item.id} align={"center"}>
                     <Table.RowHeaderCell>{item.description}</Table.RowHeaderCell>
-                    <Table.Cell>{item.category ? item.category.description : undefined}</Table.Cell>
-                    <Table.Cell>{item.unit_of_measure ? item.unit_of_measure.description : undefined}</Table.Cell>
+                    <Table.Cell>{item.category ? <Badge color="iris" size="1" variant="surface">{item.category.description}</Badge> : undefined}</Table.Cell>
+                    <Table.Cell>{item.unit_of_measure ? <Badge color="purple" size="1" variant="surface">{item.unit_of_measure.description}</Badge> : undefined}</Table.Cell>
                     <Table.Cell>{item.ean13}</Table.Cell>
                     <Table.Cell>
                       <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
-                        <IconButton
-                          size={"1"}
-                          about="Edit"
-                          variant="soft"
-                          onClick={
-                            (ev) => {
-                              ev.stopPropagation();
-                              setEditItem(item);
-                              handleOpenModal("edit");
-                            }
-                          }>
-                          <PencilSquareIcon height="16" width="16" />
-                        </IconButton>
+                        <Tooltip content="Editar item de estoque">
+                          <IconButton
+                            size={"1"}
+                            about="Edit"
+                            variant="soft"
+                            onClick={
+                              (ev) => {
+                                ev.stopPropagation();
+                                setEditItem(item);
+                                handleOpenModal("edit");
+                              }
+                            }>
+                            <PencilSquareIcon height="16" width="16" />
+                          </IconButton>
+                        </Tooltip>
 
                         <AlertDialog.Root>
                           <AlertDialog.Trigger>
-
-                            <IconButton
-                              size={"1"}
-                              about="Delete"
-                              variant="soft"
-                              color="red">
-                              <TrashIcon height="16" width="16" />
-                            </IconButton>
-
+                            <Tooltip content="Excluir item de estoque">
+                              <IconButton
+                                size={"1"}
+                                about="Delete"
+                                variant="soft"
+                                color="red">
+                                <TrashIcon height="16" width="16" />
+                              </IconButton>
+                            </Tooltip>
                           </AlertDialog.Trigger>
                           <AlertDialog.Content maxWidth="450px">
                             <AlertDialog.Title>Delete {item.description}</AlertDialog.Title>

@@ -1,7 +1,7 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Button, Card, Flex, Heading, IconButton, Skeleton, Table, Text } from "@radix-ui/themes";
+import { Badge, Button, Card, Flex, Heading, IconButton, Skeleton, Table, Text } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { normalizeStockInResponse, StockInModel, StockInResponse } from "@/types/stock_in";
@@ -74,8 +74,9 @@ export default function StockInPage() {
               <Table.Header>
 
                 <Table.Row align={"center"}>
-                  <Table.ColumnHeaderCell>Data</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Data de Entrada</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Ações</Table.ColumnHeaderCell>
                 </Table.Row>
               </Table.Header>
 
@@ -85,6 +86,15 @@ export default function StockInPage() {
                   stockIn.map((si) => (
                     <Table.Row key={si.id} align={"center"}>
                       <Table.RowHeaderCell>{formatDateTime(si.created_at)}</Table.RowHeaderCell>
+                      <Table.Cell>
+                        {
+                          si.status == "draft" ?
+                              (<Badge color="amber" variant="surface">Rascunho</Badge>)
+                          : si.status == "finalized" ?
+                              (<Badge variant="surface">finalized</Badge>)
+                          : ""
+                        }
+                      </Table.Cell>
                       <Table.Cell>
                         <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
                           <IconButton
