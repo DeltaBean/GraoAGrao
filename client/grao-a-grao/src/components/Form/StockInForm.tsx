@@ -5,7 +5,7 @@ import { useStockInForm } from "@/hooks/useStockInForm";
 import { ItemModel } from "@/types/item";
 import { ItemPackagingModel } from "@/types/item_packaging";
 import { StockInModel } from "@/types/stock_in";
-import { InformationCircleIcon } from "@heroicons/react/16/solid";
+import { InformationCircleIcon, PlusIcon } from "@heroicons/react/16/solid";
 import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Box, Section, Container, IconButton, Callout } from "@radix-ui/themes";
 import { formatDateTimeLocal } from "@/util/util"
 import React, { useEffect, useState } from "react";
@@ -79,7 +79,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
             disabled
             value={
               stockIn.created_at
-                ? stockIn.created_at
+                ? formatDateTimeLocal(new Date(stockIn.created_at))
                 : currentTime
             }
             // onChange won’t fire because it’s disabled,
@@ -88,6 +88,23 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
           />
         </Text>
 
+        <Flex direction="column" gap="2">
+          <Text size="3">
+            Status
+          </Text>
+          {
+            stockIn.status == "draft" ?
+              <Tooltip content="Ainda não finalizada, permite edição">
+                <Badge size="3" color="amber" variant="surface">Rascunho</Badge>
+              </Tooltip>
+              : stockIn.status == "finalized" ?
+                <Tooltip content="Confirmada, não permite edição">
+                  <Badge variant="surface">Finalizada</Badge>
+                </Tooltip>
+                : ""
+          }
+
+        </Flex>
       </Flex>
 
       <Separator size="4"></Separator>
@@ -127,13 +144,13 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                         value={item.item.id ? String(item.item.id) : ""}
                         onValueChange={(value) => {
                           const selected = itemOptions.find(o => o.id === parseInt(value));
-                                    if (selected) {
-                                      updateItemSimpleField(
-                                        index,
-                                        "item",
-                                        selected
-                                      );
-                                    }
+                          if (selected) {
+                            updateItemSimpleField(
+                              index,
+                              "item",
+                              selected
+                            );
+                          }
                         }}
                       >
                         <Select.Trigger />
@@ -244,8 +261,15 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                     return (
                       <>
                         <Separator size="4" />
-                        <Heading size="3" mb="-4">Porcionamentos</Heading>
-
+                        <Flex justify="between">
+                          <Heading size="3" mb="-4">Fracionamentos</Heading>
+                          <Tooltip content="Adicionar fracionamento">
+                            <IconButton size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
+                              <PlusIcon width="16" height="16">
+                              </PlusIcon>
+                            </IconButton>
+                          </Tooltip>
+                        </Flex>
                         {item.packagings.map((pack, packIndex) => {
 
                           // Build the set of other selected packaging IDs (exclude this row)
@@ -295,13 +319,13 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                                   <>
                                     <DataList.Root>
                                       <DataList.Item>
-                                        <DataList.Label>Porcionamento</DataList.Label>
+                                        <DataList.Label>Fracionamento</DataList.Label>
                                         <DataList.Value>
                                           {(() => {
-                                            const uom = pack.item_packaging.item?.unit_of_measure;
+                                            const uom = item.item.unit_of_measure;
                                             const qty = pack.item_packaging.quantity;
                                             return uom?.description
-                                              ? <Badge color="blue" variant="soft">{`${qty} ${uom.description}`}</Badge>
+                                              ? <Badge color="blue" variant="soft">{`${qty}x ${uom.description}`}</Badge>
                                               : "N/A";
                                           })()}
                                         </DataList.Value>
@@ -324,28 +348,21 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                                     />
                                   </>
                                 )}
-                                <Button
-                                  variant="outline"
-                                  color="red"
-                                  size="1"
-                                  onClick={() => removeItemPackaging(index, packIndex)}
-                                  style={{ marginTop: 8 }}
-                                >
-                                  Excluir
-                                </Button>
+                                <Container>
+                                  <Button
+                                    variant="outline"
+                                    color="red"
+                                    size="1"
+                                    onClick={() => removeItemPackaging(index, packIndex)}
+                                    style={{ marginTop: 8 }}
+                                  >
+                                    Excluir
+                                  </Button>
+                                </Container>
                               </Flex>
                             </Card>
                           )
                         })}
-
-                        <Button
-                          variant="outline"
-                          size="1"
-                          onClick={() => addItemPackaging(index)}
-                          style={{ marginTop: 8 }}
-                        >
-                          Adicionar Porcionamento
-                        </Button>
                       </>
                     );
                   })()}
@@ -368,7 +385,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                           <InformationCircleIcon width="16" height="16" />
                         </Callout.Icon>
                         <Callout.Text>
-                          A soma da quantidade dos porcionamentos não é igual a quantidade total do item
+                          A soma da quantidade dos fracionamentos não é igual a quantidade total do item
                         </Callout.Text>
                       </Callout.Root>
                     </>

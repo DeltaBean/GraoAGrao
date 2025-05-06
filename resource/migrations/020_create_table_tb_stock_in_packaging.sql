@@ -3,8 +3,15 @@ CREATE TABLE public.tb_stock_in_packaging (
     stock_in_packaging_id SERIAL PRIMARY KEY,
     stock_in_item_id INTEGER NOT NULL REFERENCES public.tb_stock_in_item(stock_in_item_id) ON DELETE CASCADE,
     item_packaging_id INTEGER NOT NULL REFERENCES public.tb_item_packaging(item_packaging_id),
-    quantity INTEGER NOT NULL CHECK (quantity > 0)
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+CREATE TRIGGER set_updated_at
+BEFORE UPDATE ON tb_stock_in_packaging
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
 
 -- Step 2: Adjust the stock-in trigger functions to use total_quantity instead of quantity
 -- Update trigger function: adjust_stock_on_stockin_update

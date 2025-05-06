@@ -10,4 +10,8 @@ CREATE TABLE IF NOT EXISTS tb_stock_in_item (
 
 COMMENT ON COLUMN public.tb_stock_in_item.total_quantity IS
   'The total quantity (in base units) that must match the sum of all associated packagings';
-  
+
+CREATE TRIGGER set_updated_at
+BEFORE UPDATE ON tb_stock_in_item
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

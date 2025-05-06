@@ -247,15 +247,11 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 				&p.ItemPackaging.Description,
 				&p.ItemPackaging.Quantity,
 			)
-
 			if err != nil {
 				return nil, err
 			}
 			if idx, ok := idToIndex[p.StockInItemID]; ok {
 				items[idx].Packagings = append(items[idx].Packagings, p)
-				logger.Log.Debugf("pack added for item %d", items[idx].ID)
-			} else {
-				logger.Log.Debugf("no item found for pack %d", p.ID)
 			}
 		}
 	}

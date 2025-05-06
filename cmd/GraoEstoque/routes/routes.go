@@ -32,7 +32,8 @@ func InitRoutes(router *gin.Engine) {
 			handler.CreateItem,
 		)
 
-		itemGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemRequest](),
+		itemGroup.PUT("",
+			middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemRequest](),
 			handler.UpdateItem,
 		)
 
@@ -43,7 +44,8 @@ func InitRoutes(router *gin.Engine) {
 			categoryGroup.GET("/:id", handler.GetCategoryByID)
 			categoryGroup.DELETE("/:id", handler.DeleteCategory)
 
-			categoryGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateCategoryRequest](),
+			categoryGroup.POST("",
+				middleware.BindAndValidateMiddleware[dtoRequest.CreateCategoryRequest](),
 				handler.CreateCategory,
 			)
 			categoryGroup.PUT("",
@@ -59,10 +61,12 @@ func InitRoutes(router *gin.Engine) {
 			unitGroup.GET("/:id", handler.GetUnitByID)
 			unitGroup.DELETE("/:id", handler.DeleteUnit)
 
-			unitGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateUnitOfMeasureRequest](),
+			unitGroup.POST("",
+				middleware.BindAndValidateMiddleware[dtoRequest.CreateUnitOfMeasureRequest](),
 				handler.CreateUnit,
 			)
-			unitGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateUnitOfMeasureRequest](),
+			unitGroup.PUT("",
+				middleware.BindAndValidateMiddleware[dtoRequest.UpdateUnitOfMeasureRequest](),
 				handler.UpdateUnit,
 			)
 		}
@@ -74,10 +78,12 @@ func InitRoutes(router *gin.Engine) {
 			itemPackagingGroup.GET("/:id", handler.GetItemPackagingByID)
 			itemPackagingGroup.DELETE("/:id", handler.DeleteItemPackaging)
 
-			itemPackagingGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateItemPackagingRequest](),
+			itemPackagingGroup.POST("",
+				middleware.BindAndValidateMiddleware[dtoRequest.CreateItemPackagingRequest](),
 				handler.CreateItemPackaging,
 			)
-			itemPackagingGroup.PUT("", middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemPackagingRequest](),
+			itemPackagingGroup.PUT("",
+				middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemPackagingRequest](),
 				handler.UpdateItemPackaging,
 			)
 		}
@@ -97,8 +103,13 @@ func InitRoutes(router *gin.Engine) {
 			stockInGroup.GET("", handler.ListAllStockIn)
 			stockInGroup.GET("/:id", handler.GetStockInByID)
 			stockInGroup.GET("/finalize/:id", handler.FinalizeStockInByID)
-			stockInGroup.POST("", middleware.BindAndValidateMiddleware[dtoRequest.CreateStockInRequest](),
+			stockInGroup.POST("",
+				middleware.BindAndValidateMiddleware[dtoRequest.CreateStockInRequest](),
 				handler.CreateStockIn,
+			)
+			stockInGroup.PUT("",
+				middleware.BindAndValidateMiddleware[dtoRequest.UpdateStockInRequest](),
+				handler.UpdateStockIn,
 			)
 			stockInGroup.DELETE("/:id", handler.DeleteStockIn)
 		}
