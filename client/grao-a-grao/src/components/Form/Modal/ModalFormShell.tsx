@@ -25,7 +25,7 @@ export default function ModalFormShell({ title, mode, onClose, onSubmit, childre
           </Flex>
 
           <Box p={{ sm: "3" }} mb={{ sm: "2" }}>
-            <Heading>{mode === "edit" ? "Edit" : "Create"} {title}</Heading>
+            <Heading>{mode === "edit" ? "Editar" : "Criar"} {title}</Heading>
           </Box>
 
           <Box id="form-content-box" className="sm:px-6 sm:pt-2 flex-1">
@@ -33,7 +33,7 @@ export default function ModalFormShell({ title, mode, onClose, onSubmit, childre
               {children}
               <Flex justify="start" align="center" className="my-3">
                 <Button size="3" onClick={(e) => { e.preventDefault(); onSubmit(); }}>
-                  {mode === "edit" ? "Editar" : "Create"}
+                  {mode === "edit" ? "Editar" : "Criar"}
                 </Button>
               </Flex>
             </Flex>

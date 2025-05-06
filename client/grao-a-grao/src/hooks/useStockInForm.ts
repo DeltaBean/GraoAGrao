@@ -82,7 +82,7 @@ export function useStockInForm(initial?: StockInModel) {
   // Update a simple field on an item (buy_price or total_quantity)
   function updateItemSimpleField(
     index: number,
-    field: keyof Pick<StockInItemModel, "buy_price" | "total_quantity">,
+    field: keyof Pick<StockInItemModel, "buy_price" | "total_quantity" | "item">,
     value: any
   ) {
     setStockIn((prev) => ({

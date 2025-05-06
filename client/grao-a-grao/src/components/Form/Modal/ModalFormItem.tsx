@@ -63,9 +63,9 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
 
     const Ean13OnChange = (value: string) => {
         if (value.length != 13) {
-            setEan13Error("EAN-13 must be 13 digits long.");
+            setEan13Error("EAN-13 deve conter 13 dígitos.");
         } else if (!/^\d+$/.test(value)) {
-            setEan13Error("EAN-13 must contain only digits.");
+            setEan13Error("EAN-13 deve conter apenas dígitos numéricos.");
         } else {
             setEan13Error(null);
         }
@@ -102,12 +102,12 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
         >
             <Text as="label" size="3">
                 <Skeleton loading={false}>
-                    <div className="mb-2">Description</div>
+                    <div className="mb-2">Descrição</div>
                 </Skeleton>
                 <Skeleton loading={false}>
                     <TextField.Root
                         size="3"
-                        placeholder="Description"
+                        placeholder="Descrição"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
@@ -139,7 +139,7 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
 
             <Text as="label" size={"3"}>
                 <Skeleton loading={false}>
-                    <div className="mb-2">Category</div>
+                    <div className="mb-2">Categoria</div>
                 </Skeleton>
                 <Skeleton loading={false}>
                     <Select.Root
@@ -175,7 +175,7 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
 
             <Text as="label" size={"3"}>
                 <Skeleton loading={false}>
-                    <div className="mb-2">Unit</div>
+                    <div className="mb-2">Unidade de Medida</div>
                 </Skeleton>
                 <Skeleton loading={false}>
                     <Select.Root

@@ -7,7 +7,7 @@ import { ItemPackagingModel } from "@/types/item_packaging";
 import { StockInModel } from "@/types/stock_in";
 import { InformationCircleIcon } from "@heroicons/react/16/solid";
 import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Box, Section, Container, IconButton, Callout } from "@radix-ui/themes";
-import {formatDateTimeLocal} from "@/util/util"
+import { formatDateTimeLocal } from "@/util/util"
 import React, { useEffect, useState } from "react";
 
 type Props = {
@@ -43,7 +43,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(stockIn);
@@ -126,7 +126,14 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                       <Select.Root
                         value={item.item.id ? String(item.item.id) : ""}
                         onValueChange={(value) => {
-                          updateItemNestedField(index, "item", "id", parseInt(value));
+                          const selected = itemOptions.find(o => o.id === parseInt(value));
+                                    if (selected) {
+                                      updateItemSimpleField(
+                                        index,
+                                        "item",
+                                        selected
+                                      );
+                                    }
                         }}
                       >
                         <Select.Trigger />
@@ -192,33 +199,31 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                       <Text mb="-4" size="2">
                         <Flex gap="2">
                           Preço de Compra
-                          <IconButton size="1" radius="full" variant="ghost" color="gray">
-                            <InformationCircleIcon width="16" height="16"></InformationCircleIcon>
-                          </IconButton>
                         </Flex>
                       </Text>
-                      <TextField.Root
-                        type="number"
-                        placeholder="0.00"
-                        value={item.buy_price ?? item.buy_price != 0 ? item.buy_price : ""}
-                        onChange={(e) => updateItemSimpleField(index, "buy_price", parseFloat(e.target.value))}
-                      />
+                      <Tooltip content={`Preço total pago no item`}>
+                        <TextField.Root
+                          type="number"
+                          placeholder="0.00"
+                          value={item.buy_price ?? item.buy_price != 0 ? item.buy_price : ""}
+                          onChange={(e) => updateItemSimpleField(index, "buy_price", parseFloat(e.target.value))}
+                        />
+                      </Tooltip>
 
                       {/* Quantity */}
                       <Text mb="-4" size="2">
                         <Flex gap="2">
                           Quantidade Total
-                          <IconButton size="1" radius="full" variant="ghost" color="gray">
-                            <InformationCircleIcon width="16" height="16"></InformationCircleIcon>
-                          </IconButton>
                         </Flex>
                       </Text>
-                      <TextField.Root
-                        type="number"
-                        placeholder="0"
-                        value={item.total_quantity ?? item.total_quantity != 0 ? item.total_quantity : ""}
-                        onChange={(e) => updateItemSimpleField(index, "total_quantity", parseInt(e.target.value))}
-                      />
+                      <Tooltip content={`Quantidade total medida em "${item.item.unit_of_measure?.description}"`}>
+                        <TextField.Root
+                          type="number"
+                          placeholder="0"
+                          value={item.total_quantity ?? item.total_quantity != 0 ? item.total_quantity : ""}
+                          onChange={(e) => updateItemSimpleField(index, "total_quantity", parseInt(e.target.value))}
+                        />
+                      </Tooltip>
                     </Flex>
                   </Card>
                   {/* StockIn Packaging */}
@@ -358,7 +363,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
 
                   {(qtyBalanceCalloutVisible && !isTotalBalanced(index)) && (
                     <>
-                      <Callout.Root variant="soft" color="gray" size="1"> 
+                      <Callout.Root variant="soft" color="gray" size="1">
                         <Callout.Icon>
                           <InformationCircleIcon width="16" height="16" />
                         </Callout.Icon>

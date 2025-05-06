@@ -76,19 +76,19 @@ export default function ModalFormItemPackaging({ mode, editItemPackaging, onClos
 
     return (
         <ModalFormShell
-            title="Item Packaging"
+            title="Fracionamento"
             mode={mode}
             onClose={onClose}
             onSubmit={handleSubmit}
         >
             <Text as="label" size="3">
                 <Skeleton loading={false}>
-                    <div className="mb-2">Description</div>
+                    <div className="mb-2">Descrição</div>
                 </Skeleton>
                 <Skeleton loading={false}>
                     <TextField.Root
                         size="3"
-                        placeholder="Description"
+                        placeholder="Descrição"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
@@ -97,11 +97,11 @@ export default function ModalFormItemPackaging({ mode, editItemPackaging, onClos
 
             <Text as="label" size={"3"}>
                 <Skeleton loading={false}>
-                    <div className="mb-2">Quantity</div>
+                    <div className="mb-2">Quantidade</div>
                 </Skeleton>
                 <Skeleton loading={false}>
                     <Box className="w-2/3">
-                        <TextField.Root type="number" size="3" placeholder="Quantity" value={quantity} onChange={(ev) => setQuantity(parseFloat(ev.target.value))}>
+                        <TextField.Root type="number" size="3" placeholder="Quantidade" value={quantity} onChange={(ev) => setQuantity(parseFloat(ev.target.value))}>
                             <Flex justify={"center"} align={"center"} p="2">
                                 <Badge color="purple" size="2" variant="surface">{selectedItem.unit_of_measure?.description}</Badge>
                             </Flex>

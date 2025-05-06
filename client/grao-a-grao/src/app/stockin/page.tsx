@@ -1,7 +1,7 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Badge, Button, Card, Flex, Heading, IconButton, Skeleton, Table, Text } from "@radix-ui/themes";
+import { Badge, Button, Card, Flex, Heading, IconButton, Skeleton, Table, Text, Tooltip } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { normalizeStockInResponse, StockInModel, StockInResponse } from "@/types/stock_in";
@@ -64,8 +64,9 @@ export default function StockInPage() {
           >
 
             <Heading size={{ sm: "8" }} weight={"bold"}>Entrada de Estoque</Heading>
-
-            <Button size="3"> <Link href="/stockin/create">Novo</Link></Button>
+            <Tooltip content="Criar nova entrada de estoque">
+              <Button size="3"> <Link href="/stockin/create">Criar</Link></Button>
+            </Tooltip>
           </Flex>
 
           <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
@@ -89,26 +90,36 @@ export default function StockInPage() {
                       <Table.Cell>
                         {
                           si.status == "draft" ?
-                              (<Badge color="amber" variant="surface">Rascunho</Badge>)
-                          : si.status == "finalized" ?
-                              (<Badge variant="surface">finalized</Badge>)
-                          : ""
+                            (
+                              <Tooltip content="Ainda não finalizada, permite edição">
+                                <Badge color="amber" variant="surface">Rascunho</Badge>
+                              </Tooltip>
+                            )
+                            : si.status == "finalized" ?
+                              (
+                                <Tooltip content="Confirmada, não permite edição">
+                                  <Badge variant="surface">Finalizada</Badge>
+                                </Tooltip>
+                              )
+                              : ""
                         }
                       </Table.Cell>
                       <Table.Cell>
                         <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
-                          <IconButton
-                            size={"1"}
-                            about="Edit"
-                            variant="soft"
-                            onClick={
-                              (ev) => {
-                                ev.stopPropagation();
-                                router.push(`/stockin/edit?id=${si.id}`)
-                              }
-                            }>
-                            <PencilSquareIcon height="16" width="16" />
-                          </IconButton>
+                          <Tooltip content="Editar entrada de estoque">
+                            <IconButton
+                              size={"1"}
+                              about="Edit"
+                              variant="soft"
+                              onClick={
+                                (ev) => {
+                                  ev.stopPropagation();
+                                  router.push(`/stockin/edit?id=${si.id}`)
+                                }
+                              }>
+                              <PencilSquareIcon height="16" width="16" />
+                            </IconButton>
+                          </Tooltip>
                         </Flex>
                       </Table.Cell>
                     </Table.Row>

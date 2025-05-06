@@ -49,7 +49,6 @@ export default function StockInCreatePage() {
             const itemModel: ItemModel[] = itemResponse.map(
                 (it) => normalizeItemResponse(it)
             );
-
             setItems(itemModel ?? []);
         } catch (err: any) {
 

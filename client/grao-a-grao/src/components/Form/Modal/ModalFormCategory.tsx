@@ -31,19 +31,19 @@ export default function ModalFormCategory({ mode, editCategory, onClose, onSubmi
 
   return (
     <ModalFormShell
-      title="Category"
+      title="Categoria"
       mode={mode}
       onClose={onClose}
       onSubmit={handleSubmit}
     >
       <Text as="label" size="3">
         <Skeleton loading={false}>
-          <div className="mb-2">Description</div>
+          <div className="mb-2">Descrição</div>
         </Skeleton>
         <Skeleton loading={false}>
           <TextField.Root
             size="3"
-            placeholder="Description"
+            placeholder="Descrição"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />

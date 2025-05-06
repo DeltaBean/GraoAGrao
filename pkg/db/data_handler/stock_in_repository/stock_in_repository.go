@@ -146,6 +146,9 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 		FROM tb_stock_in
 		WHERE stock_in_id = $1
 	`
+
+	logger.Log.DebugSQL(parentQuery, id)
+
 	err = conn.QueryRow(context.Background(), parentQuery, id).Scan(
 		&stockIn.ID,
 		&stockIn.Owner.ID,
@@ -162,12 +165,17 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 	itemQuery := `
 		SELECT sii.stock_in_item_id, sii.buy_price, sii.total_quantity,
 		       i.item_id, i.item_description,
-		       cat.category_id, cat.category_description
+		       cat.category_id, cat.category_description,
+			   uom.unit_id, uom.unit_description
 		FROM tb_stock_in_item sii
 		JOIN tb_item i ON i.item_id = sii.item_id
 		JOIN tb_category cat ON cat.category_id = i.category_id
+		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
 		WHERE sii.stock_in_id = $1
 	`
+
+	logger.Log.DebugSQL(itemQuery, stockIn.ID)
+
 	rows, err := conn.Query(context.Background(), itemQuery, stockIn.ID)
 	if err != nil {
 		return nil, err
@@ -175,7 +183,6 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 	defer rows.Close()
 
 	items := []model.StockInItem{}
-	itemMap := map[uint]*model.StockInItem{}
 
 	for rows.Next() {
 		var item model.StockInItem
@@ -188,6 +195,8 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 			&item.Item.Description,
 			&cat.ID,
 			&cat.Description,
+			&item.Item.UnitOfMeasure.ID,
+			&item.Item.UnitOfMeasure.Description,
 		)
 		if err != nil {
 			return nil, err
@@ -196,7 +205,11 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 		item.StockInID = stockIn.ID
 		item.Packagings = []model.StockInPackaging{}
 		items = append(items, item)
-		itemMap[item.ID] = &items[len(items)-1]
+	}
+
+	var idToIndex = make(map[uint]int, len(items))
+	for idx, it := range items {
+		idToIndex[it.ID] = idx
 	}
 
 	// Load packagings
@@ -214,7 +227,11 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 			JOIN tb_item_packaging ip ON ip.item_packaging_id = sp.item_packaging_id
 			WHERE sp.stock_in_item_id = ANY($1::int[])
 		`
+
+		logger.Log.DebugSQL(pkgQuery, ids)
+
 		pkgRows, err := conn.Query(context.Background(), pkgQuery, ids)
+
 		if err != nil {
 			return nil, err
 		}
@@ -230,16 +247,22 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 				&p.ItemPackaging.Description,
 				&p.ItemPackaging.Quantity,
 			)
+
 			if err != nil {
 				return nil, err
 			}
-			if it, ok := itemMap[p.StockInItemID]; ok {
-				it.Packagings = append(it.Packagings, p)
+			if idx, ok := idToIndex[p.StockInItemID]; ok {
+				items[idx].Packagings = append(items[idx].Packagings, p)
+				logger.Log.Debugf("pack added for item %d", items[idx].ID)
+			} else {
+				logger.Log.Debugf("no item found for pack %d", p.ID)
 			}
 		}
 	}
 
 	stockIn.Items = items
+	logger.Log.DebugAsJSON(stockIn)
+
 	return stockIn, nil
 }
 
