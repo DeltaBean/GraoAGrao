@@ -9,6 +9,7 @@ import { InformationCircleIcon, PlusIcon } from "@heroicons/react/16/solid";
 import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Box, Section, Container, IconButton, Callout } from "@radix-ui/themes";
 import { formatDateTimeLocal } from "@/util/util"
 import React, { useEffect, useState } from "react";
+import LoadingModal from "../LoadingModal";
 
 type Props = {
   initialData?: StockInModel; // Optional if editing
@@ -262,7 +263,9 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                       <>
                         <Separator size="4" />
                         <Flex justify="between">
-                          <Heading size="3" mb="-4">Fracionamentos</Heading>
+                          <Tooltip content="Itens que compõe fracionamento obrigatoriamente entram no estoque de forma fracionada">
+                            <Heading size="3" mb="-4">Fracionamentos</Heading>
+                          </Tooltip>
                           <Tooltip content="Adicionar fracionamento">
                             <IconButton size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
                               <PlusIcon width="16" height="16">

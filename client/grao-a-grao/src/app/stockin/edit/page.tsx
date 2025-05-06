@@ -13,6 +13,8 @@ import { createEmptyStockIn } from "@/util/factory/stock_in";
 import { useSearchParams } from "next/navigation";
 import { Card, Flex } from "@radix-ui/themes";
 import Header from "@/components/Header";
+import LoadingModal from "@/components/LoadingModal";
+import { useLoading } from "@/hooks/useLoading";
 
 export default function StockInEditPage() {
     const searchParams = useSearchParams();
@@ -22,9 +24,13 @@ export default function StockInEditPage() {
 
     const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
     const [items, setItems] = useState<ItemModel[]>([]);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const {
+        loadingData,
+        setIsLoading,
+        setMessage: setLoadingMessage,
+    } = useLoading();
 
     useEffect(() => {
         if (idParam) {
@@ -38,7 +44,8 @@ export default function StockInEditPage() {
     }, []); // empty array = run once on mount
 
     const fetchStockIn = async () => {
-        setLoading(true);
+        setIsLoading(true);
+        setLoadingMessage("Carregando Entrada de Estoque...")
 
         try {
             const stockInResponse: StockInResponse = await fetchStockInById(parseInt(idParam ?? ""));
@@ -49,12 +56,13 @@ export default function StockInEditPage() {
             console.error(err);
             setError(err.message);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     }
 
     const fetchItemPackagings = async () => {
-        setLoading(true);
+        setIsLoading(true);
+        setLoadingMessage("Carregando Fracionamento de Itens...");
 
         try {
             const itemPackagingResponse: ItemPackagingResponse[] = await fetchItemPackaging();
@@ -67,12 +75,13 @@ export default function StockInEditPage() {
             console.error(err);
             setError(err.message);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     const fetchItems = async () => {
-        setLoading(true);
+        setIsLoading(true);
+        setLoadingMessage("Carregando Itens de Estoque...");
 
         try {
             const itemResponse: ItemResponse[] = await fetchItemsApi();
@@ -84,7 +93,20 @@ export default function StockInEditPage() {
         } catch (err: any) {
             console.error(err);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
+        }
+    }
+
+    const handleSubmit = async (data: StockInModel) => {
+        setIsLoading(true);
+        setLoadingMessage("Salvando Entrada de Estoque...")
+        try {
+            const req = toUpdateStockInRequest(data);
+            await updateStockIn(req);
+        } catch (err: any) {
+            console.error(err);
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -100,12 +122,11 @@ export default function StockInEditPage() {
                     initialData={stockIn}
                     itemPackagingOptions={itemPackagings}
                     itemOptions={items}
-                    onSubmit={async (data) => {
-                        const req = toUpdateStockInRequest(data);
-                        await updateStockIn(req);
-                    }}
+                    onSubmit={handleSubmit}
                 />
             </Card>
+
+            <LoadingModal isOpen={loadingData.isLoading} message={loadingData.message} />
         </Flex>
     );
 }
