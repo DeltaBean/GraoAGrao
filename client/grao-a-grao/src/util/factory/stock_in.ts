@@ -1,24 +1,45 @@
-import { StockInModel, StockInItemModel } from "@/types/stock_in";
+import { StockInModel, StockInItemModel, StockInPackagingModel } from "@/types/stock_in";
 
-export function createEmptyStockInItem(): StockInItemModel {
-    return {
-      item: {
-        description: "",
-      },
-      item_packaging: {
-        description: "",
-        quantity: 0,
-      },
+/**
+ * Creates a new, empty packaging entry for a StockInItem.
+ */
+export function createEmptyStockInPackaging(): StockInPackagingModel {
+  return {
+    id: undefined,
+    item_packaging: {
+      id: undefined,
+      description: "",
       quantity: 0,
-      buy_price: undefined,
-    };
-  }
+    },
+    quantity: 1, // default to one packaging unit
+  };
+}
 
-// Create an empty StockIn (the whole form)
+/**
+ * Creates a new, empty StockInItem with a single empty packaging.
+ */
+export function createEmptyStockInItem(): StockInItemModel {
+  return {
+    id: undefined,
+    item: {
+      id: undefined,
+      description: "",
+    },
+    buy_price: 0,
+    total_quantity: 0,
+    packagings: [createEmptyStockInPackaging()],
+  };
+}
+
+/**
+ * Creates a new, empty StockIn with one empty item.
+ */
 export function createEmptyStockIn(): StockInModel {
-    return {
-        items: [createEmptyStockInItem()],
-        created_at: undefined,
-        updated_at: undefined,
-    };
+  return {
+    id: undefined,
+    status: "draft",
+    items: [createEmptyStockInItem()],
+    created_at: undefined,
+    updated_at: undefined,
+  };
 }

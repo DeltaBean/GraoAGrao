@@ -57,3 +57,32 @@ export function getUserName() {
 
   return localStorage.getItem("userName")
 }
+
+export function formatDateTime(dateStr: string | undefined): string {
+  try {
+    const date = new Date(dateStr ?? new Date());
+
+    return date.toLocaleString(undefined, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  } catch (error) {
+    console.error("Invalid date string:", dateStr);
+    return dateStr ?? ""; // fallback
+  }
+}
+
+export function formatDateTimeLocal(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}

@@ -6,6 +6,7 @@ type StockIn struct {
 	ID        uint
 	Owner     User
 	Items     []StockInItem
+	Status    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -14,9 +15,16 @@ type StockInItem struct {
 	ID            uint
 	StockInID     uint
 	Item          Item
-	ItemPackaging ItemPackaging
 	BuyPrice      float64
-	Quantity      int
+	TotalQuantity float64
+	Packagings    []StockInPackaging
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+}
+
+type StockInPackaging struct {
+	ID            uint
+	StockInItemID uint
+	ItemPackaging ItemPackaging
+	Quantity      int
 }

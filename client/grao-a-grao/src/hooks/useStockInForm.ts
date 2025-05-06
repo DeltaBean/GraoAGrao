@@ -1,15 +1,37 @@
 // hooks/useStockInForm.ts
 "use client";
 
-import { useState } from "react";
-import { StockInModel, StockInItemModel } from "@/types/stock_in";
-import { createEmptyStockInItem, createEmptyStockIn } from "@/util/factory/stock_in";
+import { useEffect, useState } from "react";
+import {
+  StockInModel,
+  StockInItemModel,
+  StockInPackagingModel,
+} from "@/types/stock_in";
+import {
+  createEmptyStockIn,
+  createEmptyStockInItem,
+  createEmptyStockInPackaging,
+} from "@/util/factory/stock_in";
 import { ItemModel } from "@/types/item";
-import { ItemPackagingModel } from "@/types/item_packaging";
-import { UnitOfMeasureModel } from "@/types/unit_of_measure";
 
 export function useStockInForm(initial?: StockInModel) {
-  const [stockIn, setStockIn] = useState<StockInModel>(initial ?? createEmptyStockIn());
+  const [stockIn, setStockIn] = useState<StockInModel>(
+    initial ?? createEmptyStockIn()
+  );
+
+  useEffect(() => {
+    if (initial) {
+      setStockIn(initial);
+    }
+  }, [initial]);
+
+  // Update a top-level field on StockIn (e.g., status)
+  function updateStockInField(field: keyof StockInModel, value: any) {
+    setStockIn((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
 
   // Add a new empty item row
   function addItem() {
@@ -27,14 +49,42 @@ export function useStockInForm(initial?: StockInModel) {
     }));
   }
 
-  function updateStockInField(field: keyof StockInModel, value: any) {
+  // Add a packaging option under a specific item
+  function addItemPackaging(itemIndex: number) {
     setStockIn((prev) => ({
       ...prev,
-      [field]: value,
+      items: prev.items.map((item, i) =>
+        i === itemIndex
+          ? {
+              ...item,
+              packagings: [...item.packagings, createEmptyStockInPackaging()],
+            }
+          : item
+      ),
     }));
   }
 
-  function updateItemSimpleField(index: number, field: keyof StockInItemModel, value: any) {
+  // Remove a packaging by index under a specific item
+  function removeItemPackaging(itemIndex: number, packagingIndex: number) {
+    setStockIn((prev) => ({
+      ...prev,
+      items: prev.items.map((item, i) =>
+        i === itemIndex
+          ? {
+              ...item,
+              packagings: item.packagings.filter((_, j) => j !== packagingIndex),
+            }
+          : item
+      ),
+    }));
+  }
+
+  // Update a simple field on an item (buy_price or total_quantity)
+  function updateItemSimpleField(
+    index: number,
+    field: keyof Pick<StockInItemModel, "buy_price" | "total_quantity">,
+    value: any
+  ) {
     setStockIn((prev) => ({
       ...prev,
       items: prev.items.map((item, i) =>
@@ -45,28 +95,61 @@ export function useStockInForm(initial?: StockInModel) {
     }));
   }
 
-  function updateItemNestedField(index: number, fieldPath: string, value: any) {
+  // Update a nested field on an item (e.g., item.id)
+  function updateItemNestedField(
+    index: number,
+    field: keyof Pick<StockInItemModel, "item">,
+    nestedField: keyof Pick<ItemModel, "id">,
+    value: any
+  ) {
     setStockIn((prev) => ({
       ...prev,
       items: prev.items.map((item, i) => {
         if (i !== index) return item;
-  
-        const keys = fieldPath.split(".");
-        const updated = { ...item };
-        let ref: any = updated;
-  
-        for (let j = 0; j < keys.length - 1; j++) {
-          const key = keys[j];
-  
-          // Ensure each layer exists to avoid mutation of undefined
-          ref[key] = { ...ref[key] };
-          ref = ref[key];
-        }
-  
-        ref[keys[keys.length - 1]] = value;
-        return updated;
+        return {
+          ...item,
+          [field]: {
+            ...item[field],
+            [nestedField]: value,
+          },
+        } as StockInItemModel;
       }),
     }));
+  }
+
+  // Update a simple field on a packaging (item_packaging or quantity)
+  function updateItemPackagingField(
+    itemIndex: number,
+    packagingIndex: number,
+    field: keyof StockInPackagingModel,
+    value: any
+  ) {
+    setStockIn((prev) => ({
+      ...prev,
+      items: prev.items.map((item, i) =>
+        i === itemIndex
+          ? {
+              ...item,
+              packagings: item.packagings.map((pkg, j) =>
+                j === packagingIndex
+                  ? { ...pkg, [field]: value }
+                  : pkg
+              ),
+            }
+          : item
+      ),
+    }));
+  }
+
+  // Check if total_quantity equals the sum of pack quantities * packaging.unit
+  function isTotalBalanced(itemIndex: number): boolean {
+    const item = stockIn.items[itemIndex];
+    if (item.total_quantity == null) return false;
+    const sum = item.packagings.reduce((acc, pkg) => {
+      const unitQty = pkg.item_packaging.quantity ?? 0;
+      return acc + pkg.quantity * unitQty;
+    }, 0);
+    return sum === item.total_quantity;
   }
 
   // Set the whole stockIn object manually
@@ -83,10 +166,14 @@ export function useStockInForm(initial?: StockInModel) {
     stockIn,
     setStockIn: setForm,
     resetForm,
+    updateStockInField,
     addItem,
     removeItem,
-    updateStockInField,
+    addItemPackaging,
+    removeItemPackaging,
     updateItemSimpleField,
+    updateItemPackagingField,
     updateItemNestedField,
+    isTotalBalanced,
   };
 }

@@ -3,7 +3,7 @@ module github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque
 go 1.24.2
 
 require (
-	github.com/IlfGauhnith/GraoAGrao/pkg v0.0.0-20250425022024-390d9eba8c48
+	github.com/IlfGauhnith/GraoAGrao/pkg v0.0.0-20250429045146-a6df5bcf6c46
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.0
 )

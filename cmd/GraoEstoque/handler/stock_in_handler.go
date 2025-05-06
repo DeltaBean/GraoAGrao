@@ -8,6 +8,7 @@ import (
 
 	dtoMapper "github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
 	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
+	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
@@ -38,7 +39,7 @@ func CreateStockIn(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, cir)
+	c.JSON(http.StatusCreated, dtoMapper.ToStockInResponse(mcir))
 }
 
 // GetStockInByID retrieves a StockIn by its ID and includes the items.
@@ -59,7 +60,7 @@ func GetStockInByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, stockIn)
+	c.JSON(http.StatusOK, dtoMapper.ToStockInResponse(stockIn))
 }
 
 // ListAllStockIn retrieves all StockIn entries
@@ -80,7 +81,13 @@ func ListAllStockIn(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, stockIns)
+	// Map domain models to response DTOs
+	rep := make([]dtoResponse.StockInResponse, len(stockIns))
+	for i, sti := range stockIns {
+		rep[i] = *dtoMapper.ToStockInResponse(sti)
+	}
+
+	c.JSON(http.StatusOK, rep)
 }
 
 // DeleteStockIn deletes a stock-in by ID
@@ -103,4 +110,25 @@ func DeleteStockIn(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "StockIn deleted successfully"})
+}
+
+func FinalizeStockInByID(c *gin.Context) {
+	logger.Log.Info("FinalizeStockInByID")
+
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		logger.Log.Errorf("Invalid stock_in ID: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stock_in ID"})
+		return
+	}
+
+	err = stock_in_repository.FinalizeStockInByID(id)
+	if err != nil {
+		logger.Log.Errorf("Failed to finalize stock in: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to finalize stock in"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "StockIn finalized successfully"})
 }

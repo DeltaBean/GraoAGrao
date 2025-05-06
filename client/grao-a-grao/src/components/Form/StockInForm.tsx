@@ -6,7 +6,9 @@ import { ItemModel } from "@/types/item";
 import { ItemPackagingModel } from "@/types/item_packaging";
 import { StockInModel } from "@/types/stock_in";
 import { InformationCircleIcon } from "@heroicons/react/16/solid";
-import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Box, Section, Container, IconButton } from "@radix-ui/themes";
+import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Box, Section, Container, IconButton, Callout } from "@radix-ui/themes";
+import {formatDateTimeLocal} from "@/util/util"
+import React, { useEffect, useState } from "react";
 
 type Props = {
   initialData?: StockInModel; // Optional if editing
@@ -18,13 +20,30 @@ type Props = {
 export default function StockInForm({ initialData, itemOptions, itemPackagingOptions, onSubmit }: Props) {
   const {
     stockIn,
+    setStockIn: setForm,
+    resetForm,
+    updateStockInField,
     addItem,
     removeItem,
-    updateStockInField,
+    addItemPackaging,
+    removeItemPackaging,
     updateItemSimpleField,
+    updateItemPackagingField,
     updateItemNestedField,
+    isTotalBalanced,
   } = useStockInForm(initialData);
 
+  // tick state
+  const [currentTime, setCurrentTime] = useState(formatDateTimeLocal(new Date()));
+
+  // update every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(formatDateTimeLocal(new Date()));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(stockIn);
@@ -51,11 +70,20 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
       </Flex>
       <Flex id="stock-in-form-details" direction="row" justify="between" p="3">
 
-        <Text as="label" size="3">Data/Hora de Entrada
+        <Text as="label" size="3">
+          Data/Hora de Entrada
           <TextField.Root
             size="3"
             type="datetime-local"
-            value={stockIn.created_at || ""}
+            step="1"
+            disabled
+            value={
+              stockIn.created_at
+                ? stockIn.created_at
+                : currentTime
+            }
+            // onChange won’t fire because it’s disabled,
+            // but you could wire it up if you ever want to allow edits:
             onChange={(e) => updateStockInField("created_at", e.target.value)}
           />
         </Text>
@@ -66,172 +94,287 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
 
       <form onSubmit={handleSubmit}>
         <Grid gap={{ initial: "2", sm: "6" }} columns={{ initial: "1", sm: "2", md: "3" }} p="3">
-          {stockIn.items.map((item, index) => (
-            <Card key={index} className="p-4">
-              <Flex direction="column" gap="5">
-                {/* Item */}
-                <Text size="2" mb="-4">Item</Text>
-                <Select.Root
-                  value={item.item.id ? String(item.item.id) : ""}
-                  onValueChange={(value) => {
-                    updateItemNestedField(index, "item.id", parseInt(value));
-                    updateItemNestedField(index, "item_packaging.id", 0)
-                  }}
-                >
-                  <Select.Trigger />
-                  <Select.Content>
-                    {itemOptions.map((option) => (
-                      <Select.Item key={option.id} value={String(option.id)}>
-                        {option.description}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
+          {stockIn.items?.map((item, index) => {
 
-                {/* chosen Item Details */}
-                {item.item.id ?
-                  <>
-                    <DataList.Root>
-                      <DataList.Item>
-                        <DataList.Label>
-                          Categoria
-                        </DataList.Label>
-                        <DataList.Value>
-                          {
-                            (() => {
-                              const itemOption = itemOptions.find(it => it.id == item.item.id);
-                              const category = itemOption?.category?.description;
+            // Conditions for showing callout:
+            const qtyBalanceCalloutVisible =
+              !!item.item.id &&                          // 1) item chosen
+              item.total_quantity > 0 &&                 // 2) total quantity filled
+              item.packagings.length > 0 &&              // 3) at least one pack
+              item.packagings.every(p => p.quantity > 0) // 4) every pack has quantity
 
-                              return category ? (
-                                <Badge color="blue" variant="soft">
-                                  {`${category}`}
-                                </Badge>
-                              ) : (
-                                "N/A"
-                              );
-                            })()
-                          }
-                        </DataList.Value>
-                      </DataList.Item>
-                      <DataList.Item>
-                        <DataList.Label>
-                          Unidade
-                        </DataList.Label>
-                        <DataList.Value>
-                          {
-                            (() => {
-                              const itemOption = itemOptions.find(it => it.id == item.item.id);
-                              const unit = itemOption?.unit_of_measure?.description;
+            // 1) Build a Set of all selected item IDs except this row
+            const otherSelectedItemIds = new Set(
+              stockIn.items
+                .filter((_, j) => j !== index)
+                .map(i => i.item.id)
+            );
 
-                              return unit ? (
-                                <Badge color="blue" variant="soft">
-                                  {`${unit}`}
-                                </Badge>
-                              ) : (
-                                "N/A"
-                              );
-                            })()
-                          }
-                        </DataList.Value>
-                      </DataList.Item>
-                    </DataList.Root>
-                    <Separator size="4"></Separator>
-                  </>
-                  : ""}
+            // 2) Filter your master list so it doesn’t include those already chosen
+            const optionsForThisRow = itemOptions.filter(
+              opt => !otherSelectedItemIds.has(opt.id)
+            );
 
-                {/* Item Packaging */}
-                {item.item.id ?
-                  <>
-                    <Text size="2" mb="-4">Porcionamento</Text>
-                    <Select.Root
-                      value={item.item_packaging.id ? String(item.item_packaging.id) : ""}
-                      onValueChange={(value) => updateItemNestedField(index, "item_packaging.id", parseInt(value))}
-                    >
-                      <Select.Trigger />
-                      <Select.Content>
-                        {itemPackagingOptions.filter((option) => (option.item?.id === item.item.id)).map((option) => (
-                          <Select.Item key={option.id} value={String(option.id)}>
-                            {option.description}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Root>
-                  </>
-                  : ""}
 
-                {/* chosen Item Packaging Details */}
-                {item.item_packaging.id ?
-                  <>
-                    <DataList.Root>
-                      <DataList.Item>
-                        <DataList.Label>
-                          Porcionamento
-                        </DataList.Label>
-                        <DataList.Value>
-                          {
-                            (() => {
-                              const packaging = itemPackagingOptions.find(ipm => ipm.id == item.item_packaging.id);
-                              const description = packaging?.item?.unit_of_measure?.description;
-                              const quantity = packaging?.quantity
+            return (
+              <Card key={index} className="p-4">
+                <Flex direction="column" gap="5">
+                  <Heading size="3" mb="-4">Item</Heading>
+                  <Card>
+                    <Flex direction="column" gap="5">
+                      {/* Item */}
+                      <Select.Root
+                        value={item.item.id ? String(item.item.id) : ""}
+                        onValueChange={(value) => {
+                          updateItemNestedField(index, "item", "id", parseInt(value));
+                        }}
+                      >
+                        <Select.Trigger />
+                        <Select.Content>
+                          {optionsForThisRow.map(opt => (
+                            <Select.Item key={opt.id} value={String(opt.id)}>
+                              {opt.description}
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Root>
 
-                              return description ? (
-                                <Badge color="blue" variant="soft">
-                                  {`${quantity} ${description}`}
-                                </Badge>
-                              ) : (
-                                "N/A"
-                              );
-                            })()
-                          }
-                        </DataList.Value>
-                      </DataList.Item>
-                    </DataList.Root>
-                    <Separator size="4"></Separator>
-                  </>
-                  : ""}
-                {/* Buy Price */}
-                <Text mb="-4" size="2">
-                  <Flex gap="2">
-                    Preço de Compra
-                    <IconButton size="1" radius="full" variant="ghost" color="gray">
-                      <InformationCircleIcon width="16" height="16"></InformationCircleIcon>
-                    </IconButton>
-                  </Flex>
-                </Text>
-                <TextField.Root
-                  type="number"
-                  placeholder="0.00"
-                  value={item.buy_price ?? item.buy_price != 0 ? item.buy_price : ""}
-                  onChange={(e) => updateItemSimpleField(index, "buy_price", parseFloat(e.target.value))}
-                />
+                      {/* chosen Item Details */}
+                      {item.item.id ?
+                        <>
+                          <DataList.Root>
+                            <DataList.Item>
+                              <DataList.Label>
+                                Categoria
+                              </DataList.Label>
+                              <DataList.Value>
+                                {
+                                  (() => {
+                                    const itemOption = itemOptions.find(it => it.id == item.item.id);
+                                    const category = itemOption?.category?.description;
 
-                {/* Quantity */}
-                <Text mb="-4" size="2">
-                  Quantidade
-                </Text>
-                <TextField.Root
-                  type="number"
-                  placeholder="0"
-                  value={item.quantity ?? item.quantity != 0 ? item.quantity : ""}
-                  onChange={(e) => updateItemSimpleField(index, "quantity", parseInt(e.target.value))}
-                />
+                                    return category ? (
+                                      <Badge color="blue" variant="soft">
+                                        {`${category}`}
+                                      </Badge>
+                                    ) : (
+                                      "N/A"
+                                    );
+                                  })()
+                                }
+                              </DataList.Value>
+                            </DataList.Item>
+                            <DataList.Item>
+                              <DataList.Label>
+                                Unidade de Medida
+                              </DataList.Label>
+                              <DataList.Value>
+                                {
+                                  (() => {
+                                    const itemOption = itemOptions.find(it => it.id == item.item.id);
+                                    const unit = itemOption?.unit_of_measure?.description;
 
-                {/* Remove button */}
-                <Button
-                  variant="soft"
-                  color="red"
-                  type="button"
-                  onClick={() => removeItem(index)}
-                  disabled={stockIn.items.length === 1}
-                >
-                  Remover
-                </Button>
-              </Flex>
-            </Card>
-          ))}
+                                    return unit ? (
+                                      <Badge color="blue" variant="soft">
+                                        {`${unit}`}
+                                      </Badge>
+                                    ) : (
+                                      "N/A"
+                                    );
+                                  })()
+                                }
+                              </DataList.Value>
+                            </DataList.Item>
+                          </DataList.Root>
+                        </>
+                        : ""}
+                      {/* Buy Price */}
+                      <Text mb="-4" size="2">
+                        <Flex gap="2">
+                          Preço de Compra
+                          <IconButton size="1" radius="full" variant="ghost" color="gray">
+                            <InformationCircleIcon width="16" height="16"></InformationCircleIcon>
+                          </IconButton>
+                        </Flex>
+                      </Text>
+                      <TextField.Root
+                        type="number"
+                        placeholder="0.00"
+                        value={item.buy_price ?? item.buy_price != 0 ? item.buy_price : ""}
+                        onChange={(e) => updateItemSimpleField(index, "buy_price", parseFloat(e.target.value))}
+                      />
+
+                      {/* Quantity */}
+                      <Text mb="-4" size="2">
+                        <Flex gap="2">
+                          Quantidade Total
+                          <IconButton size="1" radius="full" variant="ghost" color="gray">
+                            <InformationCircleIcon width="16" height="16"></InformationCircleIcon>
+                          </IconButton>
+                        </Flex>
+                      </Text>
+                      <TextField.Root
+                        type="number"
+                        placeholder="0"
+                        value={item.total_quantity ?? item.total_quantity != 0 ? item.total_quantity : ""}
+                        onChange={(e) => updateItemSimpleField(index, "total_quantity", parseInt(e.target.value))}
+                      />
+                    </Flex>
+                  </Card>
+                  {/* StockIn Packaging */}
+
+                  {item.item.id && (() => {
+                    // 1) Build a Set of the already-picked packaging IDs
+                    const selectedPackIds = new Set(
+                      item.packagings.map(p => p.item_packaging.id)
+                    );
+
+                    // 2) Derive the dropdown options by filtering out those IDs
+                    const availablePackOptions = itemPackagingOptions
+                      .filter(opt =>
+                        opt.item?.id === item.item.id &&      // only for this item
+                        !selectedPackIds.has(opt.id)          // and not already chosen
+                      );
+
+                    return (
+                      <>
+                        <Separator size="4" />
+                        <Heading size="3" mb="-4">Porcionamentos</Heading>
+
+                        {item.packagings.map((pack, packIndex) => {
+
+                          // Build the set of other selected packaging IDs (exclude this row)
+                          const otherSelected = new Set(
+                            item.packagings
+                              .filter((_, j) => j !== packIndex)
+                              .map(p => p.item_packaging.id)
+                          );
+
+                          // Now filter: same item, and not in the “otherSelected” set
+                          const optionsForThisRow = itemPackagingOptions.filter(
+                            opt =>
+                              opt.item?.id === item.item.id &&
+                              !otherSelected.has(opt.id)
+                          );
+
+                          return (
+                            <Card key={packIndex}>
+                              <Flex direction="column" gap="4">
+                                {/* 1) Select which packaging to use */}
+                                <Select.Root
+                                  value={pack.item_packaging.id ? String(pack.item_packaging.id) : ""}
+                                  onValueChange={(value) => {
+                                    const selected = itemPackagingOptions.find(o => o.id === parseInt(value));
+                                    if (selected) {
+                                      updateItemPackagingField(
+                                        index,
+                                        packIndex,
+                                        "item_packaging",
+                                        selected
+                                      );
+                                    }
+                                  }}
+                                >
+                                  <Select.Trigger />
+                                  <Select.Content>
+                                    {optionsForThisRow.map(opt => (
+                                      <Select.Item key={opt.id} value={String(opt.id)}>
+                                        {opt.description}
+                                      </Select.Item>
+                                    ))}
+                                  </Select.Content>
+                                </Select.Root>
+
+                                {/* 2) Show the details once a packaging is chosen */}
+                                {pack.item_packaging.id && (
+                                  <>
+                                    <DataList.Root>
+                                      <DataList.Item>
+                                        <DataList.Label>Porcionamento</DataList.Label>
+                                        <DataList.Value>
+                                          {(() => {
+                                            const uom = pack.item_packaging.item?.unit_of_measure;
+                                            const qty = pack.item_packaging.quantity;
+                                            return uom?.description
+                                              ? <Badge color="blue" variant="soft">{`${qty} ${uom.description}`}</Badge>
+                                              : "N/A";
+                                          })()}
+                                        </DataList.Value>
+                                      </DataList.Item>
+                                    </DataList.Root>
+
+                                    {/* Pack Quantity */}
+                                    <Text mb="-4" size="2">Quantidade</Text>
+                                    <TextField.Root
+                                      type="number"
+                                      placeholder="0"
+                                      value={pack.quantity ?? ""}
+                                      onChange={(e) =>
+                                        updateItemPackagingField(
+                                          index,
+                                          packIndex,
+                                          "quantity",
+                                          parseInt(e.target.value) || 0
+                                        )}
+                                    />
+                                  </>
+                                )}
+                                <Button
+                                  variant="outline"
+                                  color="red"
+                                  size="1"
+                                  onClick={() => removeItemPackaging(index, packIndex)}
+                                  style={{ marginTop: 8 }}
+                                >
+                                  Excluir
+                                </Button>
+                              </Flex>
+                            </Card>
+                          )
+                        })}
+
+                        <Button
+                          variant="outline"
+                          size="1"
+                          onClick={() => addItemPackaging(index)}
+                          style={{ marginTop: 8 }}
+                        >
+                          Adicionar Porcionamento
+                        </Button>
+                      </>
+                    );
+                  })()}
+                  <Separator size="4"></Separator>
+                  {/* Remove button */}
+                  <Button
+                    variant="soft"
+                    color="red"
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    disabled={stockIn.items?.length === 1}
+                  >
+                    Remover
+                  </Button>
+
+                  {(qtyBalanceCalloutVisible && !isTotalBalanced(index)) && (
+                    <>
+                      <Callout.Root variant="soft" color="gray" size="1"> 
+                        <Callout.Icon>
+                          <InformationCircleIcon width="16" height="16" />
+                        </Callout.Icon>
+                        <Callout.Text>
+                          A soma da quantidade dos porcionamentos não é igual a quantidade total do item
+                        </Callout.Text>
+                      </Callout.Root>
+                    </>
+                  )}
+                </Flex>
+              </Card>
+            )
+          })}
 
         </Grid>
       </form>
-    </Flex>
+    </Flex >
   );
 }
