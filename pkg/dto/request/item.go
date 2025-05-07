@@ -11,6 +11,7 @@ type CreateItemRequest struct {
 	EAN13           string `json:"ean13"            validate:"required,len=13,numeric"`
 	CategoryID      uint   `json:"category_id"      validate:"required"`
 	UnitOfMeasureID uint   `json:"unit_of_measure_id" validate:"required"`
+	IsFractionable  bool   `json:"is_fractionable"`
 }
 
 // Validate runs Go-Playground on the struct tags.
@@ -25,6 +26,7 @@ type UpdateItemRequest struct {
 	EAN13           string `json:"ean13"            validate:"required,len=13,numeric"`
 	CategoryID      uint   `json:"category_id"      validate:"required"`
 	UnitOfMeasureID uint   `json:"unit_of_measure_id" validate:"required"`
+	IsFractionable  bool   `json:"is_fractionable"`
 }
 
 // Validate runs Go-Playground on the struct tags.

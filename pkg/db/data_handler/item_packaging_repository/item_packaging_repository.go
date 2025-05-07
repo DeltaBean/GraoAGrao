@@ -40,7 +40,8 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 			i.created_at,
 			i.updated_at,
 			cat.category_description,
-			uom.unit_description
+			uom.unit_description,
+			it.is_fractionable
 		FROM inserted i
 		JOIN tb_item it ON i.item_id = it.item_id
 		JOIN tb_category cat ON it.category_id = cat.category_id
@@ -63,6 +64,7 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 		&packaging.UpdatedAt,
 		&packaging.Item.Category.Description,
 		&packaging.Item.UnitOfMeasure.Description,
+		&packaging.Item.IsFractionable,
 	)
 
 	if err != nil {
@@ -89,7 +91,7 @@ func ListItemPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.It
 		       i.item_id, i.item_description,
 		       sp.owner_id, sp.created_at, sp.updated_at,
 			   cat.category_id, cat.category_description,
-			   uom.unit_id, uom.unit_description
+			   uom.unit_id, uom.unit_description, i.is_fractionable
 		FROM tb_item_packaging sp
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
@@ -120,6 +122,7 @@ func ListItemPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.It
 			&p.Item.Category.Description,
 			&p.Item.UnitOfMeasure.ID,
 			&p.Item.UnitOfMeasure.Description,
+			&p.Item.IsFractionable,
 		)
 		if err != nil {
 			continue
@@ -145,7 +148,7 @@ func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
 		       i.item_id, i.item_description,
 		       sp.owner_id, sp.created_at, sp.updated_at,
 			   cat.category_id, cat.category_description,
-			   uom.unit_id, uom.unit_description
+			   uom.unit_id, uom.unit_description, i.is_fractionable
 		FROM tb_item_packaging sp
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
@@ -166,6 +169,7 @@ func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
 		&p.Item.Category.Description,
 		&p.Item.UnitOfMeasure.ID,
 		&p.Item.UnitOfMeasure.Description,
+		&p.Item.IsFractionable,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -210,7 +214,8 @@ func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
 			cat.category_id, 
 			cat.category_description,
 			uom.unit_id, 
-			uom.unit_description
+			uom.unit_description,
+			it.is_fractionable
 		FROM updated u
 		JOIN tb_item it ON u.item_id = it.item_id
 		JOIN tb_category cat ON it.category_id = cat.category_id
@@ -238,6 +243,7 @@ func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
 		&p.Item.Category.Description,
 		&p.Item.UnitOfMeasure.ID,
 		&p.Item.UnitOfMeasure.Description,
+		&p.Item.IsFractionable,
 	)
 
 	if err != nil {

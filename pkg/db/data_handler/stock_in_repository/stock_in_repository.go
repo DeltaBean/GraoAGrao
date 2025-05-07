@@ -168,7 +168,7 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 	// Load items
 	itemQuery := `
 		SELECT sii.stock_in_item_id, sii.buy_price, sii.total_quantity,
-		       i.item_id, i.item_description,
+		       i.item_id, i.item_description, i.is_fractionable,
 		       cat.category_id, cat.category_description,
 			   uom.unit_id, uom.unit_description
 		FROM tb_stock_in_item sii
@@ -197,6 +197,7 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 			&item.TotalQuantity,
 			&item.Item.ID,
 			&item.Item.Description,
+			&item.Item.IsFractionable,
 			&cat.ID,
 			&cat.Description,
 			&item.Item.UnitOfMeasure.ID,

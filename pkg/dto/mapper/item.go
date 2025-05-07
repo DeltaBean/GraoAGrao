@@ -9,22 +9,24 @@ import (
 // ToItemModel converts CreateItemRequest → your domain model.
 func CreateItemToModel(req *request.CreateItemRequest, ownerID uint) *model.Item {
 	return &model.Item{
-		Description:   req.Description,
-		EAN13:         req.EAN13,
-		Category:      model.Category{ID: req.CategoryID},
-		UnitOfMeasure: model.UnitOfMeasure{ID: req.UnitOfMeasureID},
-		Owner:         model.User{ID: ownerID},
+		Description:    req.Description,
+		EAN13:          req.EAN13,
+		Category:       model.Category{ID: req.CategoryID},
+		UnitOfMeasure:  model.UnitOfMeasure{ID: req.UnitOfMeasureID},
+		IsFractionable: req.IsFractionable,
+		Owner:          model.User{ID: ownerID},
 	}
 }
 
 func UpdateItemToModel(req *request.UpdateItemRequest, ownerID uint) *model.Item {
 	return &model.Item{
-		ID:            req.ID,
-		Description:   req.Description,
-		EAN13:         req.EAN13,
-		Category:      model.Category{ID: req.CategoryID},
-		UnitOfMeasure: model.UnitOfMeasure{ID: req.UnitOfMeasureID},
-		Owner:         model.User{ID: ownerID},
+		ID:             req.ID,
+		Description:    req.Description,
+		EAN13:          req.EAN13,
+		Category:       model.Category{ID: req.CategoryID},
+		UnitOfMeasure:  model.UnitOfMeasure{ID: req.UnitOfMeasureID},
+		IsFractionable: req.IsFractionable,
+		Owner:          model.User{ID: ownerID},
 	}
 }
 
@@ -42,7 +44,8 @@ func ToItemResponse(m *model.Item) response.ItemResponse {
 			ID:          m.UnitOfMeasure.ID,
 			Description: m.UnitOfMeasure.Description,
 		},
-		CreatedAt: m.CreatedAt,
-		UpdatedAt: m.UpdatedAt,
+		IsFractionable: m.IsFractionable,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
 	}
 }

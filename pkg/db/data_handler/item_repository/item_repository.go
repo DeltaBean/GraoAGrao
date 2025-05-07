@@ -24,8 +24,8 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 
 	query := `
 		WITH inserted AS (
-  			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, owner_id)
-  			VALUES ($1, $2, $3, $4, $5)
+  			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, owner_id, is_fractionable)
+  			VALUES ($1, $2, $3, $4, $5, $6)
   			RETURNING item_id, item_description, category_id, unit_id, created_at, updated_at
 		)
 		SELECT 
@@ -46,6 +46,7 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 		item.Category.ID,
 		item.UnitOfMeasure.ID,
 		OwnerID,
+		item.IsFractionable,
 	).Scan(
 		&item.ID,
 		&item.Description,
@@ -79,7 +80,7 @@ func GetItemByID(id uint) (*model.Item, error) {
 		SELECT i.item_id, i.item_description, i.ean13, 
 			c.category_description, c.category_id,
 			unt.unit_description, unt.unit_id,
-		    usr.user_id, i.created_at, i.updated_at
+		    usr.user_id, i.created_at, i.updated_at, i.is_fractionable
 		FROM tb_item i
 		JOIN tb_user usr ON i.owner_id = usr.user_id
 		JOIN tb_category c ON i.category_id = c.category_id
@@ -100,6 +101,7 @@ func GetItemByID(id uint) (*model.Item, error) {
 		&owner.ID,
 		&item.CreatedAt,
 		&item.UpdatedAt,
+		&item.IsFractionable,
 	)
 
 	if err != nil {
@@ -132,14 +134,16 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 			SET item_description = $1,
 				ean13            = $2,
 				category_id      = $3,
-				unit_id          = $4
-			WHERE item_id = $5
+				unit_id          = $4,
+				is_fractionable  = $5
+			WHERE item_id = $6
 			RETURNING item_id, item_description, ean13, category_id, unit_id, owner_id, created_at, updated_at
 		)
 		SELECT 
 			u.item_id,
 			u.item_description,
 			u.ean13,
+			u.is_fractionable,
 			u.created_at,
 			u.updated_at,
 			u.category_id,
@@ -158,6 +162,7 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 		item.EAN13,
 		item.Category.ID,
 		item.UnitOfMeasure.ID,
+		item.IsFractionable,
 		item.ID,
 	)
 
@@ -165,6 +170,7 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 		&updated.ID,
 		&updated.Description,
 		&updated.EAN13,
+		&updated.IsFractionable,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 		&updated.Category.ID,
@@ -219,7 +225,7 @@ func ListItems(OwnerID uint) ([]model.Item, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT i.item_id, i.item_description, i.ean13, 
+		SELECT i.item_id, i.item_description, i.ean13, i.is_fractionable,
 		c.category_description, c.category_id, 
 		unt.unit_description, unt.unit_id,
 		u.user_id,
@@ -247,6 +253,7 @@ func ListItems(OwnerID uint) ([]model.Item, error) {
 			&item.ID,
 			&item.Description,
 			&item.EAN13,
+			&item.IsFractionable,
 			&item.Category.Description,
 			&item.Category.ID,
 			&item.UnitOfMeasure.Description,

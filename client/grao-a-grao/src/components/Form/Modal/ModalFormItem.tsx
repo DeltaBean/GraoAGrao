@@ -1,5 +1,5 @@
 import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
-import { TextField, Skeleton, Text, Callout, Select, Flex } from "@radix-ui/themes";
+import { TextField, Skeleton, Text, Callout, Select, Flex, Checkbox, Container } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
 import { ItemModel } from "@/types/item";
 import { CategoryModel } from "@/types/category";
@@ -20,6 +20,7 @@ type ModalFormItemProps = {
 export default function ModalFormItem({ mode, editItem: editItem, onClose, categoryOptions, unitOfMeasureOptions, onSubmitCreate, onSubmitEdit }: ModalFormItemProps) {
     const [description, setDescription] = useState("");
     const [ean13, setEan13] = useState("");
+    const [isFractionable, setIsFractionable] = useState(true);
 
     const defaultCategory = { id: 0, description: "" }
     const defaultCategoryOption = (categoryOptions.length > 0 ? categoryOptions[0] : defaultCategory);
@@ -35,6 +36,7 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
         if (editItem) {
             setDescription(editItem.description);
             setEan13(editItem.ean13 ?? "");
+            setIsFractionable(editItem.is_fractionable);
 
             const selectedCategory = categoryOptions.find(
                 (cat) => {
@@ -79,6 +81,7 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
             editItem.ean13 = ean13;
             editItem.category = selectedCategory;
             editItem.unit_of_measure = selectedUnitOfMeasure;
+            editItem.is_fractionable = isFractionable;
 
             onSubmitEdit(editItem);
         } else {
@@ -87,7 +90,8 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
                     description,
                     ean13,
                     category: selectedCategory,
-                    unit_of_measure: selectedUnitOfMeasure
+                    unit_of_measure: selectedUnitOfMeasure,
+                    is_fractionable: isFractionable,
                 }
             );
         }
@@ -136,7 +140,6 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
 
                 </Skeleton>
             </Text>
-
             <Text as="label" size={"3"}>
                 <Skeleton loading={false}>
                     <div className="mb-2">Categoria</div>
@@ -172,7 +175,6 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
                     </Select.Root>
                 </Skeleton>
             </Text>
-
             <Text as="label" size={"3"}>
                 <Skeleton loading={false}>
                     <div className="mb-2">Unidade de Medida</div>
@@ -188,7 +190,7 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
                         }}
                     >
                         <Flex className="w-1/2">
-                            <Select.Trigger style={{width: "100%"}}>
+                            <Select.Trigger style={{ width: "100%" }}>
                                 <Flex as="span" align="center" gap="2">
                                     <ScaleIcon height="16" width="16" />
                                     {selectedUnitOfMeasure ? selectedUnitOfMeasure.description : (unitOfMeasureOptions.length > 0 ? unitOfMeasureOptions[0].description : undefined)}
@@ -208,7 +210,15 @@ export default function ModalFormItem({ mode, editItem: editItem, onClose, categ
                     </Select.Root>
                 </Skeleton>
             </Text>
-
+            <Text as="label" size="3">
+                <Flex as="span" gap="2">
+                    <Checkbox
+                        size="2"
+                        checked={isFractionable}
+                        onCheckedChange={(checked) => setIsFractionable(checked === true)}
+                    /> Compõe Fracionamento
+                </Flex>
+            </Text>
         </ModalFormShell>
     );
 }

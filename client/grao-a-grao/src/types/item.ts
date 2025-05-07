@@ -8,6 +8,7 @@ export interface ItemRequest {
     ean13: string;
     category_id: number;
     unit_of_measure_id: number;
+    is_fractionable: boolean;
 }
 
 // Received from the backend
@@ -25,6 +26,7 @@ export interface ItemResponse {
         id: number;
         description: string;
     };
+    is_fractionable: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -36,6 +38,7 @@ export interface ItemModel {
     ean13?: string;
     category?: CategoryModel;
     unit_of_measure?: UnitOfMeasureModel;
+    is_fractionable: boolean;
     created_at?: Date;
     updated_at?: Date;
 }
@@ -51,6 +54,7 @@ export function normalizeItemResponse(res: ItemResponse): ItemModel {
             updated_at: new Date(res.category.updated_at),
         },
         unit_of_measure: res.unit_of_measure,
+        is_fractionable: res.is_fractionable,
         created_at: new Date(res.created_at),
         updated_at: new Date(res.updated_at),
     };
@@ -76,5 +80,6 @@ export function toItemRequest(model: ItemModel): ItemRequest {
       ean13: model.ean13,
       category_id: model.category.id,
       unit_of_measure_id: model.unit_of_measure.id,
+      is_fractionable: model.is_fractionable,
     };
   }
