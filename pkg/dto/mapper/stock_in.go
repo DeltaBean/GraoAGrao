@@ -3,6 +3,7 @@ package mapper
 import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/util"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
@@ -87,11 +88,12 @@ func ToStockInResponse(m *model.StockIn) *response.StockInResponse {
 	}
 
 	return &response.StockInResponse{
-		ID:        m.ID,
-		Status:    m.Status,
-		Items:     items,
-		CreatedAt: m.CreatedAt,
-		UpdatedAt: m.UpdatedAt,
+		ID:          m.ID,
+		Status:      m.Status,
+		Items:       items,
+		CreatedAt:   m.CreatedAt,
+		UpdatedAt:   m.UpdatedAt,
+		FinalizedAt: util.SafeTime(m.FinalizedAt),
 	}
 }
 

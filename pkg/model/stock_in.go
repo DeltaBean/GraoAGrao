@@ -9,7 +9,7 @@ type StockIn struct {
 	Status      string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	FinalizedAt time.Time
+	FinalizedAt *time.Time
 }
 
 type StockInItem struct {

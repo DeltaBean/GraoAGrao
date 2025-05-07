@@ -16,9 +16,10 @@ type Props = {
   itemOptions: ItemModel[];
   itemPackagingOptions: ItemPackagingModel[]; // Your packaging select options
   onSubmit: (data: StockInModel) => void;
+  viewOnly?: boolean;
 };
 
-export default function StockInForm({ initialData, itemOptions, itemPackagingOptions, onSubmit }: Props) {
+export default function StockInForm({ initialData, itemOptions, itemPackagingOptions, onSubmit, viewOnly = false }: Props) {
   const {
     stockIn,
     setStockIn: setForm,
@@ -58,11 +59,11 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
         <Heading size="6">{initialData ? "Editar Entrada de Estoque" : "Criar Entrada de Estoque"}</Heading>
 
         <Flex gap="5">
-          <Button size="3" type="button" onClick={addItem} variant="outline">
+          <Button disabled={viewOnly} size="3" type="button" onClick={addItem} variant="outline">
             Adicionar Item
           </Button>
 
-          <Button onClick={handleSubmit} size="3" type="submit" variant="solid">
+          <Button disabled={viewOnly} onClick={handleSubmit} size="3" type="submit" variant="solid">
             {initialData ? "Atualizar" : "Salvar"}
           </Button>
 
@@ -72,7 +73,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
       <Flex id="stock-in-form-details" direction="row" justify="between" p="3">
 
         <Text as="label" size="3">
-          Data/Hora de Entrada
+          Entrada em
           <TextField.Root
             size="3"
             type="datetime-local"
@@ -83,9 +84,6 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                 ? formatDateTimeLocal(new Date(stockIn.created_at))
                 : currentTime
             }
-            // onChange won’t fire because it’s disabled,
-            // but you could wire it up if you ever want to allow edits:
-            onChange={(e) => updateStockInField("created_at", e.target.value)}
           />
         </Text>
 
@@ -106,6 +104,26 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
           }
 
         </Flex>
+        {
+          viewOnly ?
+            (
+              <Text as="label" size="3">
+                Finalizada em
+                <TextField.Root
+                  size="3"
+                  type="datetime-local"
+                  step="1"
+                  disabled
+                  value={
+                    stockIn.finalized_at
+                      ? formatDateTimeLocal(new Date(stockIn.finalized_at))
+                      : currentTime
+                  }
+                />
+              </Text>
+            )
+            : ""
+        }
       </Flex>
 
       <Separator size="4"></Separator>
@@ -142,6 +160,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                     <Flex direction="column" gap="5">
                       {/* Item */}
                       <Select.Root
+                        disabled={viewOnly}
                         value={item.item.id ? String(item.item.id) : ""}
                         onValueChange={(value) => {
                           const selected = itemOptions.find(o => o.id === parseInt(value));
@@ -221,6 +240,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                       </Text>
                       <Tooltip content={`Preço total pago no item`}>
                         <TextField.Root
+                          disabled={viewOnly}
                           type="number"
                           placeholder="0.00"
                           value={item.buy_price ?? item.buy_price != 0 ? item.buy_price : ""}
@@ -236,6 +256,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                       </Text>
                       <Tooltip content={`Quantidade total medida em "${item.item.unit_of_measure?.description}"`}>
                         <TextField.Root
+                          disabled={viewOnly}
                           type="number"
                           placeholder="0"
                           value={item.total_quantity ?? item.total_quantity != 0 ? item.total_quantity : ""}
@@ -267,7 +288,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                             <Heading size="3" mb="-4">Fracionamentos</Heading>
                           </Tooltip>
                           <Tooltip content="Adicionar fracionamento">
-                            <IconButton size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
+                            <IconButton disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
                               <PlusIcon width="16" height="16">
                               </PlusIcon>
                             </IconButton>
@@ -294,6 +315,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                               <Flex direction="column" gap="4">
                                 {/* 1) Select which packaging to use */}
                                 <Select.Root
+                                  disabled={viewOnly}
                                   value={pack.item_packaging.id ? String(pack.item_packaging.id) : ""}
                                   onValueChange={(value) => {
                                     const selected = itemPackagingOptions.find(o => o.id === parseInt(value));
@@ -338,6 +360,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                                     {/* Pack Quantity */}
                                     <Text mb="-4" size="2">Quantidade</Text>
                                     <TextField.Root
+                                      disabled={viewOnly}
                                       type="number"
                                       placeholder="0"
                                       value={pack.quantity ?? ""}
@@ -353,6 +376,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                                 )}
                                 <Container>
                                   <Button
+                                    disabled={viewOnly}
                                     variant="outline"
                                     color="red"
                                     size="1"
@@ -376,7 +400,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                     color="red"
                     type="button"
                     onClick={() => removeItem(index)}
-                    disabled={stockIn.items?.length === 1}
+                    disabled={viewOnly || stockIn.items?.length === 1}
                   >
                     Remover
                   </Button>

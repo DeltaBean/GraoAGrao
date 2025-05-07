@@ -8,6 +8,7 @@ export interface StockInModel {
   items: StockInItemModel[];
   created_at?: string;
   updated_at?: string;
+  finalized_at?: string;
 }
 
 export interface StockInItemModel {
@@ -67,6 +68,7 @@ export interface StockInResponse {
   items: StockInItemResponse[];
   created_at: string;
   updated_at: string;
+  finalized_at: string;
 }
 
 export interface StockInItemResponse {
@@ -95,6 +97,7 @@ export function normalizeStockInResponse(
     status: res.status,
     created_at: res.created_at ?? undefined,
     updated_at: res.updated_at ?? undefined,
+    finalized_at: res.finalized_at ?? undefined,
     items: (res.items ?? []).map((item: StockInItemResponse): StockInItemModel => ({
       id: item.id,
       item: normalizeItemResponse(item.item),

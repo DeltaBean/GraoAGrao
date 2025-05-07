@@ -96,7 +96,7 @@ func ListAllStockIn(ownerID uint) ([]*model.StockIn, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT stock_in_id, owner_id, created_at, updated_at, status
+		SELECT stock_in_id, owner_id, created_at, updated_at, status, finalized_at
 		FROM tb_stock_in
 		WHERE owner_id = $1
 		ORDER BY created_at DESC
@@ -117,6 +117,7 @@ func ListAllStockIn(ownerID uint) ([]*model.StockIn, error) {
 			&s.CreatedAt,
 			&s.UpdatedAt,
 			&s.Status,
+			&s.FinalizedAt,
 		)
 		if err != nil {
 			logger.Log.Errorf("Error scanning stock_in row: %v", err)
@@ -144,7 +145,7 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 	// Load parent record
 	stockIn := &model.StockIn{}
 	parentQuery := `
-		SELECT stock_in_id, owner_id, created_at, updated_at, status
+		SELECT stock_in_id, owner_id, created_at, updated_at, status, finalized_at
 		FROM tb_stock_in
 		WHERE stock_in_id = $1
 	`
@@ -157,6 +158,7 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 		&stockIn.CreatedAt,
 		&stockIn.UpdatedAt,
 		&stockIn.Status,
+		&stockIn.FinalizedAt,
 	)
 	if err != nil {
 		logger.Log.Errorf("Error loading StockIn: %v", err)

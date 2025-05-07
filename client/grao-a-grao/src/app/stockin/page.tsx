@@ -7,12 +7,13 @@ import { useEffect, useState } from "react";
 import { normalizeStockInResponse, StockInModel, StockInResponse } from "@/types/stock_in";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CheckCircleIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
+import { CheckCircleIcon, EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import * as stock_in_api from "@/api/stock_in_api";
 import { formatDateTime } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
 import { ErrorCodes, StockInTotalQuantityNotMatchingResponse } from "@/types/api_error";
 import ModalGenericError from "@/components/Error/ModalGenericError";
+import { Icon } from "@radix-ui/themes/components/callout";
 
 export default function StockInPage() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function StockInPage() {
       setStockIn(prev =>
         prev.map(si =>
           si.id === stockInId
-            ? { ...si, status: "finalized" }
+            ? { ...si, status: "finalized", finalized_at:  new Date().toISOString()}
             : si
         )
       );
@@ -167,7 +168,15 @@ export default function StockInPage() {
                             )
                             : si.status == "finalized" ?
                               (
-                                <Tooltip content="Confirmada e integrada ao estoque, não permite edição">
+                                <Tooltip
+                                  content={
+                                    <>
+                                      Confirmada e integrada ao estoque, não permite edição.
+                                      <br />
+                                      Finalizada em: {formatDateTime(si.finalized_at)}
+                                    </>
+                                  }
+                                >
                                   <Badge variant="surface">Finalizada</Badge>
                                 </Tooltip>
                               )
@@ -201,7 +210,7 @@ export default function StockInPage() {
                               <CheckCircleIcon height="16" width="16" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip content={si.status == "draft" ? "Deletar entrada de estoque." : "Já finalizada, deleção não permitida."}>
+                          <Tooltip content={si.status == "draft" ? "Deletar entrada de estoque." : "Finalizada, deleção não permitida."}>
                             <IconButton
                               disabled={si.status === "finalized"}
                               color="red"
@@ -212,6 +221,25 @@ export default function StockInPage() {
                               <TrashIcon height="16" width="16" />
                             </IconButton>
                           </Tooltip>
+                          {si.status == "finalized" ?
+                            (
+                              <Tooltip content="Visualizar entrada de estoque.">
+                                <IconButton
+                                  size={"1"}
+                                  about="Visualize"
+                                  variant="soft"
+                                  onClick={
+                                    (ev) => {
+                                      ev.stopPropagation();
+                                      router.push(`/stockin/view?id=${si.id}`)
+                                    }
+                                  }>
+                                  <EyeIcon height="16" width="16" />
+                                </IconButton>
+                              </Tooltip>
+                            )
+                            : ""
+                          }
                         </Flex>
                       </Table.Cell>
                     </Table.Row>
