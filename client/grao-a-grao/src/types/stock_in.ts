@@ -130,9 +130,25 @@ export function toCreateStockInRequest(model: StockInModel): CreateStockInReques
       if (item.total_quantity <= 0) {
         throw new Error("Total Quantity must be greater than 0.");
       }
-      if (!item.packagings || item.packagings.length === 0) {
-        throw new Error("At least one packaging must be specified for each item.");
+
+      // Validation conditioned to item fractionability
+      if (!item.item.is_fractionable) {
+        // non fractionable
+
+        if (item.packagings.length > 0) {
+          throw new Error("Item não fracionável não pode conter fracionamento.");
+        }
+
+      } else {
+        // fractionable
+
+        if (!item.packagings || item.packagings.length === 0) {
+          throw new Error("At least one packaging must be specified for each item.");
+        }
+        
       }
+
+      
       return {
         item_id: item.item.id,
         buy_price: item.buy_price,
