@@ -5,7 +5,7 @@ import { useStockInForm } from "@/hooks/useStockInForm";
 import { ItemModel } from "@/types/item";
 import { ItemPackagingModel } from "@/types/item_packaging";
 import { StockInModel } from "@/types/stock_in";
-import { InformationCircleIcon, PlusIcon } from "@heroicons/react/16/solid";
+import { CheckIcon, InformationCircleIcon, PlusIcon, XMarkIcon } from "@heroicons/react/16/solid";
 import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Box, Section, Container, IconButton, Callout } from "@radix-ui/themes";
 import { formatDateTimeLocal } from "@/util/util"
 import React, { useEffect, useState } from "react";
@@ -229,6 +229,21 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                                 }
                               </DataList.Value>
                             </DataList.Item>
+                            <DataList.Item>
+                              <DataList.Label>
+                                Fracionável
+                              </DataList.Label>
+                              <DataList.Value>
+
+                                {
+                                  item.item.is_fractionable ?
+                                    <Badge color="green" variant="soft"><CheckIcon height="16" width="16"></CheckIcon></Badge>
+                                    :
+                                    <Badge color="red" variant="soft"><XMarkIcon height="16" width="16"></XMarkIcon></Badge>
+                                }
+
+                              </DataList.Value>
+                            </DataList.Item>
                           </DataList.Root>
                         </>
                         : ""}
@@ -238,7 +253,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                           Preço de Compra
                         </Flex>
                       </Text>
-                      <Tooltip content={`Preço total pago no item`}>
+                      <Tooltip content={`Preço por cada "${item.item.unit_of_measure?.description}" de "${item.item.description}"`}>
                         <TextField.Root
                           disabled={viewOnly}
                           type="number"
@@ -266,134 +281,140 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                     </Flex>
                   </Card>
                   {/* StockIn Packaging */}
-
-                  {item.item.id && (() => {
-                    // 1) Build a Set of the already-picked packaging IDs
-                    const selectedPackIds = new Set(
-                      item.packagings.map(p => p.item_packaging.id)
-                    );
-
-                    // 2) Derive the dropdown options by filtering out those IDs
-                    const availablePackOptions = itemPackagingOptions
-                      .filter(opt =>
-                        opt.item?.id === item.item.id &&      // only for this item
-                        !selectedPackIds.has(opt.id)          // and not already chosen
-                      );
-
-                    return (
+                  {
+                    item.item.is_fractionable ?
                       <>
-                        <Separator size="4" />
-                        <Flex justify="between">
-                          <Tooltip content="Itens que compõe fracionamento obrigatoriamente entram no estoque de forma fracionada">
-                            <Heading size="3" mb="-4">Fracionamentos</Heading>
-                          </Tooltip>
-                          <Tooltip content="Adicionar fracionamento">
-                            <IconButton disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
-                              <PlusIcon width="16" height="16">
-                              </PlusIcon>
-                            </IconButton>
-                          </Tooltip>
-                        </Flex>
-                        {item.packagings.map((pack, packIndex) => {
+                        {
+                          item.item.id && (() => {
+                            // 1) Build a Set of the already-picked packaging IDs
+                            const selectedPackIds = new Set(
+                              item.packagings.map(p => p.item_packaging.id)
+                            );
 
-                          // Build the set of other selected packaging IDs (exclude this row)
-                          const otherSelected = new Set(
-                            item.packagings
-                              .filter((_, j) => j !== packIndex)
-                              .map(p => p.item_packaging.id)
-                          );
+                            // 2) Derive the dropdown options by filtering out those IDs
+                            const availablePackOptions = itemPackagingOptions
+                              .filter(opt =>
+                                opt.item?.id === item.item.id &&      // only for this item
+                                !selectedPackIds.has(opt.id)          // and not already chosen
+                              );
 
-                          // Now filter: same item, and not in the “otherSelected” set
-                          const optionsForThisRow = itemPackagingOptions.filter(
-                            opt =>
-                              opt.item?.id === item.item.id &&
-                              !otherSelected.has(opt.id)
-                          );
+                            return (
+                              <>
+                                <Separator size="4" />
+                                <Flex justify="between">
+                                  <Tooltip content="Itens que compõe fracionamento obrigatoriamente entram no estoque de forma fracionada">
+                                    <Heading size="3" mb="-4">Fracionamentos</Heading>
+                                  </Tooltip>
+                                  <Tooltip content="Adicionar fracionamento">
+                                    <IconButton disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
+                                      <PlusIcon width="16" height="16">
+                                      </PlusIcon>
+                                    </IconButton>
+                                  </Tooltip>
+                                </Flex>
+                                {item.packagings.map((pack, packIndex) => {
 
-                          return (
-                            <Card key={packIndex}>
-                              <Flex direction="column" gap="4">
-                                {/* 1) Select which packaging to use */}
-                                <Select.Root
-                                  disabled={viewOnly}
-                                  value={pack.item_packaging.id ? String(pack.item_packaging.id) : ""}
-                                  onValueChange={(value) => {
-                                    const selected = itemPackagingOptions.find(o => o.id === parseInt(value));
-                                    if (selected) {
-                                      updateItemPackagingField(
-                                        index,
-                                        packIndex,
-                                        "item_packaging",
-                                        selected
-                                      );
-                                    }
-                                  }}
-                                >
-                                  <Select.Trigger />
-                                  <Select.Content>
-                                    {optionsForThisRow.map(opt => (
-                                      <Select.Item key={opt.id} value={String(opt.id)}>
-                                        {opt.description}
-                                      </Select.Item>
-                                    ))}
-                                  </Select.Content>
-                                </Select.Root>
+                                  // Build the set of other selected packaging IDs (exclude this row)
+                                  const otherSelected = new Set(
+                                    item.packagings
+                                      .filter((_, j) => j !== packIndex)
+                                      .map(p => p.item_packaging.id)
+                                  );
 
-                                {/* 2) Show the details once a packaging is chosen */}
-                                {pack.item_packaging.id && (
-                                  <>
-                                    <DataList.Root>
-                                      <DataList.Item>
-                                        <DataList.Label>Fracionamento</DataList.Label>
-                                        <DataList.Value>
-                                          {(() => {
-                                            const uom = item.item.unit_of_measure;
-                                            const qty = pack.item_packaging.quantity;
-                                            return uom?.description
-                                              ? <Badge color="blue" variant="soft">{`${qty}x ${uom.description}`}</Badge>
-                                              : "N/A";
-                                          })()}
-                                        </DataList.Value>
-                                      </DataList.Item>
-                                    </DataList.Root>
+                                  // Now filter: same item, and not in the “otherSelected” set
+                                  const optionsForThisRow = itemPackagingOptions.filter(
+                                    opt =>
+                                      opt.item?.id === item.item.id &&
+                                      !otherSelected.has(opt.id)
+                                  );
 
-                                    {/* Pack Quantity */}
-                                    <Text mb="-4" size="2">Quantidade</Text>
-                                    <TextField.Root
-                                      disabled={viewOnly}
-                                      type="number"
-                                      placeholder="0"
-                                      value={pack.quantity ?? ""}
-                                      onChange={(e) =>
-                                        updateItemPackagingField(
-                                          index,
-                                          packIndex,
-                                          "quantity",
-                                          parseInt(e.target.value) || 0
+                                  return (
+                                    <Card key={packIndex}>
+                                      <Flex direction="column" gap="4">
+                                        {/* 1) Select which packaging to use */}
+                                        <Select.Root
+                                          disabled={viewOnly}
+                                          value={pack.item_packaging.id ? String(pack.item_packaging.id) : ""}
+                                          onValueChange={(value) => {
+                                            const selected = itemPackagingOptions.find(o => o.id === parseInt(value));
+                                            if (selected) {
+                                              updateItemPackagingField(
+                                                index,
+                                                packIndex,
+                                                "item_packaging",
+                                                selected
+                                              );
+                                            }
+                                          }}
+                                        >
+                                          <Select.Trigger />
+                                          <Select.Content>
+                                            {optionsForThisRow.map(opt => (
+                                              <Select.Item key={opt.id} value={String(opt.id)}>
+                                                {opt.description}
+                                              </Select.Item>
+                                            ))}
+                                          </Select.Content>
+                                        </Select.Root>
+
+                                        {/* 2) Show the details once a packaging is chosen */}
+                                        {pack.item_packaging.id && (
+                                          <>
+                                            <DataList.Root>
+                                              <DataList.Item>
+                                                <DataList.Label>Fracionamento</DataList.Label>
+                                                <DataList.Value>
+                                                  {(() => {
+                                                    const uom = item.item.unit_of_measure;
+                                                    const qty = pack.item_packaging.quantity;
+                                                    return uom?.description
+                                                      ? <Badge color="blue" variant="soft">{`${qty}x ${uom.description}`}</Badge>
+                                                      : "N/A";
+                                                  })()}
+                                                </DataList.Value>
+                                              </DataList.Item>
+                                            </DataList.Root>
+
+                                            {/* Pack Quantity */}
+                                            <Text mb="-4" size="2">Quantidade</Text>
+                                            <TextField.Root
+                                              disabled={viewOnly}
+                                              type="number"
+                                              placeholder="0"
+                                              value={pack.quantity ?? ""}
+                                              onChange={(e) =>
+                                                updateItemPackagingField(
+                                                  index,
+                                                  packIndex,
+                                                  "quantity",
+                                                  parseInt(e.target.value) || 0
+                                                )}
+                                            />
+                                          </>
                                         )}
-                                    />
-                                  </>
-                                )}
-                                <Container>
-                                  <Button
-                                    disabled={viewOnly}
-                                    variant="outline"
-                                    color="red"
-                                    size="1"
-                                    onClick={() => removeItemPackaging(index, packIndex)}
-                                    style={{ marginTop: 8 }}
-                                  >
-                                    Excluir
-                                  </Button>
-                                </Container>
-                              </Flex>
-                            </Card>
-                          )
-                        })}
+                                        <Container>
+                                          <Button
+                                            disabled={viewOnly}
+                                            variant="outline"
+                                            color="red"
+                                            size="1"
+                                            onClick={() => removeItemPackaging(index, packIndex)}
+                                            style={{ marginTop: 8 }}
+                                          >
+                                            Excluir
+                                          </Button>
+                                        </Container>
+                                      </Flex>
+                                    </Card>
+                                  )
+                                })}
+                              </>
+                            );
+                          })()
+                        }
                       </>
-                    );
-                  })()}
-                  <Separator size="4"></Separator>
+                      : ""}
+                  < Separator size="4"></Separator>
                   {/* Remove button */}
                   <Button
                     variant="soft"

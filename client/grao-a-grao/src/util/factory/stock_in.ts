@@ -24,6 +24,7 @@ export function createEmptyStockInItem(): StockInItemModel {
     item: {
       id: undefined,
       description: "",
+      is_fractionable: true,
     },
     buy_price: 0,
     total_quantity: 0,

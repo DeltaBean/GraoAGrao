@@ -56,9 +56,9 @@ export function useStockInForm(initial?: StockInModel) {
       items: prev.items.map((item, i) =>
         i === itemIndex
           ? {
-              ...item,
-              packagings: [...item.packagings, createEmptyStockInPackaging()],
-            }
+            ...item,
+            packagings: [...item.packagings, createEmptyStockInPackaging()],
+          }
           : item
       ),
     }));
@@ -71,9 +71,9 @@ export function useStockInForm(initial?: StockInModel) {
       items: prev.items.map((item, i) =>
         i === itemIndex
           ? {
-              ...item,
-              packagings: item.packagings.filter((_, j) => j !== packagingIndex),
-            }
+            ...item,
+            packagings: item.packagings.filter((_, j) => j !== packagingIndex),
+          }
           : item
       ),
     }));
@@ -85,14 +85,20 @@ export function useStockInForm(initial?: StockInModel) {
     field: keyof Pick<StockInItemModel, "buy_price" | "total_quantity" | "item">,
     value: any
   ) {
-    setStockIn((prev) => ({
-      ...prev,
-      items: prev.items.map((item, i) =>
-        i === index
-          ? { ...item, [field]: value }
-          : item
-      ),
-    }));
+    setStockIn((prev) => {
+
+      if (field === "item" && !value.is_fractionable)
+        prev.items[index].packagings = [];
+      
+      return {
+        ...prev,
+        items: prev.items.map((item, i) =>
+          i === index
+            ? { ...item, [field]: value }
+            : item
+        ),
+      }
+    });
   }
 
   // Update a nested field on an item (e.g., item.id)
@@ -129,13 +135,13 @@ export function useStockInForm(initial?: StockInModel) {
       items: prev.items.map((item, i) =>
         i === itemIndex
           ? {
-              ...item,
-              packagings: item.packagings.map((pkg, j) =>
-                j === packagingIndex
-                  ? { ...pkg, [field]: value }
-                  : pkg
-              ),
-            }
+            ...item,
+            packagings: item.packagings.map((pkg, j) =>
+              j === packagingIndex
+                ? { ...pkg, [field]: value }
+                : pkg
+            ),
+          }
           : item
       ),
     }));

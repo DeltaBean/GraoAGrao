@@ -1,5 +1,7 @@
 package request
 
+import "github.com/IlfGauhnith/GraoAGrao/pkg/validator"
+
 type CreateStockInRequest struct {
 	Items []CreateStockInItemRequest `json:"items" validate:"required,dive"`
 }
@@ -14,6 +16,11 @@ type CreateStockInItemRequest struct {
 type CreateStockInPackagingRequest struct {
 	ItemPackagingID uint `json:"item_packaging_id" validate:"required"`
 	Quantity        int  `json:"quantity" validate:"required,gt=0"`
+}
+
+// Validate runs Go-Playground on the struct tags.
+func (r *CreateStockInRequest) Validate() error {
+	return validator.Validate.Struct(r)
 }
 
 type UpdateStockInRequest struct {
@@ -33,4 +40,9 @@ type UpdateStockInPackagingRequest struct {
 	ID              *uint `json:"id,omitempty"`
 	ItemPackagingID uint  `json:"item_packaging_id" validate:"required"`
 	Quantity        int   `json:"quantity" validate:"required,gt=0"`
+}
+
+// Validate runs Go-Playground on the struct tags.
+func (r *UpdateStockInRequest) Validate() error {
+	return validator.Validate.Struct(r)
 }
