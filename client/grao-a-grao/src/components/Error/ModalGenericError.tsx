@@ -7,16 +7,18 @@ import { ItemPackagingModel } from "@/types/item_packaging";
 type ModalGenericErrorProps = {
   onClose: () => void;
   error: GenericPostgreSQLErrorResponse;
+  title: string;
+  details: string;
 };
 
-export default function ModalGenericError({onClose, error }: ModalGenericErrorProps) {
+export default function ModalGenericError({onClose, error, title, details }: ModalGenericErrorProps) {
   return (
     <ModalErrorShell
-      title={"Error deleting referenced entity."}
+      title={title}
       onClose={onClose}
     >
       <Text as="label" size="3">
-        {error.details}
+        {details}
       </Text>
     </ModalErrorShell>
   );

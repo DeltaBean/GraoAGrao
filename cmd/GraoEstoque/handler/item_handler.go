@@ -130,7 +130,7 @@ func DeleteItem(c *gin.Context) {
 
 	if err := item_repository.DeleteItem(uint(id)); err != nil {
 		logger.Log.Error("Error deleting item: ", err)
-		error_handler.HandleDBErrorWithContext(c,
+		error_handler.HandleDBErrorWithReferencingFetcher(c,
 			err,
 			uint(id),
 			item_repository.GetReferencingItemPackagings,

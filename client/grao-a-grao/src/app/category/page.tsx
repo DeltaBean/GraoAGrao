@@ -196,8 +196,8 @@ export default function CategoryPage() {
                                                     </IconButton>
                                                 </Tooltip>
                                                 <AlertDialog.Root>
-                                                    <AlertDialog.Trigger>
-                                                        <Tooltip content="Excluir categoria">
+                                                    <Tooltip content="Excluir categoria">
+                                                        <AlertDialog.Trigger>
                                                             <IconButton
                                                                 size={"1"}
                                                                 about="Delete"
@@ -205,18 +205,18 @@ export default function CategoryPage() {
                                                                 color="red">
                                                                 <TrashIcon height="16" width="16" />
                                                             </IconButton>
-                                                        </Tooltip>
-                                                    </AlertDialog.Trigger>
+                                                        </AlertDialog.Trigger>
+                                                    </Tooltip>
                                                     <AlertDialog.Content maxWidth="450px">
-                                                        <AlertDialog.Title>Delete {category.description}</AlertDialog.Title>
+                                                        <AlertDialog.Title>Deletar {category.description}</AlertDialog.Title>
                                                         <AlertDialog.Description size="2">
-                                                            Are you sure? This category will no longer exist.
+                                                            Tem certeza? Esta categoria será deletada permanentemente
                                                         </AlertDialog.Description>
 
                                                         <Flex gap="3" mt="4" justify="end">
                                                             <AlertDialog.Cancel>
                                                                 <Button variant="soft" color="gray">
-                                                                    Cancel
+                                                                    Cancelar
                                                                 </Button>
                                                             </AlertDialog.Cancel>
                                                             <AlertDialog.Action>
@@ -230,7 +230,7 @@ export default function CategoryPage() {
                                                                                 handleDelete(category.id);
                                                                         }
                                                                     }>
-                                                                    Delete
+                                                                    Deletar
                                                                 </Button>
                                                             </AlertDialog.Action>
                                                         </Flex>
@@ -268,6 +268,8 @@ export default function CategoryPage() {
 
             {errorModal.type === "generic-error" && (
                 <ModalGenericError
+                    title={"Não é possível deletar."}
+                    details="Esta categoria é utilizada em outros itens de estoque."
                     error={errorModal.data}
                     onClose={() => setErrorModal({ type: "none" })}
                 />

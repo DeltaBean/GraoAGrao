@@ -13,11 +13,11 @@ type ModalDeleteReferencedErrorItemProps = {
 export default function ModalDeleteReferencedErrorItem({ onClose, unit, error }: ModalDeleteReferencedErrorItemProps) {
   return (
     <ModalErrorShell
-      title={"Error deleting referenced Unit of Measure"}
+      title={"Não é possível deletar."}
       onClose={onClose}
     >
       <Text as="label" size="3">
-        {`${unit.description} cannot be deleted. The following Items depends on it.`}
+      {`Os itens abaixo dependem dela.`}
       </Text>
       <ScrollArea type="always" scrollbars="vertical" style={{ height: "10vh" }}>
         <Box>

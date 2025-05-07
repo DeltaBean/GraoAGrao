@@ -3,12 +3,13 @@ package model
 import "time"
 
 type StockIn struct {
-	ID        uint
-	Owner     User
-	Items     []StockInItem
-	Status    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uint
+	Owner       User
+	Items       []StockInItem
+	Status      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	FinalizedAt time.Time
 }
 
 type StockInItem struct {

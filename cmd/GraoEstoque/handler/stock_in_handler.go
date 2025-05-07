@@ -13,6 +13,7 @@ import (
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_in_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -126,11 +127,11 @@ func FinalizeStockInByID(c *gin.Context) {
 	err = stock_in_repository.FinalizeStockInByID(id)
 	if err != nil {
 		logger.Log.Errorf("Failed to finalize stock in: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to finalize stock in"})
+		error_handler.HandleDBError(c, err, id)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "StockIn finalized successfully"})
+	c.Status(http.StatusNoContent)
 }
 
 func UpdateStockIn(c *gin.Context) {

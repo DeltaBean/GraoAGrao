@@ -30,6 +30,10 @@ func IsReferenceMissingError(pgErr *pgconn.PgError) bool {
 		strings.Contains(pgErr.Detail, "is not present")
 }
 
+func IsStockInTotalQuantityNotMatching(pgErr *pgconn.PgError) bool {
+	return pgErr.Code == "P0003"
+}
+
 // Extracts the referenced table name from pgErr.Detail (if present)
 func GetReferencedTableName(pgErr *pgconn.PgError) string {
 	if pgErr == nil || pgErr.Detail == "" {
@@ -54,9 +58,9 @@ type RefFetcherFunc func(id uint) (any, error)
 // and returns a DTO-compliant version.
 type EntityMapperFunc func(any) any
 
-// Generic handler using injected fetcher
-func HandleDBErrorWithContext(c *gin.Context, err error, id uint, fetcher RefFetcherFunc, dtoMapper EntityMapperFunc) {
-	logger.Log.Info("HandleDBErrorWithContext")
+// Handler using injected fetcher
+func HandleDBErrorWithReferencingFetcher(c *gin.Context, err error, id uint, fetcher RefFetcherFunc, dtoMapper EntityMapperFunc) {
+	logger.Log.Info("HandleDBErrorWithReferencingFetcher")
 
 	var pgErr *pgconn.PgError
 
@@ -121,6 +125,31 @@ func HandleDBErrorWithContext(c *gin.Context, err error, id uint, fetcher RefFet
 				Code:         pgErr.Code,
 			})
 		return
+	}
+
+	logger.Log.Error("Error isnt a Postgresql error. Verify if HandleDBErrorWithContext is being called in a correct context.")
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+}
+
+func HandleDBError(c *gin.Context, err error, id int) {
+	logger.Log.Info("HandleDBError")
+
+	var pgErr *pgconn.PgError
+
+	//Check if is a PostgreSQL error
+	if errors.As(err, &pgErr) {
+
+		if IsStockInTotalQuantityNotMatching(pgErr) {
+			c.JSON(http.StatusUnprocessableEntity,
+				dto.StockInTotalQuantityNotMatchingResponse{
+					Error:        "Stock in total quantity not matching quantities declared",
+					Details:      pgErr.Detail,
+					Code:         pgErr.Code,
+					InternalCode: errorCodes.CodeStockInTotalQuantityNotMatching,
+				},
+			)
+			return
+		}
 	}
 
 	logger.Log.Error("Error isnt a Postgresql error. Verify if HandleDBErrorWithContext is being called in a correct context.")

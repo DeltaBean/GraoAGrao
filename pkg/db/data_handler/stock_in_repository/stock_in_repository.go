@@ -2,10 +2,12 @@ package stock_in_repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // SaveStockIn saves a stock-in transaction and its items with packaging breakdowns
@@ -425,6 +427,13 @@ func FinalizeStockInByID(stockInID int) error {
 	`, stockInID)
 	if err != nil {
 		logger.Log.Errorf("Error finalizing stock_in: %v", err)
+
+		// If it's a Postgres error, return it *as* a PgError so callers can inspect Code
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			return pgErr
+		}
+		// otherwise just bubble it up
 		return err
 	}
 

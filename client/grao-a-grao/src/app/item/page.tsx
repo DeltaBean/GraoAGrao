@@ -212,7 +212,7 @@ export default function ItemPage() {
 
           <Heading size={{ sm: "8" }} weight={"bold"}>Item de Estoque</Heading>
           <Tooltip content="Criar novo item de estoque">
-          <Button size="3" onClick={() => handleOpenModal("create")}>Criar</Button>
+            <Button size="3" onClick={() => handleOpenModal("create")}>Criar</Button>
           </Tooltip>
         </Flex>
         <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
@@ -256,8 +256,8 @@ export default function ItemPage() {
                         </Tooltip>
 
                         <AlertDialog.Root>
-                          <AlertDialog.Trigger>
-                            <Tooltip content="Excluir item de estoque">
+                          <Tooltip content="Excluir item de estoque">
+                            <AlertDialog.Trigger>
                               <IconButton
                                 size={"1"}
                                 about="Delete"
@@ -265,18 +265,17 @@ export default function ItemPage() {
                                 color="red">
                                 <TrashIcon height="16" width="16" />
                               </IconButton>
-                            </Tooltip>
-                          </AlertDialog.Trigger>
+                            </AlertDialog.Trigger>
+                          </Tooltip>
                           <AlertDialog.Content maxWidth="450px">
-                            <AlertDialog.Title>Delete {item.description}</AlertDialog.Title>
+                            <AlertDialog.Title>Deletar {item.description}</AlertDialog.Title>
                             <AlertDialog.Description size="2">
-                              Are you sure? This item will no longer exist.
+                              Tem certeza? Este item será deletado permanentemente.
                             </AlertDialog.Description>
-
                             <Flex gap="3" mt="4" justify="end">
                               <AlertDialog.Cancel>
                                 <Button variant="soft" color="gray">
-                                  Cancel
+                                  Cancelar
                                 </Button>
                               </AlertDialog.Cancel>
                               <AlertDialog.Action>
@@ -289,7 +288,7 @@ export default function ItemPage() {
                                       handleDelete(item.id ? item.id : 0);
                                     }
                                   }>
-                                  Delete
+                                  Deletar
                                 </Button>
                               </AlertDialog.Action>
                             </Flex>
@@ -330,6 +329,8 @@ export default function ItemPage() {
 
       {errorModal.type === "generic-error" && (
         <ModalGenericError
+          title={"Não é possível deletar."}
+          details="Este item é utilizado em outras entradas/saidas de estoque."
           error={errorModal.data}
           onClose={() => setErrorModal({ type: "none" })}
         />

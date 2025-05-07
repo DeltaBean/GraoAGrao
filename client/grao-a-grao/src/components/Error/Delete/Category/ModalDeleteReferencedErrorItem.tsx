@@ -13,11 +13,11 @@ type ModalDeleteReferencedErrorItemProps = {
 export default function ModalDeleteReferencedErrorItem({ onClose, category, error }: ModalDeleteReferencedErrorItemProps) {
   return (
     <ModalErrorShell
-      title={"Error deleting referenced category"}
+      title={"Não é possível deletar."}
       onClose={onClose}
     >
       <Text as="label" size="3">
-        {`${category.description} cannot be deleted. The following Items depends on it.`}
+        {`Os itens abaixo dependem dele.`}
       </Text>
       <ScrollArea type="always" scrollbars="vertical" style={{ height: "10vh" }}>
         <Box>

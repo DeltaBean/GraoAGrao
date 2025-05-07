@@ -108,7 +108,7 @@ func DeleteCategory(c *gin.Context) {
 
 	if err := category_repository.DeleteCategory(uint(id)); err != nil {
 		logger.Log.Error("Error DeleteCategory: ", err)
-		error_handler.HandleDBErrorWithContext(c,
+		error_handler.HandleDBErrorWithReferencingFetcher(c,
 			err,
 			uint(id),
 			category_repository.GetReferencingItems,

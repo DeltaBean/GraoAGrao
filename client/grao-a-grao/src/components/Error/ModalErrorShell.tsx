@@ -33,7 +33,7 @@ export default function ModalErrorShell({ title, onClose, children }: ModalError
                 {children}
                 <Flex justify="center" align="center" className="mb-3 mt-5">
                   <Button size="3" color="red" onClick={(e) => { e.preventDefault(); onClose(); }}>
-                    Close
+                    Fechar
                   </Button>
                 </Flex>
               </Flex>

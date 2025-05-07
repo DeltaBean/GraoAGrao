@@ -125,7 +125,7 @@ func DeleteUnit(c *gin.Context) {
 
 	if err := unit_of_measure_repository.DeleteUnitOfMeasure(uint(id)); err != nil {
 		logger.Log.Error("Error deleting unit: ", err)
-		error_handler.HandleDBErrorWithContext(c,
+		error_handler.HandleDBErrorWithReferencingFetcher(c,
 			err,
 			uint(id),
 			unit_of_measure_repository.GetReferencingItems,

@@ -7,16 +7,29 @@ import { useEffect, useState } from "react";
 import { normalizeStockInResponse, StockInModel, StockInResponse } from "@/types/stock_in";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PencilSquareIcon } from "@heroicons/react/16/solid";
+import { CheckCircleIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import * as stock_in_api from "@/api/stock_in_api";
 import { formatDateTime } from "@/util/util";
+import { useLoading } from "@/hooks/useLoading";
+import { ErrorCodes, StockInTotalQuantityNotMatchingResponse } from "@/types/api_error";
+import ModalGenericError from "@/components/Error/ModalGenericError";
 
 export default function StockInPage() {
   const router = useRouter();
 
+  type ErrorModalState =
+    | { type: "finalize-total-quantity-wrong"; data: StockInTotalQuantityNotMatchingResponse; }
+    | { type: "none" };
+
+  const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
+
   const [stockIn, setStockIn] = useState<StockInModel[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const {
+    loadingData,
+    setIsLoading,
+    setMessage: setLoadingMessage,
+  } = useLoading();
 
   // Fetch stock_in when the component mounts.
   useEffect(() => {
@@ -24,7 +37,8 @@ export default function StockInPage() {
   }, []);
 
   const fetchStockIn = async () => {
-    setLoading(true);
+    setIsLoading(true);
+    setLoadingMessage("Carregando Entradas de Estoque...");
 
     try {
 
@@ -36,7 +50,63 @@ export default function StockInPage() {
       console.error(err);
       setError(err.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  }
+
+  const handleStockInTotalQuantityNotMatchingError = (err: StockInTotalQuantityNotMatchingResponse) => {
+    setErrorModal({ type: "finalize-total-quantity-wrong", data: err });
+  }
+
+  const handleFinalize = async (stockInId: number) => {
+    setIsLoading(true);
+    setLoadingMessage("Finalizando Entrada de Estoque...");
+
+    try {
+
+      await stock_in_api.finalizeStockIn(stockInId);
+
+      setStockIn(prev =>
+        prev.map(si =>
+          si.id === stockInId
+            ? { ...si, status: "finalized" }
+            : si
+        )
+      );
+    } catch (err: any) {
+      console.error(err);
+
+      if (err?.data?.internal_code === ErrorCodes.STOCK_IN_TOTAL_QUANTITY_WRONG) {
+
+        const errorData: StockInTotalQuantityNotMatchingResponse = err.data;
+        handleStockInTotalQuantityNotMatchingError(errorData);
+
+      } else {
+        alert("Unexpected error occurred while deleting the item.");
+        console.error(err);
+      }
+
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleDelete = async (stockInId: number) => {
+    setIsLoading(true);
+    setLoadingMessage("Deletando Entrada de Estoque...");
+
+    try {
+
+      await stock_in_api.deleteStockIn(stockInId);
+
+      setStockIn(prev =>
+        prev.filter(si => si.id !== stockInId)
+      );
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -69,7 +139,7 @@ export default function StockInPage() {
             </Tooltip>
           </Flex>
 
-          <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
+          <Skeleton loading={loadingData.isLoading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
             <Table.Root>
 
               <Table.Header>
@@ -83,7 +153,7 @@ export default function StockInPage() {
 
               <Table.Body>
 
-                {loading ? (null) : (
+                {loadingData.isLoading ? (null) : (
                   stockIn.map((si) => (
                     <Table.Row key={si.id} align={"center"}>
                       <Table.RowHeaderCell>{formatDateTime(si.created_at)}</Table.RowHeaderCell>
@@ -97,7 +167,7 @@ export default function StockInPage() {
                             )
                             : si.status == "finalized" ?
                               (
-                                <Tooltip content="Confirmada, não permite edição">
+                                <Tooltip content="Confirmada e integrada ao estoque, não permite edição">
                                   <Badge variant="surface">Finalizada</Badge>
                                 </Tooltip>
                               )
@@ -106,8 +176,9 @@ export default function StockInPage() {
                       </Table.Cell>
                       <Table.Cell>
                         <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
-                          <Tooltip content="Editar entrada de estoque">
+                          <Tooltip content={si.status == "draft" ? "Editar entrada de estoque" : "Finalizada, edição não permitida."}>
                             <IconButton
+                              disabled={si.status === "finalized"}
                               size={"1"}
                               about="Edit"
                               variant="soft"
@@ -118,6 +189,27 @@ export default function StockInPage() {
                                 }
                               }>
                               <PencilSquareIcon height="16" width="16" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content={si.status == "draft" ? "Finalizar entrada de estoque. Após finalizada será integrada ao estoque e não poderá mais ser editada." : "Já finalizada."}>
+                            <IconButton
+                              disabled={si.status === "finalized"}
+                              size={"1"}
+                              about="Finalize"
+                              variant="soft"
+                              onClick={() => { handleFinalize(si.id ?? 0); }}>
+                              <CheckCircleIcon height="16" width="16" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content={si.status == "draft" ? "Deletar entrada de estoque." : "Já finalizada, deleção não permitida."}>
+                            <IconButton
+                              disabled={si.status === "finalized"}
+                              color="red"
+                              size={"1"}
+                              about="Finalize"
+                              variant="soft"
+                              onClick={() => { handleDelete(si.id ?? 0); }}>
+                              <TrashIcon height="16" width="16" />
                             </IconButton>
                           </Tooltip>
                         </Flex>
@@ -131,6 +223,14 @@ export default function StockInPage() {
           </Skeleton>
         </Card>
       </Flex>
+      {errorModal.type === "finalize-total-quantity-wrong" && (
+        <ModalGenericError
+          title="Não é possível finalizar."
+          details=" Quantidade total de algum item desta entrada de estoque está inconsistente com a soma de seus fracionamentos. Acesse a entrada de estoque e verifique."
+          error={errorModal.data}
+          onClose={() => setErrorModal({ type: "none" })}
+        />
+      )}
     </Flex>
   );
 }

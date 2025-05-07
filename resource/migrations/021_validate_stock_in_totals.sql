@@ -21,24 +21,38 @@ AS $$
 DECLARE
     rec RECORD;
 BEGIN
-    -- Only validate if status is transitioning to 'finalized'
-    IF NEW.status = 'finalized' AND OLD.status IS DISTINCT FROM 'finalized' THEN
+    IF NEW.status = 'finalized'
+       AND OLD.status IS DISTINCT FROM 'finalized'
+    THEN
         FOR rec IN
-            SELECT sii.stock_in_item_id, sii.total_quantity,
-                   SUM(sip.quantity * ip.quantity) AS calculated_total
-            FROM tb_stock_in_item sii
-            LEFT JOIN tb_stock_in_packaging sip ON sip.stock_in_item_id = sii.stock_in_item_id
-            LEFT JOIN tb_item_packaging ip ON ip.item_packaging_id = sip.item_packaging_id
+            SELECT
+              sii.stock_in_item_id,
+              sii.total_quantity,
+              SUM(sip.quantity * ip.quantity) AS calculated_total
+            FROM tb_stock_in_item    AS sii
+            LEFT JOIN tb_stock_in_packaging AS sip
+              ON sip.stock_in_item_id = sii.stock_in_item_id
+            LEFT JOIN tb_item_packaging     AS ip
+              ON ip.item_packaging_id = sip.item_packaging_id
             WHERE sii.stock_in_id = NEW.stock_in_id
             GROUP BY sii.stock_in_item_id, sii.total_quantity
         LOOP
             IF rec.calculated_total IS NULL THEN
-                RAISE EXCEPTION 'StockInItem % has no packaging rows', rec.stock_in_item_id;
-            END IF;
-
-            IF rec.total_quantity IS DISTINCT FROM rec.calculated_total THEN
-                RAISE EXCEPTION 'StockInItem %: packaging total (%.2f) does not match declared total_quantity (%.2f)',
-                    rec.stock_in_item_id, rec.calculated_total, rec.total_quantity;
+                RAISE EXCEPTION USING
+                  ERRCODE = 'P0002',
+                  MESSAGE = FORMAT(
+                    'StockInItem %s has no packaging rows',
+                    rec.stock_in_item_id
+                  );
+            ELSIF rec.total_quantity IS DISTINCT FROM rec.calculated_total THEN
+                RAISE EXCEPTION USING
+                  ERRCODE = 'P0003',
+                  MESSAGE = FORMAT(
+                    'StockInItem %s: packaging total (%s) does not match declared total_quantity (%s)',
+                    rec.stock_in_item_id,
+                    rec.calculated_total::text,
+                    rec.total_quantity::text
+                  );
             END IF;
         END LOOP;
     END IF;

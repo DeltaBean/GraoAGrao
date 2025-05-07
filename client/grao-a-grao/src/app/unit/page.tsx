@@ -196,8 +196,8 @@ export default function UnitPage() {
                                                     </IconButton>
                                                 </Tooltip>
                                                 <AlertDialog.Root>
-                                                    <AlertDialog.Trigger>
-                                                        <Tooltip content="Excluir unidade de medida">
+                                                    <Tooltip content="Excluir unidade de medida">
+                                                        <AlertDialog.Trigger>
                                                             <IconButton
                                                                 size={"1"}
                                                                 about="Delete"
@@ -205,18 +205,18 @@ export default function UnitPage() {
                                                                 color="red">
                                                                 <TrashIcon height="16" width="16" />
                                                             </IconButton>
-                                                        </Tooltip>
-                                                    </AlertDialog.Trigger>
+                                                        </AlertDialog.Trigger>
+                                                    </Tooltip>
                                                     <AlertDialog.Content maxWidth="450px">
-                                                        <AlertDialog.Title>Delete {unit.description}</AlertDialog.Title>
+                                                        <AlertDialog.Title>Deletar {unit.description}</AlertDialog.Title>
                                                         <AlertDialog.Description size="2">
-                                                            Are you sure? This unit of measure will no longer exist.
+                                                            Tem certeza? Esta unidade de medida será deletada permanentemente.
                                                         </AlertDialog.Description>
 
                                                         <Flex gap="3" mt="4" justify="end">
                                                             <AlertDialog.Cancel>
                                                                 <Button variant="soft" color="gray">
-                                                                    Cancel
+                                                                    Cancelar
                                                                 </Button>
                                                             </AlertDialog.Cancel>
                                                             <AlertDialog.Action>
@@ -229,7 +229,7 @@ export default function UnitPage() {
                                                                             handleDelete(unit.id ?? 0);
                                                                         }
                                                                     }>
-                                                                    Delete
+                                                                    Deletar
                                                                 </Button>
                                                             </AlertDialog.Action>
                                                         </Flex>
@@ -268,6 +268,8 @@ export default function UnitPage() {
 
             {errorModal.type === "generic-error" && (
                 <ModalGenericError
+                    title="Não é possível deletar."
+                    details=" Esta unidade de medida é utilizada por outro item."
                     error={errorModal.data}
                     onClose={() => setErrorModal({ type: "none" })}
                 />

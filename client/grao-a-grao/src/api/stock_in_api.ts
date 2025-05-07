@@ -128,3 +128,28 @@ export async function deleteStockIn(id: number): Promise<void> {
     throw new Error("Unknown server error while deleting stock-in.");
   }
 }
+
+export async function finalizeStockIn(id: number): Promise<void> {
+  const token = getAuthToken();
+
+  const res = await fetch(`${getAPIUrl()}/stock/in/finalize/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const contentType = res.headers.get("Content-Type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
+
+      throw {
+        status: res.status,
+        data,
+      };
+    }
+
+    throw new Error("Unknown server error while deleting stock-in.");
+  }
+}

@@ -27,3 +27,10 @@ type ForeignKeyReferenceMissingErrorResponse struct {
 	Details         string               `json:"details"`
 	ReferencedTable string               `json:"referencedTable"`
 }
+
+type StockInTotalQuantityNotMatchingResponse struct {
+	Error        string               `json:"error"`
+	Code         string               `json:"code"`
+	InternalCode errorCodes.ErrorCode `json:"internal_code"`
+	Details      string               `json:"details"`
+}

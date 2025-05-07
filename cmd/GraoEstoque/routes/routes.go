@@ -102,7 +102,6 @@ func InitRoutes(router *gin.Engine) {
 		{
 			stockInGroup.GET("", handler.ListAllStockIn)
 			stockInGroup.GET("/:id", handler.GetStockInByID)
-			stockInGroup.GET("/finalize/:id", handler.FinalizeStockInByID)
 			stockInGroup.POST("",
 				middleware.BindAndValidateMiddleware[dtoRequest.CreateStockInRequest](),
 				handler.CreateStockIn,
@@ -111,6 +110,7 @@ func InitRoutes(router *gin.Engine) {
 				middleware.BindAndValidateMiddleware[dtoRequest.UpdateStockInRequest](),
 				handler.UpdateStockIn,
 			)
+			stockInGroup.PATCH("/finalize/:id", handler.FinalizeStockInByID)
 			stockInGroup.DELETE("/:id", handler.DeleteStockIn)
 		}
 

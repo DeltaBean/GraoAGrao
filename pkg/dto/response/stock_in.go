@@ -3,11 +3,12 @@ package response
 import "time"
 
 type StockInResponse struct {
-	ID        uint                  `json:"id"`
-	Items     []StockInItemResponse `json:"items"`
-	Status    string                `json:"status"`
-	CreatedAt time.Time             `json:"created_at"`
-	UpdatedAt time.Time             `json:"updated_at"`
+	ID          uint                  `json:"id"`
+	Items       []StockInItemResponse `json:"items"`
+	Status      string                `json:"status"`
+	CreatedAt   time.Time             `json:"created_at"`
+	UpdatedAt   time.Time             `json:"updated_at"`
+	FinalizedAt time.Time             `json:"finalized_at"`
 }
 
 type StockInItemResponse struct {
