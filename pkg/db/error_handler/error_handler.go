@@ -34,6 +34,10 @@ func IsStockInTotalQuantityNotMatching(pgErr *pgconn.PgError) bool {
 	return pgErr.Code == "P0003"
 }
 
+func IsStockOutTotalQuantityNotMatching(pgErr *pgconn.PgError) bool {
+	return pgErr.Code == "P0005"
+}
+
 // Extracts the referenced table name from pgErr.Detail (if present)
 func GetReferencedTableName(pgErr *pgconn.PgError) string {
 	if pgErr == nil || pgErr.Detail == "" {
@@ -146,6 +150,16 @@ func HandleDBError(c *gin.Context, err error, id int) {
 					Details:      pgErr.Detail,
 					Code:         pgErr.Code,
 					InternalCode: errorCodes.CodeStockInTotalQuantityNotMatching,
+				},
+			)
+			return
+		} else if IsStockOutTotalQuantityNotMatching(pgErr) {
+			c.JSON(http.StatusUnprocessableEntity,
+				dto.StockOutTotalQuantityNotMatchingResponse{
+					Error:        "Stock out total quantity not matching quantities declared",
+					Details:      pgErr.Detail,
+					Code:         pgErr.Code,
+					InternalCode: errorCodes.CodeStockOutTotalQuantityNotMatching,
 				},
 			)
 			return

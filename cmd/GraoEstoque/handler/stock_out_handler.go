@@ -5,11 +5,15 @@ import (
 	"strconv"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+	dtoMapper "github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
+	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
+	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
+
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_out_repository"
+	error_handler "github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,28 +21,26 @@ import (
 func CreateStockOut(c *gin.Context) {
 	logger.Log.Info("CreateStockOut")
 
-	var StockOut model.StockOut
-	if err := c.ShouldBindJSON(&StockOut); err != nil {
-		logger.Log.Errorf("Invalid payload: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	token := c.GetHeader("Authorization")
+	authenticatedUser, err := util.GetUserFromJWT(token)
 	if err != nil {
 		logger.Log.Error("Error getting user from JWT: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	err = stock_out_repository.SaveStockOut(&StockOut, authenticatedUser.ID)
+	// Retrieved from BindAndValidate middleware
+	cor := c.MustGet("dto").(*dtoRequest.CreateStockOutRequest)
+	mcor := dtoMapper.CreateStockOutToModel(cor)
+
+	err = stock_out_repository.SaveStockOut(mcor, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock out"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, StockOut)
+	c.JSON(http.StatusCreated, dtoMapper.ToStockOutResponse(mcor))
 }
 
 // GetStockOutByID retrieves a StockOut by its ID and includes the items.
@@ -52,38 +54,44 @@ func GetStockOutByID(c *gin.Context) {
 		return
 	}
 
-	StockOut, err := stock_out_repository.GetStockOutByID(id)
+	stockOut, err := stock_out_repository.GetStockOutByID(id)
 	if err != nil {
 		logger.Log.Errorf("Failed to retrieve stock out: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "StockOut not found"})
 		return
 	}
 
-	c.JSON(http.StatusOK, StockOut)
+	c.JSON(http.StatusOK, dtoMapper.ToStockOutResponse(stockOut))
 }
 
-// ListAllStockOut retrieves all StockOut entries
+// ListAllStockOut retrieves all StockOut entries for the authenticated user.
 func ListAllStockOut(c *gin.Context) {
 	logger.Log.Info("ListAllStockOut")
 
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	token := c.GetHeader("Authorization")
+	authenticatedUser, err := util.GetUserFromJWT(token)
 	if err != nil {
 		logger.Log.Error("Error getting user from JWT: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	StockOuts, err := stock_out_repository.ListAllStockOut(authenticatedUser.ID)
+	outs, err := stock_out_repository.ListAllStockOut(authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Error listing stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stock out list"})
 		return
 	}
 
-	c.JSON(http.StatusOK, StockOuts)
+	rep := make([]dtoResponse.StockOutResponse, len(outs))
+	for i, so := range outs {
+		rep[i] = *dtoMapper.ToStockOutResponse(so)
+	}
+
+	c.JSON(http.StatusOK, rep)
 }
 
-// DeleteStockOut deletes a stock-in by ID
+// DeleteStockOut deletes a stock-out by ID.
 func DeleteStockOut(c *gin.Context) {
 	logger.Log.Info("DeleteStockOut")
 
@@ -103,4 +111,52 @@ func DeleteStockOut(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "StockOut deleted successfully"})
+}
+
+// FinalizeStockOutByID sets the status of the given stock-out to 'finalized'.
+func FinalizeStockOutByID(c *gin.Context) {
+	logger.Log.Info("FinalizeStockOutByID")
+
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		logger.Log.Errorf("Invalid stock_out ID: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stock_out ID"})
+		return
+	}
+
+	err = stock_out_repository.FinalizeStockOutByID(id)
+	if err != nil {
+		logger.Log.Errorf("Failed to finalize stock out: %v", err)
+		error_handler.HandleDBError(c, err, id)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+// UpdateStockOut updates a stock-out and returns the updated record.
+func UpdateStockOut(c *gin.Context) {
+	logger.Log.Info("UpdateStockOut")
+
+	token := c.GetHeader("Authorization")
+	_, err := util.GetUserFromJWT(token)
+	if err != nil {
+		logger.Log.Error("Error getting user from JWT: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
+	// Retrieved from BindAndValidate middleware
+	stockOutReq := c.MustGet("dto").(*dtoRequest.UpdateStockOutRequest)
+	stockOutModel := dtoMapper.UpdateStockOutToModel(stockOutReq)
+
+	err = stock_out_repository.UpdateStockOut(stockOutModel)
+	if err != nil {
+		logger.Log.Error("Error updating stock out: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, dtoMapper.ToStockOutResponse(stockOutModel))
 }

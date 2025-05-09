@@ -119,7 +119,15 @@ func InitRoutes(router *gin.Engine) {
 		{
 			stockOutGroup.GET("", handler.ListAllStockOut)
 			stockOutGroup.GET("/:id", handler.GetStockOutByID)
-			stockOutGroup.POST("", handler.CreateStockOut)
+			stockOutGroup.POST("",
+				middleware.BindAndValidateMiddleware[dtoRequest.CreateStockOutRequest](),
+				handler.CreateStockOut,
+			)
+			stockOutGroup.PUT("",
+				middleware.BindAndValidateMiddleware[dtoRequest.UpdateStockOutRequest](),
+				handler.UpdateStockOut,
+			)
+			stockOutGroup.PATCH("/finalize/:id", handler.FinalizeStockOutByID)
 			stockOutGroup.DELETE("/:id", handler.DeleteStockOut)
 		}
 	}

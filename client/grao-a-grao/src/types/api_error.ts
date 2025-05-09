@@ -3,6 +3,7 @@ export const ErrorCodes = {
     FOREIGN_KEY_REFERENCE_MISSING: "FOREIGN_KEY_REFERENCE_MISSING",
     GENERIC_DATABASE_ERROR: "GENERIC_DATABASE_ERROR",
     STOCK_IN_TOTAL_QUANTITY_WRONG: "STOCK_IN_TOTAL_QUANTITY_WRONG",
+    STOCK_OUT_TOTAL_QUANTITY_WRONG: "STOCK_OUT_TOTAL_QUANTITY_WRONG",
 } as const;
 
 export interface GenericPostgreSQLErrorResponse {
@@ -29,6 +30,13 @@ export interface ForeignKeyReferenceMissingErrorResponse {
 }
 
 export interface StockInTotalQuantityNotMatchingResponse {
+    error: string;
+    code: string;
+    internal_code: string;
+    details: string;
+}
+
+export interface StockOutTotalQuantityNotMatchingResponse {
     error: string;
     code: string;
     internal_code: string;

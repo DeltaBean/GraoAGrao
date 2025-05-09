@@ -134,10 +134,11 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
 
             // Conditions for showing callout:
             const qtyBalanceCalloutVisible =
-              !!item.item.id &&                          // 1) item chosen
-              item.total_quantity > 0 &&                 // 2) total quantity filled
-              item.packagings.length > 0 &&              // 3) at least one pack
-              item.packagings.every(p => p.quantity > 0) // 4) every pack has quantity
+              !!item.item.id &&                               // 1) item chosen
+              item.item.is_fractionable &&                  // 2) item is fractionable  
+              item.total_quantity > 0 &&                    // 3) total quantity filled
+              item.packagings.length > 0 &&                 // 4) at least one pack
+              item.packagings.every(p => p.quantity > 0);   // 5) every pack has quantity
 
             // 1) Build a Set of all selected item IDs except this row
             const otherSelectedItemIds = new Set(

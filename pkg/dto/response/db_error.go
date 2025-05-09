@@ -34,3 +34,10 @@ type StockInTotalQuantityNotMatchingResponse struct {
 	InternalCode errorCodes.ErrorCode `json:"internal_code"`
 	Details      string               `json:"details"`
 }
+
+type StockOutTotalQuantityNotMatchingResponse struct {
+	Error        string               `json:"error"`
+	Code         string               `json:"code"`
+	InternalCode errorCodes.ErrorCode `json:"internal_code"`
+	Details      string               `json:"details"`
+}
