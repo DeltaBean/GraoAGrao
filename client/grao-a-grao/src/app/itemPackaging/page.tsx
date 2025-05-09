@@ -32,6 +32,7 @@ export default function ItemPackagingPage() {
                 id: 0,
                 description: "",
             },
+            is_fractionable: false,
         },
     }
     const [editItemPackaging, setEditItemPackaging] = useState<ItemPackagingModel>(defaultItemPackaging);

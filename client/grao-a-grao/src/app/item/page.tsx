@@ -37,6 +37,7 @@ export default function ItemPage() {
     id: 0,
     description: '',
     ean13: '',
+    is_fractionable: false,
     category: {
       id: 0,
       description: "",

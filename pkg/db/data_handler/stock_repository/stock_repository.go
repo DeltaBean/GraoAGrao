@@ -19,12 +19,12 @@ func GetStock(OwnerID uint) ([]model.Stock, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT ist.item_stock_id, ist.current_stock,
-			it.item_id, it.item_description, it.ean13, cat.category_description, cat.category_id,
-		FROM tb_item_stock ist
-		JOIN tb_item it ON ist.item_id = it.item_id
-		JOIN tb_category cat ON it.category_id = cat.category_id
-		WHERE ist.owner_id = $1
+		SELECT stock_id, current_stock, item_id, item_description, 
+		ean13, category_description, category_id, unit_id, unit_description,
+		stock_updated_at
+		FROM vw_stock_summary
+		WHERE owner_id = $1
+		ORDER BY item_description;
 	`
 
 	rows, err := conn.Query(context.Background(), query, OwnerID)
@@ -40,6 +40,7 @@ func GetStock(OwnerID uint) ([]model.Stock, error) {
 		var stock model.Stock
 		var item model.Item
 		var category model.Category
+		var unit model.UnitOfMeasure
 		var owner model.User
 
 		err := rows.Scan(
@@ -50,6 +51,9 @@ func GetStock(OwnerID uint) ([]model.Stock, error) {
 			&item.EAN13,
 			&category.Description,
 			&category.ID,
+			&unit.ID,
+			&unit.Description,
+			&stock.UpdatedAt,
 		)
 		if err != nil {
 			logger.Log.Errorf("Error scanning item row: %v", err)
@@ -61,6 +65,7 @@ func GetStock(OwnerID uint) ([]model.Stock, error) {
 		category.Owner = owner
 
 		item.Category = category
+		item.UnitOfMeasure = unit
 		stock.Item = item
 
 		stockSlice = append(stockSlice, stock)

@@ -6,9 +6,10 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/stock_repository"
-	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
-
+	mapper "github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
+	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/logger"
+	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,7 +30,13 @@ func GetStock(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, stock)
+	// Map domain models to response DTOs
+	rep := make([]dtoResponse.StockResponse, len(stock))
+	for i, st := range stock {
+		rep[i] = *mapper.ToStockResponse(&st)
+	}
+
+	c.JSON(http.StatusOK, rep)
 }
 
 func GetStockByCategory(c *gin.Context) {
