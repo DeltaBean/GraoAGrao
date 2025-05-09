@@ -8,11 +8,12 @@ import * as categories_api from "@/api/categories_api";
 import Header from "@/components/Header";
 import ModalFormCategory from "@/components/Form/Modal/ModalFormCategory";
 import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse, toCategoryRequest } from "@/types/category";
-import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
+import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
 import { ItemResponse } from "@/types/item";
 import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorItemPackage";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/Category/ModalDeleteReferencedErrorItem";
+import { toast } from "sonner";
 
 export default function CategoryPage() {
 
@@ -85,6 +86,8 @@ export default function CategoryPage() {
 
             setCategories((prev) => [...prev, created]);
             setIsModalOpen(false);
+
+            toast.success('Categoria criada com sucesso!');
         } catch (err: any) {
             setError(err.message);
         }
@@ -99,6 +102,8 @@ export default function CategoryPage() {
             setCategories((prev) => prev.map(category => category.id === updated.id ? updated : category));
             setEditCategory(defaultCategory);
             setIsModalOpen(false);
+
+            toast.success('Categoria editada com sucesso!');
         } catch (err: any) {
             setError(err.message);
         }

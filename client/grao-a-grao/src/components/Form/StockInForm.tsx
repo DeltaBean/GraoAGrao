@@ -254,7 +254,11 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                           Preço de Compra
                         </Flex>
                       </Text>
-                      <Tooltip content={`Preço por cada "${item.item.unit_of_measure?.description}" de "${item.item.description}"`}>
+                      <Tooltip content={
+                        item.item.id ?
+                          `Preço por cada "${item.item.unit_of_measure?.description}" de "${item.item.description}"` :
+                          "Selecione um item para ver o preço de compra"
+                      }>
                         <TextField.Root
                           disabled={viewOnly}
                           type="number"
@@ -270,7 +274,11 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                           Quantidade Total
                         </Flex>
                       </Text>
-                      <Tooltip content={`Quantidade total medida em "${item.item.unit_of_measure?.description}"`}>
+                      <Tooltip content={
+                        item.item.id ?
+                          `Quantidade total medida em "${item.item.unit_of_measure?.description}"` :
+                          "Selecione um item para ver a quantidade total"
+                      }>
                         <TextField.Root
                           disabled={viewOnly}
                           type="number"

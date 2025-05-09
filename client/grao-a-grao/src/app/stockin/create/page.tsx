@@ -11,8 +11,12 @@ import { Card, Flex } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
 import { CreateStockInRequest, StockInModel, toCreateStockInRequest } from "@/types/stock_in";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { InvalidBuyPriceError, InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, MissingPackagingsError, NoItemsError, NonFractionablePackagingError } from "@/errors/stockInValidation";
 
 export default function StockInCreatePage() {
+    const router = useRouter();
 
     const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
     const [items, setItems] = useState<ItemModel[]>([]);
@@ -57,6 +61,41 @@ export default function StockInCreatePage() {
         }
     }
 
+    const handleSubmit = async (data: StockInModel) => {
+        try {
+
+            const req = toCreateStockInRequest(data);
+            await createStockIn(req);
+
+            router.push("/stockin");
+            toast.success("Entrada editada com sucesso!");
+
+        } catch (err) {
+
+            console.error(err);
+            
+            if (err instanceof NoItemsError) {
+                toast.error("É necessário adicionar pelo menos um item.");
+            } else if (err instanceof MissingItemIdError) {
+                toast.error("É necessário adicionar pelo menos um item.");
+            } else if (err instanceof InvalidBuyPriceError) {
+                toast.error("O preço de compra deve ser maior que 0.");
+            } else if (err instanceof InvalidTotalQuantityError) {
+                toast.error("A quantidade total deve ser maior que 0.");
+            } else if (err instanceof MissingPackagingsError) {
+                toast.error("É necessário adicionar pelo menos um fracionamento.");
+            } else if (err instanceof NonFractionablePackagingError) {
+                toast.error("Item não fracionável não pode ter fracionamentos.");
+            } else if (err instanceof InvalidPackagingQuantityError) {
+                toast.error("A quantidade de fracionamento deve ser maior que 0.");
+            } else if (err instanceof MissingPackagingIdError) {
+                toast.error("Todo fracionamento deve ter um tipo selecionado.");
+            } else {
+                toast.error("Erro ao criar entrada.");
+            }
+        }
+    }
+
     return (
         <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen">
             <Header></Header>
@@ -68,10 +107,7 @@ export default function StockInCreatePage() {
                 <StockInForm
                     itemOptions={items}
                     itemPackagingOptions={itemPackagings}
-                    onSubmit={async (data: StockInModel) => {
-                        const req = toCreateStockInRequest(data)
-                        await createStockIn(req);
-                    }}
+                    onSubmit={handleSubmit}
                 />
             </Card>
         </Flex>

@@ -187,7 +187,11 @@ export default function StockOutForm({ initialData, itemOptions, itemPackagingOp
                   )}
 
                   <Text mb="-4" size="2">Quantidade Total</Text>
-                  <Tooltip content={`Quantidade total medida em "${item.item.unit_of_measure?.description}"`}>
+                  <Tooltip content={
+                    item.item.id ?
+                      `Quantidade total medida em "${item.item.unit_of_measure?.description}"` :
+                      "Selecione um item para ver a quantidade total"
+                  }>
                     <TextField.Root disabled={viewOnly} type="number" placeholder="0" value={item.total_quantity || ""}
                       onChange={e => updateItemSimpleField(index, "total_quantity", parseInt(e.target.value) || 0)} />
                   </Tooltip>

@@ -9,8 +9,9 @@ import { UnitOfMeasureModel, UnitOfMeasureRequest, UnitOfMeasureResponse, toUnit
 import ModalFormUnitOfMeasure from "@/components/Form/Modal/ModalFormUnitOfMeasure";
 import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/UnitOfMeasure/ModalDeleteReferencedErrorItem";
 import ModalGenericError from "@/components/Error/ModalGenericError";
-import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
+import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
 import { ItemResponse } from "@/types/item";
+import { toast } from "sonner";
 
 
 export default function UnitPage() {
@@ -84,6 +85,8 @@ export default function UnitPage() {
 
             setUnitsOfMeasure((prev) => [...prev, created]);
             setIsModalOpen(false);
+
+            toast.success('Unidade de Medida criada com sucesso!');
         } catch (err: any) {
             setError(err.message);
         }
@@ -99,6 +102,8 @@ export default function UnitPage() {
             setUnitsOfMeasure((prev) => prev.map(unit => unit.id === updated.id ? updated : unit));
             setEditUnitOfMeasure(defaultUnitOfMeasure);
             setIsModalOpen(false);
+
+            toast.success('Unidade de Medida editada com sucesso!');
         } catch (err: any) {
             setError(err.message);
         }

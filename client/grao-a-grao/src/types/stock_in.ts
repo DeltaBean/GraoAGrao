@@ -1,3 +1,4 @@
+import { InvalidBuyPriceError, InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, MissingPackagingsError, MissingStockInIdError, NoItemsError, NonFractionablePackagingError } from "@/errors/stockInValidation";
 import { ItemModel, ItemResponse, normalizeItemResponse } from "./item";
 import { ItemPackagingModel, ItemPackagingResponse, normalizeItemPackagingResponse } from "./item_packaging";
 
@@ -115,51 +116,35 @@ export function normalizeStockInResponse(
 
 // Convert frontend model to Create request
 export function toCreateStockInRequest(model: StockInModel): CreateStockInRequest {
-  if (!model.items || model.items.length === 0) {
-    throw new Error("At least one item must be added to Stock In.");
-  }
+  if (!model.items || model.items.length === 0) throw new NoItemsError();
 
   return {
     items: model.items.map(item => {
-      if (item.item.id === undefined) {
-        throw new Error("Item ID is required for each item.");
-      }
-      if (item.buy_price <= 0) {
-        throw new Error("Buy Price must be greater than 0.");
-      }
-      if (item.total_quantity <= 0) {
-        throw new Error("Total Quantity must be greater than 0.");
-      }
+      if (item.item.id === undefined) throw new MissingItemIdError();
+
+      if (item.buy_price <= 0) throw new InvalidBuyPriceError();
+
+      if (item.total_quantity <= 0) throw new InvalidTotalQuantityError();
 
       // Validation conditioned to item fractionability
       if (!item.item.is_fractionable) {
         // non fractionable
-
-        if (item.packagings.length > 0) {
-          throw new Error("Item não fracionável não pode conter fracionamento.");
-        }
-
+        if (item.packagings.length > 0) throw new NonFractionablePackagingError();
       } else {
         // fractionable
-
-        if (!item.packagings || item.packagings.length === 0) {
-          throw new Error("At least one packaging must be specified for each item.");
-        }
-        
+        if (!item.packagings || item.packagings.length === 0) throw new MissingPackagingsError();
       }
 
-      
+
       return {
         item_id: item.item.id,
         buy_price: item.buy_price,
         total_quantity: item.total_quantity,
         packagings: item.packagings.map(pkg => {
-          if (pkg.item_packaging.id === undefined) {
-            throw new Error("Item Packaging ID is required for each packaging.");
-          }
-          if (pkg.quantity <= 0) {
-            throw new Error("Packaging quantity must be greater than 0.");
-          }
+
+          if (pkg.item_packaging.id === undefined) throw new MissingPackagingIdError();
+          if (pkg.quantity <= 0) throw new InvalidPackagingQuantityError();
+          
           return {
             item_packaging_id: pkg.item_packaging.id,
             quantity: pkg.quantity,
@@ -172,40 +157,39 @@ export function toCreateStockInRequest(model: StockInModel): CreateStockInReques
 
 // Convert frontend model to Update request
 export function toUpdateStockInRequest(model: StockInModel): UpdateStockInRequest {
-  if (model.id === undefined) {
-    throw new Error("Stock In ID is required for update.");
-  }
-  if (!model.items || model.items.length === 0) {
-    throw new Error("At least one item must be added to Stock In.");
-  }
+  if (model.id === undefined) throw new MissingStockInIdError();
+
+  if (!model.items || model.items.length === 0) throw new NoItemsError();
 
   return {
     id: model.id,
     items: model.items.map(item => {
-      if (item.item.id === undefined) {
-        throw new Error("Item ID is required for each item.");
+
+      if (item.item.id === undefined) throw new MissingItemIdError();
+
+      if (item.buy_price <= 0) throw new InvalidBuyPriceError();
+
+      if (item.total_quantity <= 0) throw new InvalidTotalQuantityError();
+
+      // Validation conditioned to item fractionability
+      if (!item.item.is_fractionable) {
+        // non fractionable
+        if (item.packagings.length > 0) throw new NonFractionablePackagingError();
+      } else {
+        // fractionable
+        if (!item.packagings || item.packagings.length === 0) throw new MissingPackagingsError();
       }
-      if (item.buy_price <= 0) {
-        throw new Error("Buy Price must be greater than 0.");
-      }
-      if (item.total_quantity <= 0) {
-        throw new Error("Total Quantity must be greater than 0.");
-      }
-      if (!item.packagings || item.packagings.length === 0) {
-        throw new Error("At least one packaging must be specified for each item.");
-      }
+
       return {
         id: item.id,
         item_id: item.item.id,
         buy_price: item.buy_price,
         total_quantity: item.total_quantity,
         packagings: item.packagings.map(pkg => {
-          if (pkg.item_packaging.id === undefined) {
-            throw new Error("Item Packaging ID is required for each packaging.");
-          }
-          if (pkg.quantity <= 0) {
-            throw new Error("Packaging quantity must be greater than 0.");
-          }
+
+          if (pkg.item_packaging.id === undefined) throw new MissingPackagingIdError();
+          if (pkg.quantity <= 0) throw new InvalidPackagingQuantityError();
+
           return {
             id: pkg.id,
             item_packaging_id: pkg.item_packaging.id,

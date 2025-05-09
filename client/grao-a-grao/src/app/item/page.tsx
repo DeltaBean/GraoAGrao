@@ -12,10 +12,11 @@ import ModalFormItem from "@/components/Form/Modal/ModalFormItem";
 import { ItemModel, ItemRequest, ItemResponse, normalizeItemResponse, toItemRequest } from "@/types/item";
 import { CategoryModel, CategoryResponse, normalizeCategoryResponse } from "@/types/category";
 import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureResponse } from "@/types/unit_of_measure";
-import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/types/api_error";
+import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
 import { ItemPackagingResponse } from "@/types/item_packaging";
 import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorItemPackage";
 import ModalGenericError from "@/components/Error/ModalGenericError";
+import { toast } from "sonner";
 
 export default function ItemPage() {
 
@@ -141,6 +142,9 @@ export default function ItemPage() {
 
       setItems((prev) => [...prev, created]);
       setIsModalOpen(false);
+
+      toast.success('Item criado com sucesso!');
+      
     } catch (err: any) {
       console.error(err.message);
     }
@@ -157,6 +161,8 @@ export default function ItemPage() {
       setEditItem(defaultItem);
 
       setIsModalOpen(false);
+
+      toast.success('Item editado com sucesso!');
     } catch (err: any) {
       console.error(err.message);
     }

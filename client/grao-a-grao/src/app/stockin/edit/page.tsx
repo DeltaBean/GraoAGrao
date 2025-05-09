@@ -10,13 +10,16 @@ import { ItemPackagingModel, ItemPackagingResponse, normalizeItemPackagingRespon
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
 import { normalizeStockInResponse, StockInModel, StockInResponse, toUpdateStockInRequest } from "@/types/stock_in";
 import { createEmptyStockIn } from "@/util/factory/stock_in";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, Flex } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import LoadingModal from "@/components/LoadingModal";
 import { useLoading } from "@/hooks/useLoading";
+import { toast } from "sonner";
 
 export default function StockInEditPage() {
+    const router = useRouter();
+    
     const searchParams = useSearchParams();
     const idParam = searchParams.get("id");
 
@@ -103,6 +106,8 @@ export default function StockInEditPage() {
         try {
             const req = toUpdateStockInRequest(data);
             await updateStockIn(req);
+            router.push("/stockin");
+            toast.success("Entrada criada com sucesso!");
         } catch (err: any) {
             console.error(err);
         } finally {

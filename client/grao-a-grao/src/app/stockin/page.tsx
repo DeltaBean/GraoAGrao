@@ -11,9 +11,10 @@ import { CheckCircleIcon, EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicon
 import * as stock_in_api from "@/api/stock_in_api";
 import { formatDateTime } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
-import { ErrorCodes, StockInTotalQuantityNotMatchingResponse } from "@/types/api_error";
+import { ErrorCodes, StockInTotalQuantityNotMatchingResponse } from "@/errors/api_error";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { Icon } from "@radix-ui/themes/components/callout";
+import { toast } from "sonner";
 
 export default function StockInPage() {
   const router = useRouter();
@@ -74,6 +75,8 @@ export default function StockInPage() {
             : si
         )
       );
+
+      toast.success('Entrada finalizada com sucesso!');
     } catch (err: any) {
       console.error(err);
 

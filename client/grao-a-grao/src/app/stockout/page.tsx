@@ -11,7 +11,7 @@ import * as stock_out_api from "@/api/stock_out_api";
 import { formatDateTime } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
 import ModalGenericError from "@/components/Error/ModalGenericError";
-import { ErrorCodes, StockOutTotalQuantityNotMatchingResponse } from "@/types/api_error";
+import { ErrorCodes, StockOutTotalQuantityNotMatchingResponse } from "@/errors/api_error";
 
 export default function StockOutPage() {
   const router = useRouter();

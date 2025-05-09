@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "@radix-ui/themes/styles.css";
 import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
         <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="translucent">
           <ThemePanel />
           {children}
+          <Toaster richColors/>
         </Theme>
       </body>
     </html>

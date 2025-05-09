@@ -1,6 +1,6 @@
 import { Text, ScrollArea, Box, Flex } from "@radix-ui/themes";
 import ModalErrorShell from "../../ModalErrorShell";
-import { ForeignKeyDeleteReferencedErrorResponse } from "@/types/api_error";
+import { ForeignKeyDeleteReferencedErrorResponse } from "@/errors/api_error";
 import { ItemModel } from "@/types/item";
 import { UnitOfMeasureModel } from "@/types/unit_of_measure";
 

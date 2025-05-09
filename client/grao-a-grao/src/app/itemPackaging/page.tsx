@@ -10,6 +10,7 @@ import * as item_pack_api from "@/api/item_packaging_api";
 import { ItemPackagingModel, ItemPackagingRequest, ItemPackagingResponse, toItemPackagingRequest, normalizeItemPackagingResponse } from "@/types/item_packaging";
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
 import ModalFormItemPackaging from "@/components/Form/Modal/ModalFormItemPackaging";
+import { toast } from "sonner";
 
 export default function ItemPackagingPage() {
 
@@ -107,6 +108,8 @@ export default function ItemPackagingPage() {
 
             setItemPackagings((prev) => [...prev, created]);
             setIsModalOpen(false);
+
+            toast.success('Fracionamento criado com sucesso!');
         } catch (err: any) {
             setError(err.message);
         }
@@ -122,6 +125,8 @@ export default function ItemPackagingPage() {
 
             setEditItemPackaging(defaultItemPackaging);
             setIsModalOpen(false);
+
+            toast.success('Fracionamento editado com sucesso!');
         } catch (err: any) {
             setError(err.message);
         }
