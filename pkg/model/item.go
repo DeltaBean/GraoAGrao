@@ -10,7 +10,7 @@ type Item struct {
 	UnitOfMeasure  UnitOfMeasure
 	IsFractionable bool
 
-	Owner User
+	CreatedBy User
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

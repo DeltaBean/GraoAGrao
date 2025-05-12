@@ -86,3 +86,21 @@ export function formatDateTimeLocal(date: Date): string {
   const seconds = pad(date.getSeconds());
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
+
+/**
+ * Logs the user out by clearing all auth-related data
+ * and redirecting to the login page.
+ */
+export function logout(): void {
+  // Don't run on the server
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  // Clear our custom flags and tokens
+  setIsUserLoggedIn(false);
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("userPictureUrl");
+  localStorage.removeItem("userEmail");
+  localStorage.removeItem("userName");
+}

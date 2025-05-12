@@ -23,7 +23,7 @@ func GetStock(OwnerID uint) ([]model.Stock, error) {
 		ean13, category_description, category_id, unit_id, unit_description,
 		stock_updated_at
 		FROM vw_stock_summary
-		WHERE owner_id = $1
+		WHERE created_by = $1
 		ORDER BY item_description;
 	`
 
@@ -61,8 +61,8 @@ func GetStock(OwnerID uint) ([]model.Stock, error) {
 		}
 
 		owner.ID = OwnerID
-		item.Owner = owner
-		category.Owner = owner
+		item.CreatedBy = owner
+		category.CreatedBy = owner
 
 		item.Category = category
 		item.UnitOfMeasure = unit
@@ -91,7 +91,7 @@ func GetStockByCategory(OwnerID uint, CategoryID int) ([]model.Stock, error) {
 		FROM tb_item_stock ist
 		JOIN tb_item it ON ist.item_id = it.item_id
 		JOIN tb_category cat ON it.category_id = cat.category_id
-		WHERE ist.owner_id = $1 AND cat.category_id = $2
+		WHERE ist.created_by = $1 AND cat.category_id = $2
 	`
 
 	rows, err := conn.Query(context.Background(), query, OwnerID, CategoryID)
@@ -124,8 +124,8 @@ func GetStockByCategory(OwnerID uint, CategoryID int) ([]model.Stock, error) {
 		}
 
 		owner.ID = OwnerID
-		item.Owner = owner
-		category.Owner = owner
+		item.CreatedBy = owner
+		category.CreatedBy = owner
 
 		item.Category = category
 		stock.Item = item

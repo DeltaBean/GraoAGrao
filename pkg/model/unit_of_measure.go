@@ -6,7 +6,7 @@ type UnitOfMeasure struct {
 	ID          uint
 	Description string
 
-	Owner User
+	CreatedBy User
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

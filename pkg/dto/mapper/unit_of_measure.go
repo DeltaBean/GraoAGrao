@@ -9,7 +9,7 @@ import (
 func CreateUnitOfMeasureToModel(createUnitOfMeasure *request.CreateUnitOfMeasureRequest, ownerID uint) *model.UnitOfMeasure {
 	return &model.UnitOfMeasure{
 		Description: createUnitOfMeasure.Description,
-		Owner: model.User{
+		CreatedBy: model.User{
 			ID: ownerID,
 		},
 	}
@@ -19,7 +19,7 @@ func UpdateUnitOfMeasureToModel(updateUnitOfMeasure *request.UpdateUnitOfMeasure
 	return &model.UnitOfMeasure{
 		ID:          updateUnitOfMeasure.ID,
 		Description: updateUnitOfMeasure.Description,
-		Owner: model.User{
+		CreatedBy: model.User{
 			ID: ownerID,
 		},
 	}

@@ -32,7 +32,7 @@ func SaveStockOut(stockOut *model.StockOut, ownerID uint) error {
 
 	// Insert parent record
 	insertOut := `
-		INSERT INTO tb_stock_out (owner_id)
+		INSERT INTO tb_stock_out (created_by)
 		VALUES ($1)
 		RETURNING stock_out_id, created_at, updated_at, status
 	`
@@ -98,9 +98,9 @@ func ListAllStockOut(ownerID uint) ([]*model.StockOut, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT stock_out_id, owner_id, created_at, updated_at, status, finalized_at
+		SELECT stock_out_id, created_by, created_at, updated_at, status, finalized_at
 		FROM tb_stock_out
-		WHERE owner_id = $1
+		WHERE created_by = $1
 		ORDER BY created_at DESC
 	`
 	rows, err := conn.Query(context.Background(), query, ownerID)
@@ -115,7 +115,7 @@ func ListAllStockOut(ownerID uint) ([]*model.StockOut, error) {
 		var so model.StockOut
 		err := rows.Scan(
 			&so.ID,
-			&so.Owner.ID,
+			&so.CreatedBy.ID,
 			&so.CreatedAt,
 			&so.UpdatedAt,
 			&so.Status,
@@ -145,14 +145,14 @@ func GetStockOutByID(id int) (*model.StockOut, error) {
 
 	stockOut := &model.StockOut{}
 	parentQuery := `
-		SELECT stock_out_id, owner_id, created_at, updated_at, status, finalized_at
+		SELECT stock_out_id, created_by, created_at, updated_at, status, finalized_at
 		FROM tb_stock_out
 		WHERE stock_out_id = $1
 	`
 	logger.Log.DebugSQL(parentQuery, id)
 	err = conn.QueryRow(context.Background(), parentQuery, id).Scan(
 		&stockOut.ID,
-		&stockOut.Owner.ID,
+		&stockOut.CreatedBy.ID,
 		&stockOut.CreatedAt,
 		&stockOut.UpdatedAt,
 		&stockOut.Status,

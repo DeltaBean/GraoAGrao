@@ -24,7 +24,7 @@ func SaveUnitOfMeasure(unit *model.UnitOfMeasure, OwnerID uint) error {
 	defer conn.Release()
 
 	query := `
-		INSERT INTO tb_unit_of_measure (unit_description, owner_id)
+		INSERT INTO tb_unit_of_measure (unit_description, created_by)
 		VALUES ($1, $2)
 		RETURNING unit_id, unit_description, created_at, updated_at`
 
@@ -51,9 +51,9 @@ func ListUnitsPaginated(ownerID uint, offset, limit uint64) ([]model.UnitOfMeasu
 	defer conn.Release()
 
 	query := `
-		SELECT unit_id, unit_description, owner_id, created_at, updated_at
+		SELECT unit_id, unit_description, created_by, created_at, updated_at
 		FROM tb_unit_of_measure
-		WHERE owner_id = $1
+		WHERE created_by = $1
 		ORDER BY created_at DESC
 		OFFSET $2 LIMIT $3`
 
@@ -66,7 +66,7 @@ func ListUnitsPaginated(ownerID uint, offset, limit uint64) ([]model.UnitOfMeasu
 	var units []model.UnitOfMeasure
 	for rows.Next() {
 		var u model.UnitOfMeasure
-		err := rows.Scan(&u.ID, &u.Description, &u.Owner.ID, &u.CreatedAt, &u.UpdatedAt)
+		err := rows.Scan(&u.ID, &u.Description, &u.CreatedBy.ID, &u.CreatedAt, &u.UpdatedAt)
 		if err != nil {
 			continue
 		}
@@ -87,13 +87,13 @@ func GetUnitOfMeasureByID(id uint) (*model.UnitOfMeasure, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT unit_id, unit_description, owner_id, created_at, updated_at
+		SELECT unit_id, unit_description, created_by, created_at, updated_at
 		FROM tb_unit_of_measure
 		WHERE unit_id = $1`
 
 	var u model.UnitOfMeasure
 	err = conn.QueryRow(context.Background(), query, id).Scan(
-		&u.ID, &u.Description, &u.Owner.ID, &u.CreatedAt, &u.UpdatedAt,
+		&u.ID, &u.Description, &u.CreatedBy.ID, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {

@@ -14,7 +14,7 @@ func CreateItemToModel(req *request.CreateItemRequest, ownerID uint) *model.Item
 		Category:       model.Category{ID: req.CategoryID},
 		UnitOfMeasure:  model.UnitOfMeasure{ID: req.UnitOfMeasureID},
 		IsFractionable: req.IsFractionable,
-		Owner:          model.User{ID: ownerID},
+		CreatedBy:      model.User{ID: ownerID},
 	}
 }
 
@@ -26,7 +26,7 @@ func UpdateItemToModel(req *request.UpdateItemRequest, ownerID uint) *model.Item
 		Category:       model.Category{ID: req.CategoryID},
 		UnitOfMeasure:  model.UnitOfMeasure{ID: req.UnitOfMeasureID},
 		IsFractionable: req.IsFractionable,
-		Owner:          model.User{ID: ownerID},
+		CreatedBy:      model.User{ID: ownerID},
 	}
 }
 

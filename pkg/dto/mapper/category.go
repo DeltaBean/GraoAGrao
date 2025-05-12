@@ -9,7 +9,7 @@ import (
 func CreateCategoryToModel(req *request.CreateCategoryRequest, ownerID uint) *model.Category {
 	return &model.Category{
 		Description: req.Description,
-		Owner:       model.User{ID: ownerID},
+		CreatedBy:   model.User{ID: ownerID},
 	}
 }
 
@@ -17,7 +17,7 @@ func UpdateCategoryToModel(req *request.UpdateCategoryRequest, ownerID uint) *mo
 	return &model.Category{
 		ID:          req.ID,
 		Description: req.Description,
-		Owner:       model.User{ID: ownerID},
+		CreatedBy:   model.User{ID: ownerID},
 	}
 }
 

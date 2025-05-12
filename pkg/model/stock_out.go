@@ -4,7 +4,7 @@ import "time"
 
 type StockOut struct {
 	ID          uint
-	Owner       User
+	CreatedBy   User
 	Items       []StockOutItem
 	Status      string
 	CreatedAt   time.Time

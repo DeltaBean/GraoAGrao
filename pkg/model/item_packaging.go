@@ -8,7 +8,7 @@ type ItemPackaging struct {
 	Description string
 	Quantity    float32
 
-	Owner User
+	CreatedBy User
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -24,7 +24,7 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 
 	query := `
 		WITH inserted AS (
-  			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, owner_id, is_fractionable)
+  			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, created_by, is_fractionable)
   			VALUES ($1, $2, $3, $4, $5, $6)
   			RETURNING item_id, item_description, category_id, unit_id, created_at, updated_at
 		)
@@ -82,7 +82,7 @@ func GetItemByID(id uint) (*model.Item, error) {
 			unt.unit_description, unt.unit_id,
 		    usr.user_id, i.created_at, i.updated_at, i.is_fractionable
 		FROM tb_item i
-		JOIN tb_user usr ON i.owner_id = usr.user_id
+		JOIN tb_user usr ON i.created_by = usr.user_id
 		JOIN tb_category c ON i.category_id = c.category_id
 		JOIN tb_unit_of_measure unt ON i.unit_id = unt.unit_id
 		WHERE i.item_id = $1`
@@ -113,7 +113,7 @@ func GetItemByID(id uint) (*model.Item, error) {
 		return nil, err
 	}
 
-	item.Owner = owner
+	item.CreatedBy = owner
 	logger.Log.Info("Item successfully retrieved")
 	return item, nil
 }
@@ -137,7 +137,7 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 				unit_id          = $4,
 				is_fractionable  = $5
 			WHERE item_id = $6
-			RETURNING item_id, item_description, ean13, category_id, unit_id, owner_id, created_at, updated_at
+			RETURNING item_id, item_description, ean13, category_id, unit_id, created_by, created_at, updated_at
 		)
 		SELECT 
 			u.item_id,
@@ -150,7 +150,7 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 			c.category_description,
 			u.unit_id,
 			um.unit_description,
-			u.owner_id
+			u.created_by
 		FROM updated u
 		JOIN tb_category c ON u.category_id = c.category_id
 		JOIN tb_unit_of_measure um ON u.unit_id = um.unit_id;
@@ -177,7 +177,7 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 		&updated.Category.Description,
 		&updated.UnitOfMeasure.ID,
 		&updated.UnitOfMeasure.Description,
-		&updated.Owner.ID,
+		&updated.CreatedBy.ID,
 	)
 	if err != nil {
 		logger.Log.Errorf("Error scanning updated item: %v", err)
@@ -231,10 +231,10 @@ func ListItems(OwnerID uint) ([]model.Item, error) {
 		u.user_id,
 		i.created_at, i.updated_at
 		FROM tb_item i
-		JOIN tb_user u ON i.owner_id = u.user_id
+		JOIN tb_user u ON i.created_by = u.user_id
 		JOIN tb_category c ON i.category_id = c.category_id
 		JOIN tb_unit_of_measure unt ON i.unit_id = unt.unit_id
-		WHERE i.owner_id = $1`
+		WHERE i.created_by = $1`
 
 	rows, err := conn.Query(context.Background(), query, OwnerID)
 	if err != nil {
@@ -266,7 +266,7 @@ func ListItems(OwnerID uint) ([]model.Item, error) {
 			logger.Log.Errorf("Error scanning item row: %v", err)
 			continue
 		}
-		item.Owner = owner
+		item.CreatedBy = owner
 		items = append(items, item)
 	}
 

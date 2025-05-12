@@ -22,14 +22,14 @@ func SaveCategory(category *model.Category) error {
 
 	query := `
 		WITH inserted AS (
-			INSERT INTO tb_category (category_description, owner_id)
+			INSERT INTO tb_category (category_description, created_by)
 			VALUES ($1, $2)
-			RETURNING category_id, category_description, owner_id, created_at, updated_at
+			RETURNING category_id, category_description, created_by, created_at, updated_at
 		)
 		SELECT 
 			c.category_id,
 			c.category_description,
-			c.owner_id,
+			c.created_by,
 			c.created_at,
 			c.updated_at
 		FROM inserted c
@@ -37,11 +37,11 @@ func SaveCategory(category *model.Category) error {
 
 	err = conn.QueryRow(context.Background(), query,
 		category.Description,
-		category.Owner.ID,
+		category.CreatedBy.ID,
 	).Scan(
 		&category.ID,
 		&category.Description,
-		&category.Owner.ID,
+		&category.CreatedBy.ID,
 		&category.CreatedAt,
 		&category.UpdatedAt,
 	)
@@ -69,14 +69,14 @@ func GetCategoryByID(id uint) (*model.Category, error) {
 		SELECT c.category_id, c.category_description, u.user_id,
 		       c.created_at, c.updated_at
 		FROM tb_category c
-		JOIN tb_user u ON c.owner_id = u.user_id
+		JOIN tb_user u ON c.created_by = u.user_id
 		WHERE c.category_id = $1`
 
 	category := &model.Category{}
 	err = conn.QueryRow(context.Background(), query, id).Scan(
 		&category.ID,
 		&category.Description,
-		&category.Owner.ID,
+		&category.CreatedBy.ID,
 		&category.CreatedAt,
 		&category.UpdatedAt,
 	)
@@ -109,17 +109,17 @@ func UpdateCategory(ownerID uint, category *model.Category) (*model.Category, er
         UPDATE tb_category
         SET category_description = $1
         WHERE category_id = $2
-          AND owner_id = $3
+          AND created_by = $3
         RETURNING
           category_id,
           category_description,
-          owner_id,
+          created_by,
           created_at,
           updated_at
     `
 
 	// Prepare a fresh model to scan into:
-	updated := &model.Category{Owner: model.User{ID: ownerID}}
+	updated := &model.Category{CreatedBy: model.User{ID: ownerID}}
 	row := conn.QueryRow(context.Background(), query,
 		category.Description,
 		category.ID,
@@ -130,7 +130,7 @@ func UpdateCategory(ownerID uint, category *model.Category) (*model.Category, er
 	if err := row.Scan(
 		&updated.ID,
 		&updated.Description,
-		&updated.Owner.ID,
+		&updated.CreatedBy.ID,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 	); err != nil {
@@ -182,8 +182,8 @@ func ListCategories(OwnerID uint) ([]*model.Category, error) {
 		SELECT c.category_id, c.category_description, u.user_id,
 		       c.created_at, c.updated_at
 		FROM tb_category c
-		JOIN tb_user u ON c.owner_id = u.user_id
-		WHERE c.owner_id = $1`
+		JOIN tb_user u ON c.created_by = u.user_id
+		WHERE c.created_by = $1`
 
 	rows, err := conn.Query(context.Background(), query, OwnerID)
 	if err != nil {
@@ -198,7 +198,7 @@ func ListCategories(OwnerID uint) ([]*model.Category, error) {
 		err = rows.Scan(
 			&category.ID,
 			&category.Description,
-			&category.Owner.ID,
+			&category.CreatedBy.ID,
 			&category.CreatedAt,
 			&category.UpdatedAt,
 		)

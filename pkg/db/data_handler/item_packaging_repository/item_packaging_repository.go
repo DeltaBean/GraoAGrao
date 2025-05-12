@@ -26,9 +26,9 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 
 	query := `
 		WITH inserted AS (
-			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, owner_id)
+			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, created_by)
 			VALUES ($1, $2, $3, $4)
-			RETURNING item_packaging_id, item_packaging_description, item_id, owner_id, quantity, created_at, updated_at
+			RETURNING item_packaging_id, item_packaging_description, item_id, created_by, quantity, created_at, updated_at
 		)
 		SELECT
 			i.item_packaging_id,
@@ -36,7 +36,7 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 			i.item_id,
 			it.item_description,
 			i.quantity,
-			i.owner_id,
+			i.created_by,
 			i.created_at,
 			i.updated_at,
 			cat.category_description,
@@ -59,7 +59,7 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 		&packaging.Item.ID,
 		&packaging.Item.Description,
 		&packaging.Quantity,
-		&packaging.Owner.ID,
+		&packaging.CreatedBy.ID,
 		&packaging.CreatedAt,
 		&packaging.UpdatedAt,
 		&packaging.Item.Category.Description,
@@ -89,14 +89,14 @@ func ListItemPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.It
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
 		       i.item_id, i.item_description,
-		       sp.owner_id, sp.created_at, sp.updated_at,
+		       sp.created_by, sp.created_at, sp.updated_at,
 			   cat.category_id, cat.category_description,
 			   uom.unit_id, uom.unit_description, i.is_fractionable
 		FROM tb_item_packaging sp
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
 		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
-		WHERE sp.owner_id = $1
+		WHERE sp.created_by = $1
 		ORDER BY sp.created_at DESC
 		OFFSET $2 LIMIT $3`
 
@@ -115,7 +115,7 @@ func ListItemPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.It
 			&p.Quantity,
 			&p.Item.ID,
 			&p.Item.Description,
-			&p.Owner.ID,
+			&p.CreatedBy.ID,
 			&p.CreatedAt,
 			&p.UpdatedAt,
 			&p.Item.Category.ID,
@@ -146,7 +146,7 @@ func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
 		       i.item_id, i.item_description,
-		       sp.owner_id, sp.created_at, sp.updated_at,
+		       sp.created_by, sp.created_at, sp.updated_at,
 			   cat.category_id, cat.category_description,
 			   uom.unit_id, uom.unit_description, i.is_fractionable
 		FROM tb_item_packaging sp
@@ -162,7 +162,7 @@ func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
 		&p.Quantity,
 		&p.Item.ID,
 		&p.Item.Description,
-		&p.Owner.ID,
+		&p.CreatedBy.ID,
 		&p.CreatedAt,
 		&p.UpdatedAt,
 		&p.Item.Category.ID,
@@ -200,7 +200,7 @@ func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
 			    quantity = $3,
 			    updated_at = NOW()
 			WHERE item_packaging_id = $4
-			RETURNING item_packaging_id, item_id, item_packaging_description, quantity, owner_id, created_at, updated_at
+			RETURNING item_packaging_id, item_id, item_packaging_description, quantity, created_by, created_at, updated_at
 		)
 		SELECT
 			u.item_packaging_id,
@@ -208,7 +208,7 @@ func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
 			it.item_description,
 			u.item_packaging_description,
 			u.quantity,
-			u.owner_id,
+			u.created_by,
 			u.created_at,
 			u.updated_at,
 			cat.category_id, 
@@ -236,7 +236,7 @@ func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
 		&updated.Item.Description,
 		&updated.Description,
 		&updated.Quantity,
-		&updated.Owner.ID,
+		&updated.CreatedBy.ID,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 		&p.Item.Category.ID,

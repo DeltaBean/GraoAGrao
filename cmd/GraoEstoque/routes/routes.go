@@ -19,6 +19,23 @@ func InitRoutes(router *gin.Engine) {
 		authRoutes.GET("/google/callback", handler.GoogleAuthCallBackHandler)
 	}
 
+	// Store endpoints
+	storeGroup := router.Group("/stores")
+	storeGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
+	{
+		storeGroup.GET("", handler.GetStores)
+		storeGroup.GET("/:id", handler.GetStoreByID)
+		storeGroup.DELETE("/:id", handler.DeleteStore)
+		storeGroup.POST("",
+			middleware.BindAndValidateMiddleware[dtoRequest.CreateStoreRequest](),
+			handler.CreateStore,
+		)
+		storeGroup.PUT("",
+			middleware.BindAndValidateMiddleware[dtoRequest.UpdateStoreRequest](),
+			handler.UpdateStore,
+		)
+	}
+
 	// Items endpoints
 	itemGroup := router.Group("/items")
 	itemGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware

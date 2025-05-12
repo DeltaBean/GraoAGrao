@@ -47,6 +47,7 @@ export default function HomePage() {
         style={{ display: "flex" }}
       >
         <StockTable stock={stock}></StockTable>
+        <Button onClick={() => toast("toast")}>TOAST DEMO</Button>
       </Card>
     </Flex>
   );

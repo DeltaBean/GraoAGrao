@@ -2,10 +2,9 @@ package model
 
 import "time"
 
-type Category struct {
-	ID          uint
-	Description string
-
+type Store struct {
+	ID        uint
+	Name      string
 	CreatedBy User
 
 	CreatedAt time.Time
