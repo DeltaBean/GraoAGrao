@@ -115,8 +115,7 @@ export default function StockInPage() {
   }
 
   return (
-    <Flex direction={"column"} className="min-h-screen">
-      <Header></Header>
+    <Flex direction={"column"} className="min-h-screen w-full">
       <Flex
         id="main-flex"
         className="flex-1 w-full"

@@ -80,8 +80,7 @@ export default function StockOutViewPage() {
   const handleSubmit = (_: StockOutModel) => {};
 
   return (
-    <Flex direction="column" justify="start" align="center" className="min-h-screen">
-      <Header />
+    <Flex direction="column" justify="start" align="center" className="min-h-screen w-full">
       <Card className="flex-1 w-8/10 sm:w-9/10 h-full sm:my-12 flex-col" style={{ display: "flex" }}>
         <StockOutForm
           initialData={stockOut}

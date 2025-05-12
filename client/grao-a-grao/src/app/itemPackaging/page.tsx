@@ -144,9 +144,7 @@ export default function ItemPackagingPage() {
     }
 
     return (
-        <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen">
-
-            <Header></Header>
+        <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen w-full">
 
             <Card
                 id="main-flex"

@@ -4,6 +4,8 @@ import "@radix-ui/themes/styles.css";
 import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 const roboto = Roboto({
-	subsets: ["latin"],
-	display: "swap",
-	variable: "--font-roboto",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto",
 });
 
 export const metadata: Metadata = {
@@ -43,9 +45,13 @@ export default function RootLayout({
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="translucent">
-          <ThemePanel />
-          {children}
-          <Toaster richColors/>
+          <SidebarProvider>
+            <AppSidebar />
+            <ThemePanel />
+            <SidebarTrigger />
+            {children}
+            <Toaster richColors />
+          </SidebarProvider>
         </Theme>
       </body>
     </html>

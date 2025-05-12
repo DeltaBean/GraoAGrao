@@ -144,9 +144,8 @@ export default function UnitPage() {
     }
 
     return (
-        <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen">
+        <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen w-full">
 
-            <Header></Header>
 
             <Card
                 id="main-flex"
