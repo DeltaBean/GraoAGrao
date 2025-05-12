@@ -71,7 +71,7 @@ export default function StockInPage() {
       setStockIn(prev =>
         prev.map(si =>
           si.id === stockInId
-            ? { ...si, status: "finalized", finalized_at:  new Date().toISOString()}
+            ? { ...si, status: "finalized", finalized_at: new Date().toISOString() }
             : si
         )
       );
@@ -116,6 +116,7 @@ export default function StockInPage() {
 
   return (
     <Flex direction={"column"} className="min-h-screen w-full">
+      <Header />
       <Flex
         id="main-flex"
         className="flex-1 w-full"

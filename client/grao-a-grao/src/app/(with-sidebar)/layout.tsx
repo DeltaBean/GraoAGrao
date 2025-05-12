@@ -6,6 +6,7 @@ import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import Header from "@/components/Header";
 
 export default function MainLayout({
   children,
@@ -16,7 +17,6 @@ export default function MainLayout({
     <>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarTrigger />
         {children}
         <Toaster richColors />
       </SidebarProvider>

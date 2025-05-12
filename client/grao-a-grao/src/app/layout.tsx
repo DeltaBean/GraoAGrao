@@ -6,6 +6,7 @@ import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import GlobalFetchInterceptor from "@/components/GlobalFetcherInterceptor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,7 +47,9 @@ export default function RootLayout({
       >
         <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="translucent">
           <ThemePanel />
-          {children}
+          <GlobalFetchInterceptor>
+            {children}
+          </GlobalFetchInterceptor>
           <Toaster richColors />
         </Theme>
       </body>

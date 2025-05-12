@@ -145,6 +145,7 @@ export default function CategoryPage() {
 
     return (
         <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen w-full">
+            <Header/>
             <Card
                 id="main-flex"
                 className="flex-1 w-8/10 sm:w-9/10 sm:my-12 flex-col"
