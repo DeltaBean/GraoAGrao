@@ -6,11 +6,14 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
-func CreateUnitOfMeasureToModel(createUnitOfMeasure *request.CreateUnitOfMeasureRequest, ownerID uint) *model.UnitOfMeasure {
+func CreateUnitOfMeasureToModel(createUnitOfMeasure *request.CreateUnitOfMeasureRequest, ownerID, storeID uint) *model.UnitOfMeasure {
 	return &model.UnitOfMeasure{
 		Description: createUnitOfMeasure.Description,
 		CreatedBy: model.User{
 			ID: ownerID,
+		},
+		Store: model.Store{
+			ID: storeID,
 		},
 	}
 }

@@ -22,8 +22,8 @@ func SaveCategory(category *model.Category) error {
 
 	query := `
 		WITH inserted AS (
-			INSERT INTO tb_category (category_description, created_by)
-			VALUES ($1, $2)
+			INSERT INTO tb_category (category_description, created_by, store_id)
+			VALUES ($1, $2, $3)
 			RETURNING category_id, category_description, created_by, created_at, updated_at
 		)
 		SELECT 
@@ -38,6 +38,7 @@ func SaveCategory(category *model.Category) error {
 	err = conn.QueryRow(context.Background(), query,
 		category.Description,
 		category.CreatedBy.ID,
+		category.Store.ID,
 	).Scan(
 		&category.ID,
 		&category.Description,
@@ -168,7 +169,7 @@ func DeleteCategory(id uint) error {
 	return nil
 }
 
-func ListCategories(OwnerID uint) ([]*model.Category, error) {
+func ListCategories(OwnerID, StoreID uint) ([]*model.Category, error) {
 	logger.Log.Info("ListCategories")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -183,9 +184,9 @@ func ListCategories(OwnerID uint) ([]*model.Category, error) {
 		       c.created_at, c.updated_at
 		FROM tb_category c
 		JOIN tb_user u ON c.created_by = u.user_id
-		WHERE c.created_by = $1`
+		WHERE c.created_by = $1 AND c.store_id = $2`
 
-	rows, err := conn.Query(context.Background(), query, OwnerID)
+	rows, err := conn.Query(context.Background(), query, OwnerID, StoreID)
 	if err != nil {
 		logger.Log.Errorf("Error fetching categories: %v", err)
 		return nil, err

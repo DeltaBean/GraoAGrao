@@ -20,8 +20,8 @@ import { use, useEffect, useState } from "react"
 import { normalizeStoreResponse, StoreModel } from "@/types/store"
 import { createEmptyStore } from "@/util/factory/store"
 import * as storesApi from "@/api/stores_api";
-import { logout } from "@/util/util"
-import { useRouter } from "next/navigation"
+import { getSelectedStore, logout } from "@/util/util"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
 // Menu items.
@@ -70,7 +70,10 @@ const items = [
 
 export function AppSidebar() {
   const router = useRouter();
-
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentUrl = pathname + (searchParams.toString() ? `?${searchParams}` : '');
+  
   const [stores, setStores] = useState<StoreModel[]>([]);
 
   const fetchStores = async () => {
@@ -91,8 +94,9 @@ export function AppSidebar() {
   const handleStoreChange = async (store: StoreModel) => {
     try {
       sessionStorage.setItem("selectedStore", JSON.stringify(store));
-      router.refresh();
       toast.success(`Loja alterada para ${store.name}`);
+
+      router.replace(currentUrl);
     } catch (error) {
       console.error("Error changing store:", error);
       toast.error("Erro ao alterar loja");
@@ -105,8 +109,12 @@ export function AppSidebar() {
       <SidebarHeader>
         <StoreSwitcher
           stores={stores}
-          defaultStore={JSON.parse(sessionStorage.getItem("selectedStore") || "null") || stores[0] || createEmptyStore()}
+          defaultStore={getSelectedStore() || stores[0] || createEmptyStore()}
           onStoreChange={(store) => {
+            const previous = getSelectedStore();
+            if (previous && previous.id === store.id) {
+              return;
+            }
             handleStoreChange(store);
           }}
         />

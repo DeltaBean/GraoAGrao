@@ -14,15 +14,17 @@ import { TableBody } from "@/components/ui/Table/TableBody";
 import { TableCell } from "@/components/ui/Table/TableCell";
 import StockTable from "@/components/StockTable";
 import { toast } from "sonner";
+import { getSelectedStore } from "@/util/util";
 
 export default function HomePage() {
-
+  const storeId = getSelectedStore()?.id
+  
   const [stock, setStock] = useState<StockModel[]>([]);
 
   // Fetch items when the component mounts.
   useEffect(() => {
     fetchStock();
-  }, []);
+  }, [storeId]);
 
   const fetchStock = async () => {
 

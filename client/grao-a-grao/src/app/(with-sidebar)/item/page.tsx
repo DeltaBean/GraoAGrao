@@ -17,9 +17,11 @@ import { ItemPackagingResponse } from "@/types/item_packaging";
 import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorItemPackage";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { toast } from "sonner";
+import { getSelectedStore } from "@/util/util";
 
 export default function ItemPage() {
-
+  const storeId = getSelectedStore()?.id
+  
   // Items list and loading state.
   const [items, setItems] = useState<ItemModel[]>([]);
   const [categories, setCategories] = useState<CategoryModel[]>([]);
@@ -76,7 +78,7 @@ export default function ItemPage() {
     fetchItems();
     fetchCategories();
     fetchUnitsOfMeasure();
-  }, []);
+  }, [storeId]);
 
   const fetchUnitsOfMeasure = async () => {
     setLoading(true);

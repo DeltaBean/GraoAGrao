@@ -7,7 +7,7 @@ import (
 )
 
 // ToItemModel converts CreateItemRequest → your domain model.
-func CreateItemToModel(req *request.CreateItemRequest, ownerID uint) *model.Item {
+func CreateItemToModel(req *request.CreateItemRequest, ownerID, storeID uint) *model.Item {
 	return &model.Item{
 		Description:    req.Description,
 		EAN13:          req.EAN13,
@@ -15,6 +15,7 @@ func CreateItemToModel(req *request.CreateItemRequest, ownerID uint) *model.Item
 		UnitOfMeasure:  model.UnitOfMeasure{ID: req.UnitOfMeasureID},
 		IsFractionable: req.IsFractionable,
 		CreatedBy:      model.User{ID: ownerID},
+		Store:          model.Store{ID: storeID},
 	}
 }
 

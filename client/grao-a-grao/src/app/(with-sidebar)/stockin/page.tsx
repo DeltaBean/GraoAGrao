@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircleIcon, EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import * as stock_in_api from "@/api/stock_in_api";
-import { formatDateTime } from "@/util/util";
+import { formatDateTime, getSelectedStore } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
 import { ErrorCodes, StockInTotalQuantityNotMatchingResponse } from "@/errors/api_error";
 import ModalGenericError from "@/components/Error/ModalGenericError";
@@ -18,6 +18,9 @@ import { toast } from "sonner";
 
 export default function StockInPage() {
   const router = useRouter();
+
+
+  const storeId = getSelectedStore()?.id
 
   type ErrorModalState =
     | { type: "finalize-total-quantity-wrong"; data: StockInTotalQuantityNotMatchingResponse; }
@@ -36,7 +39,7 @@ export default function StockInPage() {
   // Fetch stock_in when the component mounts.
   useEffect(() => {
     fetchStockIn();
-  }, []);
+  }, [storeId]);
 
   const fetchStockIn = async () => {
     setIsLoading(true);

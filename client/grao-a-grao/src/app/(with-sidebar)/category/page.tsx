@@ -14,13 +14,15 @@ import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Ite
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/Category/ModalDeleteReferencedErrorItem";
 import { toast } from "sonner";
+import { getSelectedStore } from "@/util/util";
 
 export default function CategoryPage() {
 
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [loading, setLoading] = useState(false);
+    const storeId = getSelectedStore()?.id
+        
     const [error, setError] = useState<string | null>(null);
-
     type ErrorModalState =
         | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; category: CategoryModel }
         | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
@@ -59,7 +61,7 @@ export default function CategoryPage() {
     // Fetch items when the component mounts.
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [storeId]);
 
     const fetchCategories = async () => {
         setLoading(true);

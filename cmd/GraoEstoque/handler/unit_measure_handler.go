@@ -27,10 +27,16 @@ func ListUnits(c *gin.Context) {
 		return
 	}
 
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
+
 	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
 	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
-	models, err := unit_of_measure_repository.ListUnitsPaginated(user.ID, offset, limit)
+	models, err := unit_of_measure_repository.ListUnitsPaginated(user.ID, uint(storeID), uint(offset), uint(limit))
 	if err != nil {
 		logger.Log.Error("Error listing units: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing units"})
@@ -80,8 +86,14 @@ func CreateUnit(c *gin.Context) {
 		return
 	}
 
-	modelUnit := mapper.CreateUnitOfMeasureToModel(req, user.ID)
-	if err := unit_of_measure_repository.SaveUnitOfMeasure(modelUnit, user.ID); err != nil {
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
+
+	modelUnit := mapper.CreateUnitOfMeasureToModel(req, user.ID, uint(storeID))
+	if err := unit_of_measure_repository.SaveUnitOfMeasure(modelUnit); err != nil {
 		logger.Log.Error("Error saving unit: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving unit"})
 		return

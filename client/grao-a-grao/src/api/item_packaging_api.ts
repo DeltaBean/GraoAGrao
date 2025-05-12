@@ -1,14 +1,16 @@
-import { getAPIUrl, getAuthToken } from "@/util/util";
+import { getAPIUrl, getAuthToken, getSelectedStore } from "@/util/util";
 import { ItemPackagingRequest, ItemPackagingResponse } from "@/types/item_packaging";
 
 export async function fetchItemPackaging(): Promise<ItemPackagingResponse[]> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items/packaging`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store.id.toString(),
       },
     });
 
@@ -27,12 +29,14 @@ export async function fetchItemPackaging(): Promise<ItemPackagingResponse[]> {
 export async function createItemPackaging(itemPackaging: ItemPackagingRequest): Promise<ItemPackagingResponse> {
   try {
     const token = getAuthToken();;
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items/packaging`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store.id.toString(),
       },
       body: JSON.stringify(itemPackaging)
     });

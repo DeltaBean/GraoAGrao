@@ -26,8 +26,14 @@ func CreateItemPackaging(c *gin.Context) {
 		return
 	}
 
-	modelPackaging := mapper.CreateItemPackagingToModel(req)
-	if err := item_packaging_repository.SaveItemPackaging(modelPackaging, user.ID); err != nil {
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
+
+	modelPackaging := mapper.CreateItemPackagingToModel(req, user.ID, uint(storeID))
+	if err := item_packaging_repository.SaveItemPackaging(modelPackaging); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving packaging"})
 		return
 	}
@@ -66,10 +72,16 @@ func ListItemPackagings(c *gin.Context) {
 		return
 	}
 
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
+
 	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
 	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
-	packagings, err := item_packaging_repository.ListItemPackagingsPaginated(user.ID, offset, limit)
+	packagings, err := item_packaging_repository.ListItemPackagingsPaginated(user.ID, uint(storeID), uint(offset), uint(limit))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing packagings"})
 		return

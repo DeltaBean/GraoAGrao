@@ -12,10 +12,12 @@ import ModalGenericError from "@/components/Error/ModalGenericError";
 import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
 import { ItemResponse } from "@/types/item";
 import { toast } from "sonner";
+import { getSelectedStore } from "@/util/util";
 
 
 export default function UnitPage() {
-
+    const storeId = getSelectedStore()?.id
+    
     const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasureModel[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -58,7 +60,7 @@ export default function UnitPage() {
     // Fetch items when the component mounts.
     useEffect(() => {
         fetchUnits();
-    }, []);
+    }, [storeId]);
 
     const fetchUnits = async () => {
         setLoading(true);

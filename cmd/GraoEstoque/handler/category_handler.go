@@ -24,7 +24,13 @@ func GetCategories(c *gin.Context) {
 		return
 	}
 
-	cats, err := category_repository.ListCategories(user.ID)
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
+
+	cats, err := category_repository.ListCategories(user.ID, uint(storeID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not list categories"})
 		return
@@ -60,12 +66,23 @@ func GetCategoryByID(c *gin.Context) {
 
 func CreateCategory(c *gin.Context) {
 	logger.Log.Info("CreateCategory")
-	user, _ := util.GetUserFromJWT(c.GetHeader("Authorization"))
+
+	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate"})
+		return
+	}
+
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
 
 	// pulled from middleware
 	req := c.MustGet("dto").(*request.CreateCategoryRequest)
 
-	modelCat := mapper.CreateCategoryToModel(req, user.ID)
+	modelCat := mapper.CreateCategoryToModel(req, user.ID, uint(storeID))
 	if err := category_repository.SaveCategory(modelCat); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save"})
 		return

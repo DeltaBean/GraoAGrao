@@ -15,7 +15,7 @@ import (
 
 // SaveItemPackaging inserts a new packaging into the tb_item_packaging table,
 // and returns the item description via a CTE join.
-func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
+func SaveItemPackaging(packaging *model.ItemPackaging) error {
 	logger.Log.Info("SaveItemPackaging")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -26,8 +26,8 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 
 	query := `
 		WITH inserted AS (
-			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, created_by)
-			VALUES ($1, $2, $3, $4)
+			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, created_by, store_id)
+			VALUES ($1, $2, $3, $4, $5)
 			RETURNING item_packaging_id, item_packaging_description, item_id, created_by, quantity, created_at, updated_at
 		)
 		SELECT
@@ -52,7 +52,8 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 		packaging.Item.ID,
 		packaging.Description,
 		packaging.Quantity,
-		OwnerID,
+		packaging.CreatedBy.ID,
+		packaging.Store.ID,
 	).Scan(
 		&packaging.ID,
 		&packaging.Description,
@@ -77,7 +78,7 @@ func SaveItemPackaging(packaging *model.ItemPackaging, OwnerID uint) error {
 }
 
 // ListItemPackagingsPaginated returns a paginated list of packagings
-func ListItemPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.ItemPackaging, error) {
+func ListItemPackagingsPaginated(ownerID, storeID, offset, limit uint) ([]model.ItemPackaging, error) {
 	logger.Log.Infof("ListItemPackagingsPaginated offset=%d limit=%d", offset, limit)
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -96,11 +97,16 @@ func ListItemPackagingsPaginated(ownerID uint, offset, limit uint64) ([]model.It
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
 		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
-		WHERE sp.created_by = $1
+		WHERE sp.created_by = $1 AND sp.store_id = $2
 		ORDER BY sp.created_at DESC
-		OFFSET $2 LIMIT $3`
+		OFFSET $3 LIMIT $4`
 
-	rows, err := conn.Query(context.Background(), query, ownerID, offset, limit)
+	rows, err := conn.Query(context.Background(), query,
+		ownerID,
+		storeID,
+		offset,
+		limit,
+	)
 	if err != nil {
 		return nil, err
 	}

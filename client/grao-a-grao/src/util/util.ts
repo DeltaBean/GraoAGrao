@@ -1,3 +1,5 @@
+import { StoreModel } from "@/types/store";
+
 export function isUserLoggedIn(): boolean {
   // Check if localStorage is available (in environments like SSR, window might be undefined)
   if (typeof window === "undefined") {
@@ -103,4 +105,17 @@ export function logout(): void {
   localStorage.removeItem("userPictureUrl");
   localStorage.removeItem("userEmail");
   localStorage.removeItem("userName");
+}
+
+export function getSelectedStore(): StoreModel {
+
+  const store = sessionStorage.getItem("selectedStore");
+
+  if (!store) {
+    throw new Error("No store found in session storage");
+  }
+
+  const parsedStore = JSON.parse(store);
+
+  return parsedStore;
 }

@@ -12,7 +12,7 @@ import (
 )
 
 // SaveItem inserts a new item into the tb_item table
-func SaveItem(item *model.Item, OwnerID uint) error {
+func SaveItem(item *model.Item) error {
 	logger.Log.Info("SaveItem")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -24,8 +24,8 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 
 	query := `
 		WITH inserted AS (
-  			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, created_by, is_fractionable)
-  			VALUES ($1, $2, $3, $4, $5, $6)
+  			INSERT INTO tb_item (item_description, ean13, category_id, unit_id, created_by, is_fractionable, store_id)
+  			VALUES ($1, $2, $3, $4, $5, $6, $7)
   			RETURNING item_id, item_description, category_id, unit_id, created_at, updated_at
 		)
 		SELECT 
@@ -45,8 +45,9 @@ func SaveItem(item *model.Item, OwnerID uint) error {
 		item.EAN13,
 		item.Category.ID,
 		item.UnitOfMeasure.ID,
-		OwnerID,
+		item.CreatedBy.ID,
 		item.IsFractionable,
+		item.Store.ID,
 	).Scan(
 		&item.ID,
 		&item.Description,
@@ -214,7 +215,7 @@ func DeleteItem(id uint) error {
 }
 
 // ListItems returns all items with basic user info
-func ListItems(OwnerID uint) ([]model.Item, error) {
+func ListItems(OwnerID, StoreID uint) ([]model.Item, error) {
 	logger.Log.Info("ListItems")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -234,9 +235,9 @@ func ListItems(OwnerID uint) ([]model.Item, error) {
 		JOIN tb_user u ON i.created_by = u.user_id
 		JOIN tb_category c ON i.category_id = c.category_id
 		JOIN tb_unit_of_measure unt ON i.unit_id = unt.unit_id
-		WHERE i.created_by = $1`
+		WHERE i.created_by = $1 AND i.store_id = $2`
 
-	rows, err := conn.Query(context.Background(), query, OwnerID)
+	rows, err := conn.Query(context.Background(), query, OwnerID, StoreID)
 	if err != nil {
 		logger.Log.Errorf("Error querying items: %v", err)
 		return nil, err

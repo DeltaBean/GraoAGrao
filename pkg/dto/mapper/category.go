@@ -6,10 +6,11 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
-func CreateCategoryToModel(req *request.CreateCategoryRequest, ownerID uint) *model.Category {
+func CreateCategoryToModel(req *request.CreateCategoryRequest, ownerID, storeID uint) *model.Category {
 	return &model.Category{
 		Description: req.Description,
 		CreatedBy:   model.User{ID: ownerID},
+		Store:       model.Store{ID: storeID},
 	}
 }
 

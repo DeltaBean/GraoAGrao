@@ -13,7 +13,7 @@ import (
 )
 
 // SaveUnitOfMeasure inserts a new unit into the tb_unit_of_measure table
-func SaveUnitOfMeasure(unit *model.UnitOfMeasure, OwnerID uint) error {
+func SaveUnitOfMeasure(unit *model.UnitOfMeasure) error {
 	logger.Log.Info("SaveUnitOfMeasure")
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -24,11 +24,11 @@ func SaveUnitOfMeasure(unit *model.UnitOfMeasure, OwnerID uint) error {
 	defer conn.Release()
 
 	query := `
-		INSERT INTO tb_unit_of_measure (unit_description, created_by)
-		VALUES ($1, $2)
+		INSERT INTO tb_unit_of_measure (unit_description, created_by, store_id)
+		VALUES ($1, $2, $3)
 		RETURNING unit_id, unit_description, created_at, updated_at`
 
-	err = conn.QueryRow(context.Background(), query, unit.Description, OwnerID).
+	err = conn.QueryRow(context.Background(), query, unit.Description, unit.CreatedBy.ID, unit.Store.ID).
 		Scan(&unit.ID, &unit.Description, &unit.CreatedAt, &unit.UpdatedAt)
 
 	if err != nil {
@@ -41,7 +41,7 @@ func SaveUnitOfMeasure(unit *model.UnitOfMeasure, OwnerID uint) error {
 }
 
 // ListUnitsPaginated returns paginated unit list
-func ListUnitsPaginated(ownerID uint, offset, limit uint64) ([]model.UnitOfMeasure, error) {
+func ListUnitsPaginated(ownerID, storeID, offset, limit uint) ([]model.UnitOfMeasure, error) {
 	logger.Log.Infof("ListUnitsPaginated offset=%d limit=%d", offset, limit)
 
 	conn, err := db.GetDB().Acquire(context.Background())
@@ -53,11 +53,16 @@ func ListUnitsPaginated(ownerID uint, offset, limit uint64) ([]model.UnitOfMeasu
 	query := `
 		SELECT unit_id, unit_description, created_by, created_at, updated_at
 		FROM tb_unit_of_measure
-		WHERE created_by = $1
+		WHERE created_by = $1 AND store_id = $2
 		ORDER BY created_at DESC
-		OFFSET $2 LIMIT $3`
+		OFFSET $3 LIMIT $4`
 
-	rows, err := conn.Query(context.Background(), query, ownerID, offset, limit)
+	rows, err := conn.Query(context.Background(), query,
+		ownerID,
+		storeID,
+		offset,
+		limit,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -6,11 +6,13 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
-func CreateItemPackagingToModel(r *request.CreateItemPackagingRequest) *model.ItemPackaging {
+func CreateItemPackagingToModel(r *request.CreateItemPackagingRequest, OwnerID, StoreID uint) *model.ItemPackaging {
 	return &model.ItemPackaging{
 		Description: r.Description,
 		Quantity:    r.Quantity,
 		Item:        model.Item{ID: r.ItemID},
+		CreatedBy:   model.User{ID: OwnerID},
+		Store:       model.Store{ID: StoreID},
 	}
 }
 

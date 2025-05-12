@@ -11,6 +11,7 @@ type Item struct {
 	IsFractionable bool
 
 	CreatedBy User
+	Store     Store
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

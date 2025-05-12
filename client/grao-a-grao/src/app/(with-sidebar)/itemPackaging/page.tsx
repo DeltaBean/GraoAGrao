@@ -11,9 +11,10 @@ import { ItemPackagingModel, ItemPackagingRequest, ItemPackagingResponse, toItem
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
 import ModalFormItemPackaging from "@/components/Form/Modal/ModalFormItemPackaging";
 import { toast } from "sonner";
+import { getSelectedStore } from "@/util/util";
 
 export default function ItemPackagingPage() {
-
+    const storeId = getSelectedStore()?.id
 
     const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
     const [items, setItems] = useState<ItemModel[]>([]);
@@ -62,7 +63,7 @@ export default function ItemPackagingPage() {
     useEffect(() => {
         fetchItemPackagings();
         fetchItems();
-    }, []);
+    }, [storeId]);
 
     const fetchItems = async () => {
         setLoading(true);
@@ -201,8 +202,8 @@ export default function ItemPackagingPage() {
                                                     </IconButton>
                                                 </Tooltip>
                                                 <AlertDialog.Root>
-                                                    <AlertDialog.Trigger>
-                                                        <Tooltip content="Excluir fracionamento de item de estoque">
+                                                    <Tooltip content="Excluir fracionamento de item de estoque">
+                                                        <AlertDialog.Trigger>
                                                             <IconButton
                                                                 size={"1"}
                                                                 about="Delete"
@@ -210,18 +211,18 @@ export default function ItemPackagingPage() {
                                                                 color="red">
                                                                 <TrashIcon height="16" width="16" />
                                                             </IconButton>
-                                                        </Tooltip>
-                                                    </AlertDialog.Trigger>
+                                                        </AlertDialog.Trigger>
+                                                    </Tooltip>
                                                     <AlertDialog.Content maxWidth="450px">
-                                                        <AlertDialog.Title>Delete {pack.description}</AlertDialog.Title>
+                                                        <AlertDialog.Title>Deletar {pack.description}</AlertDialog.Title>
                                                         <AlertDialog.Description size="2">
-                                                            Are you sure? This packaging will no longer exist.
+                                                            Tem certeza? Este fracionamento será deletado permanentemente.
                                                         </AlertDialog.Description>
 
                                                         <Flex gap="3" mt="4" justify="end">
                                                             <AlertDialog.Cancel>
                                                                 <Button variant="soft" color="gray">
-                                                                    Cancel
+                                                                    Cancelar
                                                                 </Button>
                                                             </AlertDialog.Cancel>
                                                             <AlertDialog.Action>
@@ -234,7 +235,7 @@ export default function ItemPackagingPage() {
                                                                             handleDelete(pack.id ?? 0);
                                                                         }
                                                                     }>
-                                                                    Delete
+                                                                    Deletar
                                                                 </Button>
                                                             </AlertDialog.Action>
                                                         </Flex>
@@ -251,17 +252,19 @@ export default function ItemPackagingPage() {
                     </Table.Root>
                 </Skeleton>
             </Card>
-            {isModalOpen && (
-                <ModalFormItemPackaging
-                    mode={isModalEdit ? "edit" : "create"}
-                    editItemPackaging={isModalEdit ? editItemPackaging : undefined}
-                    itemOptions={items}
-                    onClose={handleCloseModal}
-                    onSubmitCreate={handleCreate}
-                    onSubmitEdit={handleEdit}
-                >
-                </ModalFormItemPackaging>
-            )}
-        </Flex>
+            {
+                isModalOpen && (
+                    <ModalFormItemPackaging
+                        mode={isModalEdit ? "edit" : "create"}
+                        editItemPackaging={isModalEdit ? editItemPackaging : undefined}
+                        itemOptions={items}
+                        onClose={handleCloseModal}
+                        onSubmitCreate={handleCreate}
+                        onSubmitEdit={handleEdit}
+                    >
+                    </ModalFormItemPackaging>
+                )
+            }
+        </Flex >
     );
 }

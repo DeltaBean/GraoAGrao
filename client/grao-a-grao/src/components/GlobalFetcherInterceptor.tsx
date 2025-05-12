@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { logout } from "@/util/util";
 
 export default function GlobalFetchInterceptor({
     children,
@@ -18,10 +19,7 @@ export default function GlobalFetchInterceptor({
                 if (response.status === 401) {
 
                     // Clear specific keys from localStorage.
-                    localStorage.removeItem("authToken");
-                    localStorage.removeItem("userPictureUrl");
-                    localStorage.removeItem("userName");
-                    localStorage.removeItem("userEmail");
+                    logout();
                     
                     // Redirect to the root page.
                     router.push("/");

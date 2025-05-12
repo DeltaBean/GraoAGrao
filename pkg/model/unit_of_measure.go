@@ -7,6 +7,7 @@ type UnitOfMeasure struct {
 	Description string
 
 	CreatedBy User
+	Store     Store
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

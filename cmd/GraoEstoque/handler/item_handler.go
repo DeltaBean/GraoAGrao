@@ -28,7 +28,13 @@ func GetItems(c *gin.Context) {
 		return
 	}
 
-	items, err := item_repository.ListItems(user.ID)
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
+
+	items, err := item_repository.ListItems(user.ID, uint(storeID))
 	if err != nil {
 		logger.Log.Error("Error fetching items: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -81,9 +87,15 @@ func CreateItem(c *gin.Context) {
 		return
 	}
 
+	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		return
+	}
+
 	// Map request DTO to domain model
-	modelItem := mapper.CreateItemToModel(req, user.ID)
-	if err := item_repository.SaveItem(modelItem, user.ID); err != nil {
+	modelItem := mapper.CreateItemToModel(req, user.ID, uint(storeID))
+	if err := item_repository.SaveItem(modelItem); err != nil {
 		logger.Log.Error("Error saving item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return

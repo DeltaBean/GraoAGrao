@@ -1,15 +1,17 @@
-import { getAPIUrl, getAuthToken } from "@/util/util";
+import { getAPIUrl, getAuthToken, getSelectedStore } from "@/util/util";
 import { CategoryRequest, CategoryResponse } from "@/types/category";
 
 
 export async function fetchCategories(): Promise<CategoryResponse[]> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items/categories`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store.id.toString(),
       },
     });
 
@@ -27,14 +29,17 @@ export async function fetchCategories(): Promise<CategoryResponse[]> {
 
 export async function createCategory(category: CategoryRequest): Promise<CategoryResponse> {
   try {
-    const token = getAuthToken();;
+    const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items/categories`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store.id.toString(),
       },
+
       body: JSON.stringify(category)
     });
 

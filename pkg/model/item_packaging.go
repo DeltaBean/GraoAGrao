@@ -9,6 +9,7 @@ type ItemPackaging struct {
 	Quantity    float32
 
 	CreatedBy User
+	Store     Store
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

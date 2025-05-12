@@ -8,12 +8,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircleIcon, EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import * as stock_out_api from "@/api/stock_out_api";
-import { formatDateTime } from "@/util/util";
+import { formatDateTime, getSelectedStore } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { ErrorCodes, StockOutTotalQuantityNotMatchingResponse } from "@/errors/api_error";
 
 export default function StockOutPage() {
+  const storeId = getSelectedStore()?.id
+
   const router = useRouter();
 
   type ErrorModalState =
@@ -28,7 +30,7 @@ export default function StockOutPage() {
   // Fetch stock-outs on mount
   useEffect(() => {
     fetchStockOut();
-  }, []);
+  }, [storeId]);
 
   const fetchStockOut = async () => {
     setIsLoading(true);
