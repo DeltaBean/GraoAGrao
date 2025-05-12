@@ -45,13 +45,9 @@ export default function RootLayout({
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="translucent">
-          <SidebarProvider>
-            <AppSidebar />
-            <ThemePanel />
-            <SidebarTrigger />
-            {children}
-            <Toaster richColors />
-          </SidebarProvider>
+          <ThemePanel />
+          {children}
+          <Toaster richColors />
         </Theme>
       </body>
     </html>
