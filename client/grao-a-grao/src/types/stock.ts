@@ -1,5 +1,3 @@
-// src/types/stock.ts
-
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
 
 // Frontend model

@@ -33,6 +33,7 @@ export default function Header() {
 
                 {/* Desktop nav links */}
                 <Flex gap="4" align="center" display={{ initial: "none", sm: "flex" }}>
+                    <NavLink href="/store" label="Loja" />
                     <NavLink href="/item" label="Item" />
                     <NavLink href="/category" label="Categoria" />
                     <NavLink href="/unit" label="Unidade" />
@@ -63,7 +64,7 @@ export default function Header() {
                             src={getUserAvatarUrl() ?? "https://www.gravatar.com/avatar/?d=mp"}
                             alt="User"
                         />
-                        <Box display={{initial: "none", sm: "block"}}>
+                        <Box display={{ initial: "none", sm: "block" }}>
                             <Text as="div" size="2" weight="bold">
                                 {getUserName()}
                             </Text>
@@ -78,6 +79,7 @@ export default function Header() {
             {/* Mobile nav menu (shown only when open) */}
             {menuOpen && (
                 <Flex direction="row" gap="4" className="sm:hidden mt-3 px-2">
+                    <NavLink href="/store" label="Loja" />
                     <NavLink href="/item" label="Item" />
                     <NavLink href="/category" label="Categoria" />
                     <NavLink href="/unit" label="Unidade" />
@@ -93,23 +95,23 @@ export default function Header() {
 function NavLink({ href, label }: { href: string; label: string }) {
     const pathname = usePathname();
     const isActive = pathname === href || pathname.startsWith(`${href}/`);
-  
+
     return (
-      <Link href={href} passHref>
-        <RadixLink>
-          <Text
-            weight="medium"
-            className={`
+        <Link href={href} passHref>
+            <RadixLink>
+                <Text
+                    weight="medium"
+                    className={`
               py-1 px-4
               ${isActive
-                ? "bg-[var(--accent-8)] text-[var(--gray-1)]"
-                : "hover:bg-[var(--accent-3)]"}
+                            ? "bg-[var(--accent-8)] text-[var(--gray-1)]"
+                            : "hover:bg-[var(--accent-3)]"}
             `}
-            style={{ borderRadius: "var(--radius-6)" }}
-          >
-            {label}
-          </Text>
-        </RadixLink>
-      </Link>
+                    style={{ borderRadius: "var(--radius-6)" }}
+                >
+                    {label}
+                </Text>
+            </RadixLink>
+        </Link>
     );
-  }
+}
