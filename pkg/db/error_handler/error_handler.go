@@ -13,6 +13,7 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Foreign Key Constraint Violation
@@ -56,7 +57,7 @@ func GetReferencedTableName(pgErr *pgconn.PgError) string {
 // RefFetcherFunc abstracts how to retrieve entities referenced by
 // a foreign key <id>.
 // For a example check GetReferencingItemPackagings in item_repository.
-type RefFetcherFunc func(id uint) (any, error)
+type RefFetcherFunc func(conn *pgxpool.Conn, id uint) (any, error)
 
 // Represents a function that takes the repository's return (usually a slice of models)
 // and returns a DTO-compliant version.
@@ -72,8 +73,15 @@ func HandleDBErrorWithReferencingFetcher(c *gin.Context, err error, id uint, fet
 	if errors.As(err, &pgErr) {
 
 		if IsDeleteReferencedError(pgErr) {
+			dbConn, exists := c.Get("dbConn")
+			if !exists {
+				logger.Log.Error("Database connection not found in context")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+				return
+			}
+			conn := dbConn.(*pgxpool.Conn)
 
-			entities, refErr := fetcher(id)
+			entities, refErr := fetcher(conn, id)
 
 			if refErr != nil {
 

@@ -21,7 +21,11 @@ func InitRoutes(router *gin.Engine) {
 
 	// Store endpoints
 	storeGroup := router.Group("/stores")
-	storeGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
+	storeGroup.Use(
+		middleware.AuthMiddleware(),
+		middleware.TenantMiddleware(),
+		middleware.StoreMiddleware(),
+	)
 	{
 		storeGroup.GET("", handler.GetStores)
 		storeGroup.GET("/:id", handler.GetStoreByID)
@@ -38,7 +42,11 @@ func InitRoutes(router *gin.Engine) {
 
 	// Items endpoints
 	itemGroup := router.Group("/items")
-	itemGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
+	itemGroup.Use(
+		middleware.AuthMiddleware(),
+		middleware.TenantMiddleware(),
+		middleware.StoreMiddleware(),
+	)
 	{
 		itemGroup.GET("", handler.GetItems)
 		itemGroup.GET("/:id", handler.GetItemByID)
@@ -107,7 +115,11 @@ func InitRoutes(router *gin.Engine) {
 	}
 
 	stockGroup := router.Group("/stock")
-	stockGroup.Use(middleware.AuthMiddleware()) // Apply authentication middleware
+	stockGroup.Use(
+		middleware.AuthMiddleware(),
+		middleware.TenantMiddleware(),
+		middleware.StoreMiddleware(),
+	)
 	{
 
 		// Get stock materialized snapshot

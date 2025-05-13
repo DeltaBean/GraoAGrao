@@ -4,21 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func SaveCategory(category *model.Category) error {
+func SaveCategory(conn *pgxpool.Conn, category *model.Category) error {
 	logger.Log.Info("SaveCategory")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	query := `
 		WITH inserted AS (
@@ -35,7 +28,7 @@ func SaveCategory(category *model.Category) error {
 		FROM inserted c
 	`
 
-	err = conn.QueryRow(context.Background(), query,
+	err := conn.QueryRow(context.Background(), query,
 		category.Description,
 		category.CreatedBy.ID,
 		category.Store.ID,
@@ -56,15 +49,8 @@ func SaveCategory(category *model.Category) error {
 	return nil
 }
 
-func GetCategoryByID(id uint) (*model.Category, error) {
+func GetCategoryByID(conn *pgxpool.Conn, id uint) (*model.Category, error) {
 	logger.Log.Info("GetCategoryByID")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT c.category_id, c.category_description, u.user_id,
@@ -74,7 +60,7 @@ func GetCategoryByID(id uint) (*model.Category, error) {
 		WHERE c.category_id = $1`
 
 	category := &model.Category{}
-	err = conn.QueryRow(context.Background(), query, id).Scan(
+	err := conn.QueryRow(context.Background(), query, id).Scan(
 		&category.ID,
 		&category.Description,
 		&category.CreatedBy.ID,
@@ -95,15 +81,8 @@ func GetCategoryByID(id uint) (*model.Category, error) {
 	return category, nil
 }
 
-func UpdateCategory(ownerID uint, category *model.Category) (*model.Category, error) {
+func UpdateCategory(conn *pgxpool.Conn, ownerID uint, category *model.Category) (*model.Category, error) {
 	logger.Log.Info("UpdateCategory")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	// Then return all the columns you want to populate back into the model.
 	query := `
@@ -143,15 +122,8 @@ func UpdateCategory(ownerID uint, category *model.Category) (*model.Category, er
 	return updated, nil
 }
 
-func DeleteCategory(id uint) error {
+func DeleteCategory(conn *pgxpool.Conn, id uint) error {
 	logger.Log.Info("DeleteCategory")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	query := `DELETE FROM tb_category WHERE category_id = $1`
 
@@ -169,15 +141,8 @@ func DeleteCategory(id uint) error {
 	return nil
 }
 
-func ListCategories(OwnerID, StoreID uint) ([]*model.Category, error) {
+func ListCategories(conn *pgxpool.Conn, OwnerID, StoreID uint) ([]*model.Category, error) {
 	logger.Log.Info("ListCategories")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT c.category_id, c.category_description, u.user_id,
@@ -219,13 +184,7 @@ func ListCategories(OwnerID, StoreID uint) ([]*model.Category, error) {
 	return categories, nil
 }
 
-func GetReferencingItems(id uint) (any, error) {
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
-
+func GetReferencingItems(conn *pgxpool.Conn, id uint) (any, error) {
 	rows, err := conn.Query(context.Background(), `
 		SELECT item_id, item_description 
 		FROM tb_item WHERE category_id = $1`, id)

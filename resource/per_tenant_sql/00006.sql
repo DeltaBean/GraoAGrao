@@ -1,3 +1,5 @@
+-- +goose Up
+
 CREATE TABLE IF NOT EXISTS tb_stock_in_item (
     stock_in_item_id SERIAL PRIMARY KEY,
     stock_in_id INTEGER NOT NULL REFERENCES tb_stock_in(stock_in_id),
@@ -8,7 +10,7 @@ CREATE TABLE IF NOT EXISTS tb_stock_in_item (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-COMMENT ON COLUMN public.tb_stock_in_item.total_quantity IS
+COMMENT ON COLUMN tb_stock_in_item.total_quantity IS
   'The total quantity (in base units) that must match the sum of all associated packagings';
 
 CREATE TRIGGER set_updated_at

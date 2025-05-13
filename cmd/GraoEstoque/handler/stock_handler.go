@@ -23,7 +23,12 @@ func GetStock(c *gin.Context) {
 		return
 	}
 
-	stock, err := stock_repository.GetStock(authenticatedUser.ID)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	stock, err := stock_repository.GetStock(conn, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Error("Error fetching stock: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -56,7 +61,12 @@ func GetStockByCategory(c *gin.Context) {
 		return
 	}
 
-	stock, err := stock_repository.GetStockByCategory(authenticatedUser.ID, categoryID)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	stock, err := stock_repository.GetStockByCategory(conn, authenticatedUser.ID, categoryID)
 	if err != nil {
 		logger.Log.Error("Error fetching stock: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

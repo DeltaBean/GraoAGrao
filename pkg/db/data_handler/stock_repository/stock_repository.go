@@ -3,20 +3,13 @@ package stock_repository
 import (
 	"context"
 
-	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetStock(OwnerID uint) ([]model.Stock, error) {
+func GetStock(conn *pgxpool.Conn, OwnerID uint) ([]model.Stock, error) {
 	logger.Log.Info("GetStock")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT stock_id, current_stock, item_id, item_description, 
@@ -75,15 +68,8 @@ func GetStock(OwnerID uint) ([]model.Stock, error) {
 	return stockSlice, nil
 }
 
-func GetStockByCategory(OwnerID uint, CategoryID int) ([]model.Stock, error) {
+func GetStockByCategory(conn *pgxpool.Conn, OwnerID uint, CategoryID int) ([]model.Stock, error) {
 	logger.Log.Info("GetStockByCategory")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT ist.item_stock_id, ist.current_stock,

@@ -1,10 +1,15 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
+	"strconv"
 	"strings"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
+
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/validator"
@@ -41,6 +46,24 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// Extract user information from the token.
+		user, err := util.GetUserFromJWT(tokenString)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to extract user from jwt"})
+			return
+		}
+
+		if user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+			c.Abort()
+			return
+		}
+
+		// Store the user information in the context for later use.
+		// This can be used in subsequent handlers to access the authenticated user.
+		// For example, you can use c.Get("authenticated") in your handlers.
+		c.Set("authenticated", user)
+
 		// Proceed to the next middleware or handler
 		c.Next()
 	}
@@ -72,5 +95,75 @@ func BindAndValidateMiddleware[T any]() gin.HandlerFunc {
 		// 3) stash for handler
 		c.Set("dto", dto)
 		c.Next()
+	}
+}
+
+func TenantMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 1) Get the rawUser from the context
+		rawUser, exists := c.Get("authenticated")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+			c.Abort()
+			return
+		}
+
+		// 2) Assert the type of user
+		// Assuming user is of type *model.User
+		userModel, ok := rawUser.(*model.User)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user type assertion failed"})
+			c.Abort()
+			return
+		}
+
+		DBSchema := userModel.Organization.DBSchema
+
+		// 3) Acquire a conn
+		conn, err := db.GetDB().Acquire(c)
+		if err != nil {
+			c.Status(500)
+			c.Abort()
+			return
+		}
+		// Ensure the connection is released after use
+		// This is important to prevent connection leaks.
+		// Runs after the handler completes.
+		defer conn.Release()
+
+		// 4) Set the search_path to the user's organization schema
+		// This is important for multi-tenancy, as it allows you to use the same database
+		// for multiple organizations, each with its own schema.
+		// This way, you can ensure that each organization only has access to its own data.
+		if _, err := conn.Exec(context.Background(), "SET search_path TO $1,public", DBSchema); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to set organization schema"})
+			c.Abort()
+			return
+		}
+
+		// 5) store conn in context for downstream use
+		// You can access it using c.MustGet("dbConn") in your handlers.
+		// This is useful for executing queries within the context of the user's organization schema.
+		c.Set("dbConn", conn)
+		c.Next()
+	}
+}
+
+func StoreMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		raw, exists := c.Get("X-Store-ID")
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-Store-ID header missing"})
+			c.Abort()
+			return
+		}
+
+		storeID, err := strconv.Atoi(raw.(string))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			return
+		}
+
+		c.Set("storeID", storeID)
 	}
 }

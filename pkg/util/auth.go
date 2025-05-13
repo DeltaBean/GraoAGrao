@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
+	"github.com/gin-gonic/gin"
 
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/dgrijalva/jwt-go"
@@ -51,13 +52,14 @@ var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 // GenerateJWT generates a new JWT token with claims
 func GenerateJWT(user model.User) (string, error) {
 	claims := jwt.MapClaims{
-		"user_id":          user.ID,
-		"user_email":       user.Email,
-		"user_picture_url": user.PictureURL,
-		"user_given_name":  user.GivenName,
-		"user_family_name": user.FamilyName,
-		"exp":              time.Now().Add(time.Hour * 8).Unix(), // Token expiration time (8 hours)
-		"iat":              time.Now().Unix(),                    // Issued at time
+		"user_id":                  user.ID,
+		"user_email":               user.Email,
+		"user_picture_url":         user.PictureURL,
+		"user_organization_schema": user.Organization.DBSchema,
+		"user_given_name":          user.GivenName,
+		"user_family_name":         user.FamilyName,
+		"exp":                      time.Now().Add(time.Hour * 8).Unix(), // Token expiration time (8 hours)
+		"iat":                      time.Now().Unix(),                    // Issued at time
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -157,9 +159,60 @@ func GetUserFromJWT(tokenString string) (*model.User, error) {
 			user.FamilyName = familyName
 		}
 
+		if dbSchema, ok := claims["user_organization_schema"].(string); ok {
+			user.Organization.DBSchema = dbSchema
+		}
+
 		// Other fields can be set to defaults (or left zero) since they are not in the token.
 		return user, nil
 	}
 
 	return nil, errors.New("invalid token")
+}
+
+var (
+	// ErrNoUser indicates no authenticated user was found in the context
+	ErrNoUser = errors.New("no authenticated user in context")
+	// ErrInvalidUserType indicates the value stored in context under "authenticated" was not a model.User
+	ErrInvalidUserType = errors.New("authenticated user has unexpected type")
+)
+
+// GetUserFromContext extracts the authenticated User from Gin context.
+// It returns ErrNoUser if none is set, or ErrInvalidUserType on a type mismatch.
+func GetUserFromContext(c *gin.Context) (model.User, error) {
+	raw, exists := c.Get("authenticated")
+	if !exists {
+		return model.User{}, ErrNoUser
+	}
+
+	user, ok := raw.(model.User)
+	if !ok {
+		return model.User{}, ErrInvalidUserType
+	}
+
+	return user, nil
+}
+
+var (
+	// ErrNoStoreID indicates no storeID found in context
+	ErrNoStoreID = errors.New("no store id in context")
+
+	// ErrInvalidStoreID indicates storeID in context is not a uint
+	ErrInvalidStoreID = errors.New("invalid store id in context")
+)
+
+// GetStoreIDFromContext extracts a uint storeID from Gin context.
+// Returns ErrNoStoreID if not set, or ErrInvalidStoreID if type mismatches.
+func GetStoreIDFromContext(c *gin.Context) (uint, error) {
+	raw, exists := c.Get("storeID")
+	if !exists {
+		return 0, ErrNoStoreID
+	}
+
+	id, ok := raw.(uint)
+	if !ok {
+		return 0, ErrInvalidStoreID
+	}
+
+	return id, nil
 }

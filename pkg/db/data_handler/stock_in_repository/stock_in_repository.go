@@ -4,22 +4,15 @@ import (
 	"context"
 	"errors"
 
-	"github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // SaveStockIn saves a stock-in transaction and its items with packaging breakdowns
-func SaveStockIn(stockIn *model.StockIn, ownerID uint) error {
+func SaveStockIn(conn *pgxpool.Conn, stockIn *model.StockIn, ownerID uint) error {
 	logger.Log.Info("SaveStockIn")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("DB error: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	tx, err := conn.Begin(context.Background())
 	if err != nil {
@@ -85,15 +78,8 @@ func SaveStockIn(stockIn *model.StockIn, ownerID uint) error {
 }
 
 // ListAllStockIn returns all StockIn headers for a given owner (without items)
-func ListAllStockIn(ownerID uint) ([]*model.StockIn, error) {
+func ListAllStockIn(conn *pgxpool.Conn, ownerID uint) ([]*model.StockIn, error) {
 	logger.Log.Infof("ListAllStockIn ownerID=%d", ownerID)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("DB connection error: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT stock_in_id, created_by, created_at, updated_at, status, finalized_at
@@ -132,15 +118,8 @@ func ListAllStockIn(ownerID uint) ([]*model.StockIn, error) {
 }
 
 // GetStockInByID retrieves a StockIn with its items and packaging breakdowns
-func GetStockInByID(id int) (*model.StockIn, error) {
+func GetStockInByID(conn *pgxpool.Conn, id int) (*model.StockIn, error) {
 	logger.Log.Info("GetStockInByID")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("DB connection error: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	// Load parent record
 	stockIn := &model.StockIn{}
@@ -152,7 +131,7 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 
 	logger.Log.DebugSQL(parentQuery, id)
 
-	err = conn.QueryRow(context.Background(), parentQuery, id).Scan(
+	err := conn.QueryRow(context.Background(), parentQuery, id).Scan(
 		&stockIn.ID,
 		&stockIn.CreatedBy.ID,
 		&stockIn.CreatedAt,
@@ -268,15 +247,8 @@ func GetStockInByID(id int) (*model.StockIn, error) {
 }
 
 // UpdateStockIn updates a stock-in, its items, and packagings, including status
-func UpdateStockIn(stockIn *model.StockIn) error {
+func UpdateStockIn(conn *pgxpool.Conn, stockIn *model.StockIn) error {
 	logger.Log.Infof("UpdateStockIn id=%d", stockIn.ID)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("DB connection error: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	tx, err := conn.Begin(context.Background())
 	if err != nil {
@@ -412,18 +384,11 @@ func UpdateStockIn(stockIn *model.StockIn) error {
 
 // FinalizeStockInByID sets the status of the given stock-in to 'finalized',
 // triggering the validate_stock_in_packaging_totals trigger in the database.
-func FinalizeStockInByID(stockInID int) error {
+func FinalizeStockInByID(conn *pgxpool.Conn, stockInID int) error {
 	logger.Log.Infof("FinalizeStockIn id=%d", stockInID)
 
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("DB connection error: %v", err)
-		return err
-	}
-	defer conn.Release()
-
 	// Update status to 'finalized' and set updated_at
-	_, err = conn.Exec(context.Background(), `
+	_, err := conn.Exec(context.Background(), `
 		UPDATE tb_stock_in
 		SET status = 'finalized', updated_at = NOW()
 		WHERE stock_in_id = $1
@@ -445,15 +410,8 @@ func FinalizeStockInByID(stockInID int) error {
 }
 
 // DeleteStockIn removes a StockIn, its items, and associated packagings
-func DeleteStockIn(stockInID int) error {
+func DeleteStockIn(conn *pgxpool.Conn, stockInID int) error {
 	logger.Log.Infof("DeleteStockIn id=%d", stockInID)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("DB connection error: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	tx, err := conn.Begin(context.Background())
 	if err != nil {

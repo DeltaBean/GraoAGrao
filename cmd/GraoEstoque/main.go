@@ -18,6 +18,16 @@ import (
 
 func main() {
 
+	// Initializes db
+	db.InitDB()
+
+	// Run goose migrations
+	err := db.RunGooseMigrations(os.Getenv("MIGRATION_PATH"))
+	if err != nil {
+		logger.Log.Errorf("Error running goose migrations: %v", err)
+		os.Exit(1)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080" // fallback
@@ -30,9 +40,6 @@ func main() {
 	// Run shutdown signal handling in a separate goroutine
 	// for clean shutdown
 	go util.WaitForShutdown()
-
-	// Initializes db
-	db.InitDB()
 
 	router := gin.Default()
 

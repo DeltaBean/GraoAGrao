@@ -1,6 +1,7 @@
 package util
 
 import (
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -11,6 +12,8 @@ import (
 	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func GetStage() string {
@@ -65,6 +68,30 @@ func NewUserFromGoogleUserInfo(googleUser model.GoogleUserInfo) *model.User {
 		UpdatedAt:    now,
 		LastLogin:    now,
 		IsActive:     true,
+		Organization: model.Organization{
+			ID: 1, // Default organization ID; TODO to replace with actual logic
+		},
 		// PasswordHash and Salt remain empty because this user signed in with Google.
 	}
+}
+
+// GetDBConnFromContext safely retrieves *pgxpool.Conn from gin.Context
+func GetDBConnFromContext(c *gin.Context) *pgxpool.Conn {
+	dbConn, exists := c.Get("dbConn")
+	if !exists {
+		logger.Log.Error("Database connection not found in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		c.Abort()
+		return nil
+	}
+
+	conn, ok := dbConn.(*pgxpool.Conn)
+	if !ok {
+		logger.Log.Error("Invalid dbConn type in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		c.Abort()
+		return nil
+	}
+
+	return conn
 }

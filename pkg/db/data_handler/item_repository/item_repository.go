@@ -5,22 +5,15 @@ import (
 	"context"
 	"fmt"
 
-	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // SaveItem inserts a new item into the tb_item table
-func SaveItem(item *model.Item) error {
+func SaveItem(conn *pgxpool.Conn, item *model.Item) error {
 	logger.Log.Info("SaveItem")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	query := `
 		WITH inserted AS (
@@ -40,7 +33,7 @@ func SaveItem(item *model.Item) error {
 			JOIN tb_unit_of_measure u ON i.unit_id = u.unit_id;	
 	`
 
-	err = conn.QueryRow(context.Background(), query,
+	err := conn.QueryRow(context.Background(), query,
 		item.Description,
 		item.EAN13,
 		item.Category.ID,
@@ -67,15 +60,8 @@ func SaveItem(item *model.Item) error {
 }
 
 // GetItemByID retrieves an item from the tb_item table by ID
-func GetItemByID(id uint) (*model.Item, error) {
+func GetItemByID(conn *pgxpool.Conn, id uint) (*model.Item, error) {
 	logger.Log.Info("GetItemByID")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT i.item_id, i.item_description, i.ean13, 
@@ -91,7 +77,7 @@ func GetItemByID(id uint) (*model.Item, error) {
 	item := &model.Item{}
 	owner := model.User{}
 
-	err = conn.QueryRow(context.Background(), query, id).Scan(
+	err := conn.QueryRow(context.Background(), query, id).Scan(
 		&item.ID,
 		&item.Description,
 		&item.EAN13,
@@ -119,15 +105,8 @@ func GetItemByID(id uint) (*model.Item, error) {
 	return item, nil
 }
 
-func UpdateItem(item *model.Item) (*model.Item, error) {
+func UpdateItem(conn *pgxpool.Conn, item *model.Item) (*model.Item, error) {
 	logger.Log.Info("UpdateItem")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		WITH updated AS (
@@ -167,7 +146,7 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 		item.ID,
 	)
 
-	err = row.Scan(
+	err := row.Scan(
 		&updated.ID,
 		&updated.Description,
 		&updated.EAN13,
@@ -190,15 +169,8 @@ func UpdateItem(item *model.Item) (*model.Item, error) {
 }
 
 // DeleteItem deletes an item from the tb_item table by ID
-func DeleteItem(id uint) error {
+func DeleteItem(conn *pgxpool.Conn, id uint) error {
 	logger.Log.Info("DeleteItem")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	query := `DELETE FROM tb_item WHERE item_id = $1`
 	cmdTag, err := conn.Exec(context.Background(), query, id)
@@ -215,15 +187,8 @@ func DeleteItem(id uint) error {
 }
 
 // ListItems returns all items with basic user info
-func ListItems(OwnerID, StoreID uint) ([]model.Item, error) {
+func ListItems(conn *pgxpool.Conn, OwnerID, StoreID uint) ([]model.Item, error) {
 	logger.Log.Info("ListItems")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT i.item_id, i.item_description, i.ean13, i.is_fractionable,
@@ -275,13 +240,7 @@ func ListItems(OwnerID, StoreID uint) ([]model.Item, error) {
 	return items, nil
 }
 
-func GetReferencingItemPackagings(id uint) (any, error) {
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
-
+func GetReferencingItemPackagings(conn *pgxpool.Conn, id uint) (any, error) {
 	rows, err := conn.Query(context.Background(), `
 		SELECT item_packaging_id, item_packaging_description 
 		FROM tb_item_packaging WHERE item_id = $1`, id)

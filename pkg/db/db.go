@@ -2,14 +2,18 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"time"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+	_ "github.com/IlfGauhnith/GraoAGrao/pkg/migrations"
+	_ "github.com/lib/pq"
 
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pressly/goose/v3"
 )
 
 var dbPool *pgxpool.Pool
@@ -63,4 +67,45 @@ func CloseDB() {
 		dbPool.Close()
 		logger.Log.Info("Database connection pool closed")
 	}
+}
+
+func RunGooseMigrations(migrationsDir string) error {
+	dsn := GetDSN()
+
+	gooseConn, err := sql.Open("postgres", dsn)
+	if err != nil {
+		logger.Log.Fatalf("Failed to open goose connection: %v", err)
+		return err
+	}
+
+	defer gooseConn.Close()
+
+	if err := goose.Up(gooseConn, migrationsDir); err != nil {
+		logger.Log.Fatalf("Failed to run migrations: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+// GetDSN builds a PostgreSQL DSN string from environment variables
+func GetDSN() string {
+	// If POSTGRES_DSN is defined, use it directly
+	if dsn := os.Getenv("POSTGRES_DSN"); dsn != "" {
+		return dsn
+	}
+
+	// Otherwise build from components
+	user := os.Getenv("POSTGRES_USER")
+	pass := os.Getenv("POSTGRES_PASSWORD")
+	host := os.Getenv("POSTGRES_HOST")
+	port := os.Getenv("POSTGRES_PORT")
+	db := os.Getenv("POSTGRES_DB")
+
+	if user == "" || pass == "" || host == "" || port == "" || db == "" {
+		logger.Log.Fatal("Missing one or more required PostgreSQL environment variables")
+	}
+
+	// Compose the DSN manually
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, db)
 }

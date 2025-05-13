@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE OR REPLACE FUNCTION fn_capitalize_sentences(input TEXT)
 RETURNS TEXT AS $$
 DECLARE

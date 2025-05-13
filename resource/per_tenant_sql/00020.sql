@@ -1,3 +1,4 @@
+-- +goose Up
 ALTER TABLE tb_stock
 ADD CONSTRAINT unique_item_id UNIQUE (item_id);
 

@@ -2,12 +2,18 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/pressly/goose/v3"
 )
 
 func init() {
 	initializeEnvironment()
+
+	if os.Getenv("STAGE") == "DEV" {
+		goose.SetVerbose(true)
+	}
 }
 
 func initializeEnvironment() {

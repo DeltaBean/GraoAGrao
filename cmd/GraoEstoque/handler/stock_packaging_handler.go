@@ -8,10 +8,10 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/mapper"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
+	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/item_packaging_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,20 +20,35 @@ func CreateItemPackaging(c *gin.Context) {
 
 	req := c.MustGet("dto").(*request.CreateItemPackagingRequest)
 
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
-	modelPackaging := mapper.CreateItemPackagingToModel(req, user.ID, uint(storeID))
-	if err := item_packaging_repository.SaveItemPackaging(modelPackaging); err != nil {
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	modelPackaging := mapper.CreateItemPackagingToModel(req, user.ID, storeID)
+	if err := item_packaging_repository.SaveItemPackaging(conn, modelPackaging); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving packaging"})
 		return
 	}
@@ -50,7 +65,12 @@ func GetItemPackagingByID(c *gin.Context) {
 		return
 	}
 
-	packaging, err := item_packaging_repository.GetItemPackagingByID(uint(id))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	packaging, err := item_packaging_repository.GetItemPackagingByID(conn, uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving packaging"})
 		return
@@ -66,22 +86,37 @@ func GetItemPackagingByID(c *gin.Context) {
 func ListItemPackagings(c *gin.Context) {
 	logger.Log.Info("ListItemPackagings")
 
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
 	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
 	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
-	packagings, err := item_packaging_repository.ListItemPackagingsPaginated(user.ID, uint(storeID), uint(offset), uint(limit))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+
+	}
+	packagings, err := item_packaging_repository.ListItemPackagingsPaginated(conn, user.ID, storeID, uint(offset), uint(limit))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing packagings"})
 		return
@@ -101,7 +136,12 @@ func UpdateItemPackaging(c *gin.Context) {
 	req := c.MustGet("dto").(*request.UpdateItemPackagingRequest)
 	itemPackModel := mapper.UpdateItemPackagingToModel(req)
 
-	updated, err := item_packaging_repository.UpdateItemPackaging(itemPackModel)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	updated, err := item_packaging_repository.UpdateItemPackaging(conn, itemPackModel)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating packaging"})
 		return
@@ -119,7 +159,12 @@ func DeleteItemPackaging(c *gin.Context) {
 		return
 	}
 
-	if err := item_packaging_repository.DeleteItemPackaging(uint(id)); err != nil {
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	if err := item_packaging_repository.DeleteItemPackaging(conn, uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting packaging"})
 		return
 	}

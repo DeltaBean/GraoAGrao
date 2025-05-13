@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE IF NOT EXISTS tb_item (
     item_id SERIAL PRIMARY KEY,
     item_description TEXT NOT NULL,
@@ -8,7 +9,7 @@ CREATE TABLE IF NOT EXISTS tb_item (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 
-    CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES tb_user(user_id)
+    CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES public.tb_user(user_id)
 );
 
 CREATE TRIGGER set_updated_at

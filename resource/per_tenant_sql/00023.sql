@@ -1,5 +1,6 @@
+-- +goose Up
 -- Step 1: Create the tb_store table
-CREATE TABLE public.tb_store (
+CREATE TABLE tb_store (
     store_id SERIAL PRIMARY KEY,
     store_name VARCHAR(255) NOT NULL,
     created_by INT NOT NULL REFERENCES public.tb_user(user_id),
@@ -26,66 +27,66 @@ EXECUTE FUNCTION trg_capitalize_store_name();
 -- Step 2: Update existing tables to add store_id and rename owner_id to created_by
 -- tb_category
 ALTER TABLE
-    public.tb_category RENAME COLUMN owner_id TO created_by;
+   tb_category RENAME COLUMN owner_id TO created_by;
 
 ALTER TABLE
-    public.tb_category
+   tb_category
 ADD
-    COLUMN store_id INT NOT NULL REFERENCES public.tb_store(store_id);
+    COLUMN store_id INT NOT NULL REFERENCES tb_store(store_id);
 
 -- tb_stock_in
 ALTER TABLE
-    public.tb_stock_in RENAME COLUMN owner_id TO created_by;
+   tb_stock_in RENAME COLUMN owner_id TO created_by;
 
 ALTER TABLE
-    public.tb_stock_in
+   tb_stock_in
 ADD
-    COLUMN store_id INT NOT NULL REFERENCES public.tb_store(store_id);
+    COLUMN store_id INT NOT NULL REFERENCES tb_store(store_id);
 
 -- tb_stock_out
 ALTER TABLE
-    public.tb_stock_out RENAME COLUMN owner_id TO created_by;
+   tb_stock_out RENAME COLUMN owner_id TO created_by;
 
 ALTER TABLE
-    public.tb_stock_out
+   tb_stock_out
 ADD
-    COLUMN store_id INT NOT NULL REFERENCES public.tb_store(store_id);
+    COLUMN store_id INT NOT NULL REFERENCES tb_store(store_id);
 
 -- tb_unit_of_measure
 ALTER TABLE
-    public.tb_unit_of_measure RENAME COLUMN owner_id TO created_by;
+   tb_unit_of_measure RENAME COLUMN owner_id TO created_by;
 
 ALTER TABLE
-    public.tb_unit_of_measure
+   tb_unit_of_measure
 ADD
-    COLUMN store_id INT NOT NULL REFERENCES public.tb_store(store_id);
+    COLUMN store_id INT NOT NULL REFERENCES tb_store(store_id);
 
 -- tb_item
 ALTER TABLE
-    public.tb_item RENAME COLUMN owner_id TO created_by;
+   tb_item RENAME COLUMN owner_id TO created_by;
 
 ALTER TABLE
-    public.tb_item
+   tb_item
 ADD
-    COLUMN store_id INT NOT NULL REFERENCES public.tb_store(store_id);
+    COLUMN store_id INT NOT NULL REFERENCES tb_store(store_id);
 
 -- tb_item_packaging
 ALTER TABLE
-    public.tb_item_packaging RENAME COLUMN owner_id TO created_by;
+   tb_item_packaging RENAME COLUMN owner_id TO created_by;
 
 ALTER TABLE
-    public.tb_item_packaging
+   tb_item_packaging
 ADD
-    COLUMN store_id INT NOT NULL REFERENCES public.tb_store(store_id);
+    COLUMN store_id INT NOT NULL REFERENCES tb_store(store_id);
 
 -- tb_stock
 ALTER TABLE
-    public.tb_stock RENAME COLUMN owner_id TO created_by;
+   tb_stock RENAME COLUMN owner_id TO created_by;
 
 ALTER TABLE
-    public.tb_stock
+   tb_stock
 ADD
-    COLUMN store_id INT NOT NULL REFERENCES public.tb_store(store_id);
+    COLUMN store_id INT NOT NULL REFERENCES tb_store(store_id);
 
 -- Step 3: Create the vw_stock_summary view
 DROP VIEW IF EXISTS vw_stock_summary;
@@ -107,8 +108,8 @@ SELECT
     st.store_id AS store_id,
     st.store_name AS store_name
 FROM
-    public.tb_stock AS s
-    JOIN public.tb_item AS i ON i.item_id = s.item_id
-    LEFT JOIN public.tb_category AS c ON c.category_id = i.category_id
-    JOIN public.tb_unit_of_measure AS uom ON uom.unit_id = i.unit_id
+   tb_stock AS s
+    JOIN tb_item AS i ON i.item_id = s.item_id
+    LEFT JOIN tb_category AS c ON c.category_id = i.category_id
+    JOIN tb_unit_of_measure AS uom ON uom.unit_id = i.unit_id
     JOIN tb_store AS st ON st.store_id = s.store_id;

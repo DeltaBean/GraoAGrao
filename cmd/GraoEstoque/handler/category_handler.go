@@ -12,25 +12,41 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
-	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
+	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
 func GetCategories(c *gin.Context) {
 	logger.Log.Info("GetCategories")
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
-	cats, err := category_repository.ListCategories(user.ID, uint(storeID))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	cats, err := category_repository.ListCategories(conn, user.ID, storeID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not list categories"})
 		return
@@ -52,7 +68,12 @@ func GetCategoryByID(c *gin.Context) {
 		return
 	}
 
-	cat, err := category_repository.GetCategoryByID(uint(id))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	cat, err := category_repository.GetCategoryByID(conn, uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch"})
 		return
@@ -67,23 +88,39 @@ func GetCategoryByID(c *gin.Context) {
 func CreateCategory(c *gin.Context) {
 	logger.Log.Info("CreateCategory")
 
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
 	// pulled from middleware
 	req := c.MustGet("dto").(*request.CreateCategoryRequest)
 
-	modelCat := mapper.CreateCategoryToModel(req, user.ID, uint(storeID))
-	if err := category_repository.SaveCategory(modelCat); err != nil {
+	modelCat := mapper.CreateCategoryToModel(req, user.ID, storeID)
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	if err := category_repository.SaveCategory(conn, modelCat); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save"})
 		return
 	}
@@ -93,9 +130,15 @@ func CreateCategory(c *gin.Context) {
 
 func UpdateCategory(c *gin.Context) {
 	logger.Log.Info("UpdateCategory")
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
@@ -103,7 +146,12 @@ func UpdateCategory(c *gin.Context) {
 	cat := c.MustGet("dto").(*request.UpdateCategoryRequest)
 	catModel := mapper.UpdateCategoryToModel(cat, user.ID)
 
-	updatedCategory, err := category_repository.UpdateCategory(user.ID, catModel)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	updatedCategory, err := category_repository.UpdateCategory(conn, user.ID, catModel)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not update"})
@@ -123,7 +171,12 @@ func DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	if err := category_repository.DeleteCategory(uint(id)); err != nil {
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	if err := category_repository.DeleteCategory(conn, uint(id)); err != nil {
 		logger.Log.Error("Error DeleteCategory: ", err)
 		error_handler.HandleDBErrorWithReferencingFetcher(c,
 			err,

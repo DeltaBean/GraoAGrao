@@ -11,8 +11,6 @@ services:
     - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./resource/migrations:/docker-entrypoint-initdb.d # Migrations DIR
-      - ./resource/scripts:/custom-scripts
     networks:
       - grao-network
 

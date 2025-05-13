@@ -1,3 +1,4 @@
+-- +goose Up
 -- Step 1: Create the ENUM type for status
 DO $$
 BEGIN
@@ -7,10 +8,10 @@ BEGIN
 END$$;
 
 -- Step 2: Add status column to tb_stock_in
-ALTER TABLE public.tb_stock_in
+ALTER TABLE tb_stock_in
 ADD COLUMN status stock_in_status NOT NULL DEFAULT 'draft';
 
-COMMENT ON COLUMN public.tb_stock_in.status IS
+COMMENT ON COLUMN tb_stock_in.status IS
   'Stock-in status: ''draft'' allows editing; ''finalized'' triggers packaging consistency validation.';
 
 -- Step 3: Create validation function
@@ -69,9 +70,9 @@ END;
 $$;
 
 -- Step 4: Create trigger on tb_stock_in
-DROP TRIGGER IF EXISTS trg_validate_stock_in_on_finalize ON public.tb_stock_in;
+DROP TRIGGER IF EXISTS trg_validate_stock_in_on_finalize ON tb_stock_in;
 
 CREATE TRIGGER trg_validate_stock_in_on_finalize
-BEFORE UPDATE ON public.tb_stock_in
+BEFORE UPDATE ON tb_stock_in
 FOR EACH ROW
 EXECUTE FUNCTION validate_stock_in_packaging_totals();

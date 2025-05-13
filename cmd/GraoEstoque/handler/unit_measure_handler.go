@@ -11,32 +11,48 @@ import (
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
+	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/unit_of_measure_repository"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/error_handler"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
 )
 
 // ListUnits returns paginated units for the auth'd user
 func ListUnits(c *gin.Context) {
 	logger.Log.Info("ListUnits")
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
 	offset, _ := strconv.ParseUint(c.DefaultQuery("offset", "0"), 10, 0)
 	limit, _ := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 0)
 
-	models, err := unit_of_measure_repository.ListUnitsPaginated(user.ID, uint(storeID), uint(offset), uint(limit))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	models, err := unit_of_measure_repository.ListUnitsPaginated(conn, user.ID, storeID, uint(offset), uint(limit))
 	if err != nil {
 		logger.Log.Error("Error listing units: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing units"})
@@ -60,7 +76,12 @@ func GetUnitByID(c *gin.Context) {
 		return
 	}
 
-	modelUnit, err := unit_of_measure_repository.GetUnitOfMeasureByID(uint(id))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	modelUnit, err := unit_of_measure_repository.GetUnitOfMeasureByID(conn, uint(id))
 	if err != nil {
 		logger.Log.Error("Error retrieving unit: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving unit"})
@@ -80,20 +101,35 @@ func CreateUnit(c *gin.Context) {
 
 	req := c.MustGet("dto").(*request.CreateUnitOfMeasureRequest)
 
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
-	modelUnit := mapper.CreateUnitOfMeasureToModel(req, user.ID, uint(storeID))
-	if err := unit_of_measure_repository.SaveUnitOfMeasure(modelUnit); err != nil {
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	modelUnit := mapper.CreateUnitOfMeasureToModel(req, user.ID, storeID)
+	if err := unit_of_measure_repository.SaveUnitOfMeasure(conn, modelUnit); err != nil {
 		logger.Log.Error("Error saving unit: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving unit"})
 		return
@@ -106,16 +142,26 @@ func CreateUnit(c *gin.Context) {
 func UpdateUnit(c *gin.Context) {
 	logger.Log.Info("UpdateUnitOfMeasure")
 
-	user, err := util.GetUserFromJWT(c.GetHeader("Authorization"))
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
 	req := c.MustGet("dto").(*request.UpdateUnitOfMeasureRequest)
 	unitModel := mapper.UpdateUnitOfMeasureToModel(req, user.ID)
 
-	updated, err := unit_of_measure_repository.UpdateUnitOfMeasure(unitModel)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	updated, err := unit_of_measure_repository.UpdateUnitOfMeasure(conn, unitModel)
 
 	if err != nil {
 		logger.Log.Error("Error updating unit: ", err)
@@ -135,7 +181,12 @@ func DeleteUnit(c *gin.Context) {
 		return
 	}
 
-	if err := unit_of_measure_repository.DeleteUnitOfMeasure(uint(id)); err != nil {
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	if err := unit_of_measure_repository.DeleteUnitOfMeasure(conn, uint(id)); err != nil {
 		logger.Log.Error("Error deleting unit: ", err)
 		error_handler.HandleDBErrorWithReferencingFetcher(c,
 			err,

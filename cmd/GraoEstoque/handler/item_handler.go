@@ -12,7 +12,7 @@ import (
 	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
-	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
+	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,21 +20,34 @@ import (
 func GetItems(c *gin.Context) {
 	logger.Log.Info("GetItems")
 
-	token := c.GetHeader("Authorization")
-	user, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
-	items, err := item_repository.ListItems(user.ID, uint(storeID))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	items, err := item_repository.ListItems(conn, user.ID, storeID)
 	if err != nil {
 		logger.Log.Error("Error fetching items: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -59,7 +72,12 @@ func GetItemByID(c *gin.Context) {
 		return
 	}
 
-	item, err := item_repository.GetItemByID(uint(id))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	item, err := item_repository.GetItemByID(conn, uint(id))
 	if err != nil {
 		logger.Log.Error("Error fetching item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -79,23 +97,37 @@ func CreateItem(c *gin.Context) {
 	// Retrieved from BindAndValidate middleware
 	req := c.MustGet("dto").(*dtoRequest.CreateItemRequest)
 
-	token := c.GetHeader("Authorization")
-	user, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	storeID, err := strconv.Atoi(c.GetHeader("X-Store-ID"))
+	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		c.Abort()
 		return
 	}
 
 	// Map request DTO to domain model
-	modelItem := mapper.CreateItemToModel(req, user.ID, uint(storeID))
-	if err := item_repository.SaveItem(modelItem); err != nil {
+	modelItem := mapper.CreateItemToModel(req, user.ID, storeID)
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	if err := item_repository.SaveItem(conn, modelItem); err != nil {
 		logger.Log.Error("Error saving item: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
@@ -108,11 +140,14 @@ func CreateItem(c *gin.Context) {
 func UpdateItem(c *gin.Context) {
 	logger.Log.Info("UpdateItem")
 
-	token := c.GetHeader("Authorization")
-	user, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
@@ -120,7 +155,12 @@ func UpdateItem(c *gin.Context) {
 	itemReq := c.MustGet("dto").(*dtoRequest.UpdateItemRequest)
 	itemModel := mapper.UpdateItemToModel(itemReq, user.ID)
 
-	updatedItem, err := item_repository.UpdateItem(itemModel)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	updatedItem, err := item_repository.UpdateItem(conn, itemModel)
 
 	if err != nil {
 		logger.Log.Error("Error updating item: ", err)
@@ -140,7 +180,12 @@ func DeleteItem(c *gin.Context) {
 		return
 	}
 
-	if err := item_repository.DeleteItem(uint(id)); err != nil {
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	if err := item_repository.DeleteItem(conn, uint(id)); err != nil {
 		logger.Log.Error("Error deleting item: ", err)
 		error_handler.HandleDBErrorWithReferencingFetcher(c,
 			err,

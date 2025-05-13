@@ -6,29 +6,22 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
-	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
 // SaveUnitOfMeasure inserts a new unit into the tb_unit_of_measure table
-func SaveUnitOfMeasure(unit *model.UnitOfMeasure) error {
+func SaveUnitOfMeasure(conn *pgxpool.Conn, unit *model.UnitOfMeasure) error {
 	logger.Log.Info("SaveUnitOfMeasure")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	defer conn.Release()
 
 	query := `
 		INSERT INTO tb_unit_of_measure (unit_description, created_by, store_id)
 		VALUES ($1, $2, $3)
 		RETURNING unit_id, unit_description, created_at, updated_at`
 
-	err = conn.QueryRow(context.Background(), query, unit.Description, unit.CreatedBy.ID, unit.Store.ID).
+	err := conn.QueryRow(context.Background(), query, unit.Description, unit.CreatedBy.ID, unit.Store.ID).
 		Scan(&unit.ID, &unit.Description, &unit.CreatedAt, &unit.UpdatedAt)
 
 	if err != nil {
@@ -41,14 +34,8 @@ func SaveUnitOfMeasure(unit *model.UnitOfMeasure) error {
 }
 
 // ListUnitsPaginated returns paginated unit list
-func ListUnitsPaginated(ownerID, storeID, offset, limit uint) ([]model.UnitOfMeasure, error) {
+func ListUnitsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, limit uint) ([]model.UnitOfMeasure, error) {
 	logger.Log.Infof("ListUnitsPaginated offset=%d limit=%d", offset, limit)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT unit_id, unit_description, created_by, created_at, updated_at
@@ -82,14 +69,8 @@ func ListUnitsPaginated(ownerID, storeID, offset, limit uint) ([]model.UnitOfMea
 }
 
 // GetUnitOfMeasureByID retrieves a single unit by ID
-func GetUnitOfMeasureByID(id uint) (*model.UnitOfMeasure, error) {
+func GetUnitOfMeasureByID(conn *pgxpool.Conn, id uint) (*model.UnitOfMeasure, error) {
 	logger.Log.Infof("GetUnitOfMeasureByID: %d", id)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT unit_id, unit_description, created_by, created_at, updated_at
@@ -97,7 +78,7 @@ func GetUnitOfMeasureByID(id uint) (*model.UnitOfMeasure, error) {
 		WHERE unit_id = $1`
 
 	var u model.UnitOfMeasure
-	err = conn.QueryRow(context.Background(), query, id).Scan(
+	err := conn.QueryRow(context.Background(), query, id).Scan(
 		&u.ID, &u.Description, &u.CreatedBy.ID, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err != nil {
@@ -110,14 +91,8 @@ func GetUnitOfMeasureByID(id uint) (*model.UnitOfMeasure, error) {
 }
 
 // UpdateUnitOfMeasure modifies an existing unit and returns the updated record
-func UpdateUnitOfMeasure(u *model.UnitOfMeasure) (*model.UnitOfMeasure, error) {
+func UpdateUnitOfMeasure(conn *pgxpool.Conn, u *model.UnitOfMeasure) (*model.UnitOfMeasure, error) {
 	logger.Log.Infof("UpdateUnitOfMeasure: %d", u.ID)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		UPDATE tb_unit_of_measure
@@ -130,7 +105,7 @@ func UpdateUnitOfMeasure(u *model.UnitOfMeasure) (*model.UnitOfMeasure, error) {
 	updated := &model.UnitOfMeasure{}
 	row := conn.QueryRow(context.Background(), query, u.Description, u.ID)
 
-	err = row.Scan(
+	err := row.Scan(
 		&updated.ID,
 		&updated.Description,
 		&updated.CreatedAt,
@@ -144,14 +119,8 @@ func UpdateUnitOfMeasure(u *model.UnitOfMeasure) (*model.UnitOfMeasure, error) {
 }
 
 // DeleteUnitOfMeasure removes a unit record
-func DeleteUnitOfMeasure(id uint) error {
+func DeleteUnitOfMeasure(conn *pgxpool.Conn, id uint) error {
 	logger.Log.Infof("DeleteUnitOfMeasure: %d", id)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-	defer conn.Release()
 
 	cmd, err := conn.Exec(context.Background(),
 		`DELETE FROM tb_unit_of_measure WHERE unit_id = $1`, id)
@@ -164,12 +133,7 @@ func DeleteUnitOfMeasure(id uint) error {
 	return nil
 }
 
-func GetReferencingItems(id uint) (any, error) {
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
+func GetReferencingItems(conn *pgxpool.Conn, id uint) (any, error) {
 
 	rows, err := conn.Query(context.Background(), `
 		SELECT item_id, item_description 

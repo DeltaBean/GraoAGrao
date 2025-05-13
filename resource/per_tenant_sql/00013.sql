@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE OR REPLACE FUNCTION fn_capitalize_proper_noun(input TEXT)
 RETURNS TEXT AS $$
 DECLARE

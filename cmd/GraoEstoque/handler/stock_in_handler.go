@@ -33,7 +33,12 @@ func CreateStockIn(c *gin.Context) {
 	cir := c.MustGet("dto").(*dtoRequest.CreateStockInRequest)
 	mcir := dtoMapper.CreateStockInToModel(cir)
 
-	err = stock_in_repository.SaveStockIn(mcir, authenticatedUser.ID)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_in_repository.SaveStockIn(conn, mcir, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock in: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock in"})
@@ -54,7 +59,12 @@ func GetStockInByID(c *gin.Context) {
 		return
 	}
 
-	stockIn, err := stock_in_repository.GetStockInByID(id)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	stockIn, err := stock_in_repository.GetStockInByID(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to retrieve stock in: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "StockIn not found"})
@@ -75,7 +85,12 @@ func ListAllStockIn(c *gin.Context) {
 		return
 	}
 
-	stockIns, err := stock_in_repository.ListAllStockIn(authenticatedUser.ID)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	stockIns, err := stock_in_repository.ListAllStockIn(conn, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Error listing stock in: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stock in list"})
@@ -103,7 +118,12 @@ func DeleteStockIn(c *gin.Context) {
 		return
 	}
 
-	err = stock_in_repository.DeleteStockIn(id)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_in_repository.DeleteStockIn(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to delete stock in: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete stock in"})
@@ -124,7 +144,12 @@ func FinalizeStockInByID(c *gin.Context) {
 		return
 	}
 
-	err = stock_in_repository.FinalizeStockInByID(id)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_in_repository.FinalizeStockInByID(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to finalize stock in: %v", err)
 		error_handler.HandleDBError(c, err, id)
@@ -149,7 +174,12 @@ func UpdateStockIn(c *gin.Context) {
 	stockInReq := c.MustGet("dto").(*dtoRequest.UpdateStockInRequest)
 	stockInModel := dtoMapper.UpdateStockInToModel(stockInReq)
 
-	err = stock_in_repository.UpdateStockIn(stockInModel)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_in_repository.UpdateStockIn(conn, stockInModel)
 
 	if err != nil {
 		logger.Log.Error("Error updating item: ", err)

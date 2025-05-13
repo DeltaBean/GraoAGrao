@@ -1,3 +1,5 @@
+-- +goose Up
+
 -- Step 1: Drop the 'category' column
 ALTER TABLE tb_item
 DROP COLUMN IF EXISTS category;

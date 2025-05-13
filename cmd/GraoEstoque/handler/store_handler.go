@@ -10,7 +10,7 @@ import (
 	dtoRequest "github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
-	"github.com/IlfGauhnith/GraoAGrao/pkg/util"
+	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,15 +18,23 @@ import (
 func GetStores(c *gin.Context) {
 	logger.Log.Info("GetStores")
 
-	token := c.GetHeader("Authorization")
-	user, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("JWT parse error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
 
-	stores, err := store_repository.ListStoresPaginated(user.ID, 0, 100)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	stores, err := store_repository.ListStoresPaginated(conn, user.ID, 0, 100)
 	if err != nil {
 		logger.Log.Error("Error fetching stores: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -51,7 +59,12 @@ func GetStoreByID(c *gin.Context) {
 		return
 	}
 
-	store, err := store_repository.GetStoreByID(uint(id))
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	store, err := store_repository.GetStoreByID(conn, uint(id))
 	if err != nil {
 		logger.Log.Error("Error getting store: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -70,16 +83,24 @@ func CreateStore(c *gin.Context) {
 
 	req := c.MustGet("dto").(*dtoRequest.CreateStoreRequest)
 
-	token := c.GetHeader("Authorization")
-	user, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("JWT parse error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
 		return
 	}
 
 	storeModel := mapper.CreateStoreToModel(req, user.ID)
-	if err := store_repository.SaveStore(storeModel, user.ID); err != nil {
+	if err := store_repository.SaveStore(conn, storeModel, user.ID); err != nil {
 		logger.Log.Error("Error saving store:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
@@ -94,16 +115,22 @@ func UpdateStore(c *gin.Context) {
 
 	req := c.MustGet("dto").(*dtoRequest.UpdateStoreRequest)
 
-	token := c.GetHeader("Authorization")
-	user, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("JWT parse error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		c.Abort()
 		return
 	}
-
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
 	store := mapper.UpdateStoreToModel(req, user.ID)
-	updated, err := store_repository.UpdateStore(store)
+	updated, err := store_repository.UpdateStore(conn, store)
 	if err != nil {
 		logger.Log.Error("Error updating store: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -123,7 +150,12 @@ func DeleteStore(c *gin.Context) {
 		return
 	}
 
-	if err := store_repository.DeleteStore(uint(id)); err != nil {
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	if err := store_repository.DeleteStore(conn, uint(id)); err != nil {
 		logger.Log.Error("Error deleting store:", err)
 		error_handler.HandleDBErrorWithReferencingFetcher(c,
 			err,

@@ -1,3 +1,4 @@
+-- +goose Up
 DROP VIEW IF EXISTS vw_stock_summary;
 
 CREATE OR REPLACE VIEW vw_stock_summary AS
@@ -16,12 +17,12 @@ SELECT
   s.current_stock,
   s.created_at         AS stock_created_at,
   s.updated_at         AS stock_updated_at
-FROM public.tb_stock AS s
-JOIN public.tb_item AS i
+FROM tb_stock AS s
+JOIN tb_item AS i
   ON i.item_id = s.item_id
-LEFT JOIN public.tb_category AS c
+LEFT JOIN tb_category AS c
   ON c.category_id = i.category_id
-JOIN public.tb_unit_of_measure AS uom
+JOIN tb_unit_of_measure AS uom
   ON uom.unit_id = i.unit_id
 JOIN public.tb_user AS u
   ON u.user_id = s.owner_id;

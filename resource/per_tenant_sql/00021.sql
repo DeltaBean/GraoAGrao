@@ -1,12 +1,13 @@
+-- +goose Up
 -- Step 1: Rename quantity to total_quantity in tb_stock_out_item
-ALTER TABLE public.tb_stock_out_item
+ALTER TABLE tb_stock_out_item
 RENAME COLUMN quantity TO total_quantity;
 
 -- Step 2: Create tb_stock_out_packaging table
-CREATE TABLE public.tb_stock_out_packaging (
+CREATE TABLE tb_stock_out_packaging (
     stock_out_packaging_id SERIAL PRIMARY KEY,
-    stock_out_item_id INT NOT NULL REFERENCES public.tb_stock_out_item(stock_out_item_id) ON DELETE CASCADE,
-    item_packaging_id INT NOT NULL REFERENCES public.tb_item_packaging(item_packaging_id),
+    stock_out_item_id INT NOT NULL REFERENCES tb_stock_out_item(stock_out_item_id) ON DELETE CASCADE,
+    item_packaging_id INT NOT NULL REFERENCES tb_item_packaging(item_packaging_id),
     quantity INT NOT NULL CHECK (quantity > 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -14,7 +15,7 @@ CREATE TABLE public.tb_stock_out_packaging (
 
 -- Add update timestamp trigger
 CREATE TRIGGER trg_set_updated_at_stock_out_packaging
-BEFORE UPDATE ON public.tb_stock_out_packaging
+BEFORE UPDATE ON tb_stock_out_packaging
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Step 3: Add status and finalized_at to tb_stock_out
@@ -24,14 +25,14 @@ BEGIN
         CREATE TYPE stock_out_status AS ENUM ('draft', 'finalized');
     END IF;
 END$$;
-ALTER TABLE public.tb_stock_out
-ADD COLUMN status public.stock_out_status DEFAULT 'draft'::stock_out_status NOT NULL,
+ALTER TABLE tb_stock_out
+ADD COLUMN status stock_out_status DEFAULT 'draft'::stock_out_status NOT NULL,
 ADD COLUMN finalized_at TIMESTAMPTZ NULL;
-COMMENT ON COLUMN public.tb_stock_out.status IS 'Stock-out status: ''draft'' allows editing; ''finalized'' triggers packaging consistency validation.';
+COMMENT ON COLUMN tb_stock_out.status IS 'Stock-out status: ''draft'' allows editing; ''finalized'' triggers packaging consistency validation.';
 
 -- Step 4: Trigger to set finalized_at on status change
 CREATE TRIGGER trg_set_finalized_at_stock_out
-BEFORE UPDATE ON public.tb_stock_out
+BEFORE UPDATE ON tb_stock_out
 FOR EACH ROW
 WHEN (OLD.status IS DISTINCT FROM NEW.status)
 EXECUTE FUNCTION set_finalized_at_on_status_change();
@@ -84,7 +85,7 @@ $$ LANGUAGE plpgsql;
 
 -- Step 6: Create validation trigger on tb_stock_out
 CREATE TRIGGER trg_validate_stock_out_on_finalize
-BEFORE UPDATE ON public.tb_stock_out
+BEFORE UPDATE ON tb_stock_out
 FOR EACH ROW
 EXECUTE FUNCTION validate_stock_out_packaging_totals();
 

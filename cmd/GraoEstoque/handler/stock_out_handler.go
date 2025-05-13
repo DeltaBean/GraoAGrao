@@ -33,7 +33,12 @@ func CreateStockOut(c *gin.Context) {
 	cor := c.MustGet("dto").(*dtoRequest.CreateStockOutRequest)
 	mcor := dtoMapper.CreateStockOutToModel(cor)
 
-	err = stock_out_repository.SaveStockOut(mcor, authenticatedUser.ID)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_out_repository.SaveStockOut(conn, mcor, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock out"})
@@ -54,7 +59,12 @@ func GetStockOutByID(c *gin.Context) {
 		return
 	}
 
-	stockOut, err := stock_out_repository.GetStockOutByID(id)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	stockOut, err := stock_out_repository.GetStockOutByID(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to retrieve stock out: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "StockOut not found"})
@@ -76,7 +86,12 @@ func ListAllStockOut(c *gin.Context) {
 		return
 	}
 
-	outs, err := stock_out_repository.ListAllStockOut(authenticatedUser.ID)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	outs, err := stock_out_repository.ListAllStockOut(conn, authenticatedUser.ID)
 	if err != nil {
 		logger.Log.Errorf("Error listing stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stock out list"})
@@ -103,7 +118,12 @@ func DeleteStockOut(c *gin.Context) {
 		return
 	}
 
-	err = stock_out_repository.DeleteStockOut(id)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_out_repository.DeleteStockOut(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to delete stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete stock out"})
@@ -125,7 +145,12 @@ func FinalizeStockOutByID(c *gin.Context) {
 		return
 	}
 
-	err = stock_out_repository.FinalizeStockOutByID(id)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_out_repository.FinalizeStockOutByID(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to finalize stock out: %v", err)
 		error_handler.HandleDBError(c, err, id)
@@ -151,7 +176,12 @@ func UpdateStockOut(c *gin.Context) {
 	stockOutReq := c.MustGet("dto").(*dtoRequest.UpdateStockOutRequest)
 	stockOutModel := dtoMapper.UpdateStockOutToModel(stockOutReq)
 
-	err = stock_out_repository.UpdateStockOut(stockOutModel)
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	err = stock_out_repository.UpdateStockOut(conn, stockOutModel)
 	if err != nil {
 		logger.Log.Error("Error updating stock out: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

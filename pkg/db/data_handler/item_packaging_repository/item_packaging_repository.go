@@ -7,22 +7,16 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
-	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
 // SaveItemPackaging inserts a new packaging into the tb_item_packaging table,
 // and returns the item description via a CTE join.
-func SaveItemPackaging(packaging *model.ItemPackaging) error {
+func SaveItemPackaging(conn *pgxpool.Conn, packaging *model.ItemPackaging) error {
 	logger.Log.Info("SaveItemPackaging")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-	defer conn.Release()
 
 	query := `
 		WITH inserted AS (
@@ -48,7 +42,7 @@ func SaveItemPackaging(packaging *model.ItemPackaging) error {
 		JOIN tb_unit_of_measure uom ON it.unit_id = uom.unit_id;
 	`
 
-	err = conn.QueryRow(context.Background(), query,
+	err := conn.QueryRow(context.Background(), query,
 		packaging.Item.ID,
 		packaging.Description,
 		packaging.Quantity,
@@ -78,14 +72,8 @@ func SaveItemPackaging(packaging *model.ItemPackaging) error {
 }
 
 // ListItemPackagingsPaginated returns a paginated list of packagings
-func ListItemPackagingsPaginated(ownerID, storeID, offset, limit uint) ([]model.ItemPackaging, error) {
+func ListItemPackagingsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, limit uint) ([]model.ItemPackaging, error) {
 	logger.Log.Infof("ListItemPackagingsPaginated offset=%d limit=%d", offset, limit)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
@@ -140,14 +128,8 @@ func ListItemPackagingsPaginated(ownerID, storeID, offset, limit uint) ([]model.
 }
 
 // GetItemPackagingByID retrieves a single packaging by ID
-func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
+func GetItemPackagingByID(conn *pgxpool.Conn, id uint) (*model.ItemPackaging, error) {
 	logger.Log.Infof("GetItemPackagingByID: %d", id)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
@@ -162,7 +144,7 @@ func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
 		WHERE sp.item_packaging_id = $1`
 
 	var p model.ItemPackaging
-	err = conn.QueryRow(context.Background(), query, id).Scan(
+	err := conn.QueryRow(context.Background(), query, id).Scan(
 		&p.ID,
 		&p.Description,
 		&p.Quantity,
@@ -189,14 +171,8 @@ func GetItemPackagingByID(id uint) (*model.ItemPackaging, error) {
 
 // UpdateItemPackaging modifies an existing record and returns the updated entity,
 // including the joined item description from tb_item.
-func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
+func UpdateItemPackaging(conn *pgxpool.Conn, p *model.ItemPackaging) (*model.ItemPackaging, error) {
 	logger.Log.Infof("UpdateItemPackaging: %d", p.ID)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Release()
 
 	query := `
 		WITH updated AS (
@@ -236,7 +212,7 @@ func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
 		p.ID,
 	)
 
-	err = row.Scan(
+	err := row.Scan(
 		&updated.ID,
 		&updated.Item.ID,
 		&updated.Item.Description,
@@ -262,14 +238,8 @@ func UpdateItemPackaging(p *model.ItemPackaging) (*model.ItemPackaging, error) {
 }
 
 // DeleteItemPackaging removes a packaging record
-func DeleteItemPackaging(id uint) error {
+func DeleteItemPackaging(conn *pgxpool.Conn, id uint) error {
 	logger.Log.Infof("DeleteItemPackaging: %d", id)
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		return err
-	}
-	defer conn.Release()
 
 	cmd, err := conn.Exec(context.Background(),
 		`DELETE FROM tb_item_packaging WHERE item_packaging_id = $1`, id)

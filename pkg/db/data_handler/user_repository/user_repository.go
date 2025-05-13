@@ -6,12 +6,13 @@ import (
 	"fmt"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db"
 
-	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	data_errors "github.com/IlfGauhnith/GraoAGrao/pkg/errors"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // SaveUser inserts a new user into the tb_user table
@@ -28,11 +29,11 @@ func SaveUser(user *model.User) error {
 	defer conn.Release()
 
 	query := `
-		INSERT INTO tb_user (
-			username, email, password_hash, salt, google_id,
+		INSERT INTO public.tb_user (
+			username, email, password_hash, salt, google_id, organization_id,
 			given_name, family_name, picture_url, auth_provider, is_active
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING user_id, created_at, updated_at`
 	err = conn.QueryRow(context.Background(), query,
 		user.Username,
@@ -40,6 +41,7 @@ func SaveUser(user *model.User) error {
 		user.PasswordHash,
 		user.Salt,
 		user.GoogleID,
+		user.Organization.ID,
 		user.GivenName,
 		user.FamilyName,
 		user.PictureURL,
@@ -57,25 +59,17 @@ func SaveUser(user *model.User) error {
 }
 
 // GetUserByID retrieves a user from the tb_user table by user_id.
-func GetUserByID(id uint) (*model.User, error) {
+func GetUserByID(conn *pgxpool.Conn, id uint) (*model.User, error) {
 	logger.Log.Info("GetUserByID")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	logger.Log.Info("DB connection successfully acquired.")
-	defer conn.Release()
 
 	query := `
 		SELECT user_id, username, email, password_hash, salt, google_id,
 		       given_name, family_name, picture_url, auth_provider,
 		       created_at, updated_at, last_login, is_active
-		FROM tb_user
+		FROM public.tb_user
 		WHERE user_id = $1`
 	user := &model.User{}
-	err = conn.QueryRow(context.Background(), query, id).Scan(
+	err := conn.QueryRow(context.Background(), query, id).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,
@@ -102,25 +96,17 @@ func GetUserByID(id uint) (*model.User, error) {
 }
 
 // GetUserByEmail retrieves a user from the tb_user table by email.
-func GetUserByEmail(email string) (*model.User, error) {
+func GetUserByEmail(conn *pgxpool.Conn, email string) (*model.User, error) {
 	logger.Log.Info("GetUserByEmail")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return nil, err
-	}
-	logger.Log.Info("DB connection successfully acquired.")
-	defer conn.Release()
 
 	query := `
 		SELECT user_id, username, email, password_hash, salt, google_id,
 		       given_name, family_name, picture_url, auth_provider,
 		       created_at, updated_at, last_login, is_active
-		FROM tb_user
+		FROM public.tb_user
 		WHERE email = $1`
 	user := &model.User{}
-	err = conn.QueryRow(context.Background(), query, email).Scan(
+	err := conn.QueryRow(context.Background(), query, email).Scan(
 		&user.ID,
 		&user.Username,
 		&user.Email,
@@ -147,19 +133,10 @@ func GetUserByEmail(email string) (*model.User, error) {
 }
 
 // UpdateUser updates an existing user in the tb_user table.
-func UpdateUser(user *model.User) error {
+func UpdateUser(conn *pgxpool.Conn, user *model.User) error {
 	logger.Log.Info("UpdatedUser")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	logger.Log.Info("DB connection successfully acquired.")
-	defer conn.Release()
-
 	query := `
-		UPDATE tb_user
+		UPDATE public.tb_user
 		SET username = $1,
 		    email = $2,
 		    password_hash = $3,
@@ -201,18 +178,10 @@ func UpdateUser(user *model.User) error {
 }
 
 // DeleteUser deletes a user from the tb_user table by user_id.
-func DeleteUser(id uint) error {
+func DeleteUser(conn *pgxpool.Conn, id uint) error {
 	logger.Log.Info("DeleteUser")
 
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	logger.Log.Info("DB connection successfully acquired.")
-	defer conn.Release()
-
-	query := `DELETE FROM tb_user WHERE user_id = $1`
+	query := `DELETE FROM public.tb_user WHERE user_id = $1`
 	cmdTag, err := conn.Exec(context.Background(), query, id)
 	if err != nil {
 		logger.Log.Errorf("Error deleting user: %v", err)
@@ -240,10 +209,12 @@ func GetUserByGoogleID(googleID string) (*model.User, error) {
 	defer conn.Release()
 
 	query := `
-		SELECT user_id, username, email, password_hash, salt, google_id,
-		       given_name, family_name, picture_url, auth_provider,
-		       created_at, updated_at, last_login, is_active
-		FROM tb_user
+		SELECT us.user_id, us.username, us.email, us.password_hash, us.salt, us.google_id,
+		       us.given_name, us.family_name, us.picture_url, us.auth_provider,
+		       us.created_at, us.updated_at, us.last_login, us.is_active,
+			   org.organization_id, org.organization_name, org.organization_key, org.domain, org.schema_name
+		FROM public.tb_user us
+		JOIN tb_organization org ON us.organization_id = org.organization_id
 		WHERE google_id = $1`
 	user := &model.User{}
 	err = conn.QueryRow(context.Background(), query, googleID).Scan(
@@ -261,6 +232,11 @@ func GetUserByGoogleID(googleID string) (*model.User, error) {
 		&user.UpdatedAt,
 		&user.LastLogin,
 		&user.IsActive,
+		&user.Organization.ID,
+		&user.Organization.Name,
+		&user.Organization.Key,
+		&user.Organization.Domain,
+		&user.Organization.DBSchema,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -289,7 +265,7 @@ func StampNowLastLogin(userID uint) error {
 	defer conn.Release()
 
 	query := `
-		UPDATE tb_user 
+		UPDATE public.tb_user 
 		SET last_login = NOW()
 		WHERE user_id = $1
 	`

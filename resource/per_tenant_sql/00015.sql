@@ -1,3 +1,4 @@
+-- +goose Up
 -- applying description capitalization for tb_item
 CREATE OR REPLACE FUNCTION trg_capitalize_item_description()
 RETURNS TRIGGER AS $$
