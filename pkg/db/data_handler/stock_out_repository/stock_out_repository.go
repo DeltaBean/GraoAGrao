@@ -13,7 +13,7 @@ import (
 )
 
 // SaveStockOut saves a stock-out transaction and its items with packaging breakdowns
-func SaveStockOut(conn *pgxpool.Conn, stockOut *model.StockOut, ownerID uint) error {
+func SaveStockOut(conn *pgxpool.Conn, stockOut *model.StockOut, ownerID, storeID uint) error {
 	logger.Log.Info("SaveStockOut")
 
 	tx, err := conn.Begin(context.Background())
@@ -25,11 +25,11 @@ func SaveStockOut(conn *pgxpool.Conn, stockOut *model.StockOut, ownerID uint) er
 
 	// Insert parent record
 	insertOut := `
-		INSERT INTO tb_stock_out (created_by)
-		VALUES ($1)
+		INSERT INTO tb_stock_out (created_by, store_id)
+		VALUES ($1, $2)
 		RETURNING stock_out_id, created_at, updated_at, status
 	`
-	err = tx.QueryRow(context.Background(), insertOut, ownerID).
+	err = tx.QueryRow(context.Background(), insertOut, ownerID, storeID).
 		Scan(&stockOut.ID, &stockOut.CreatedAt, &stockOut.UpdatedAt, &stockOut.Status)
 	if err != nil {
 		logger.Log.Errorf("Error inserting stock_out: %v", err)
@@ -80,16 +80,16 @@ func SaveStockOut(conn *pgxpool.Conn, stockOut *model.StockOut, ownerID uint) er
 }
 
 // ListAllStockOut returns all StockOut headers for a given owner (without items)
-func ListAllStockOut(conn *pgxpool.Conn, ownerID uint) ([]*model.StockOut, error) {
-	logger.Log.Infof("ListAllStockOut ownerID=%d", ownerID)
+func ListAllStockOut(conn *pgxpool.Conn, ownerID, storeID uint) ([]*model.StockOut, error) {
+	logger.Log.Infof("ListAllStockOut storeID=%d", storeID)
 
 	query := `
 		SELECT stock_out_id, created_by, created_at, updated_at, status, finalized_at
 		FROM tb_stock_out
-		WHERE created_by = $1
+		WHERE created_by = $1 AND store_id = $2
 		ORDER BY created_at DESC
 	`
-	rows, err := conn.Query(context.Background(), query, ownerID)
+	rows, err := conn.Query(context.Background(), query, ownerID, storeID)
 	if err != nil {
 		logger.Log.Errorf("Error querying stock_out list: %v", err)
 		return nil, err

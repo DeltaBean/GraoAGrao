@@ -29,6 +29,7 @@ func ListUnits(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -40,6 +41,7 @@ func ListUnits(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -108,6 +110,7 @@ func CreateUnit(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -119,6 +122,7 @@ func CreateUnit(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -149,6 +153,7 @@ func UpdateUnit(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}

@@ -27,6 +27,7 @@ func GetItems(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -38,6 +39,7 @@ func GetItems(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -104,6 +106,7 @@ func CreateItem(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -115,6 +118,7 @@ func CreateItem(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -147,6 +151,7 @@ func UpdateItem(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}

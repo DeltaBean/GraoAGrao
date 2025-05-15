@@ -24,7 +24,6 @@ func InitRoutes(router *gin.Engine) {
 	storeGroup.Use(
 		middleware.AuthMiddleware(),
 		middleware.TenantMiddleware(),
-		middleware.StoreMiddleware(),
 	)
 	{
 		storeGroup.GET("", handler.GetStores)

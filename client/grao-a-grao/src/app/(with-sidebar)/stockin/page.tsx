@@ -89,7 +89,7 @@ export default function StockInPage() {
         handleStockInTotalQuantityNotMatchingError(errorData);
 
       } else {
-        alert("Unexpected error occurred while deleting the item.");
+        alert("Ocorreu um erro não esperado ao tentar finalizar a entrada de estoque.");
         console.error(err);
       }
 

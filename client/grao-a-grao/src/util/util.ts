@@ -107,15 +107,17 @@ export function logout(): void {
   localStorage.removeItem("userName");
 }
 
-export function getSelectedStore(): StoreModel {
+export function getSelectedStore(): StoreModel | undefined {
+  if (typeof window === "undefined") return undefined;
 
   const store = sessionStorage.getItem("selectedStore");
 
-  if (!store) {
-    throw new Error("No store found in session storage");
+  if (!store) return undefined;
+
+  try {
+    return JSON.parse(store);
+  } catch (error) {
+    console.error("Error parsing selectedStore:", error);
+    return undefined;
   }
-
-  const parsedStore = JSON.parse(store);
-
-  return parsedStore;
 }

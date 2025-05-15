@@ -257,7 +257,7 @@ export default function ItemPackagingPage() {
                     <ModalFormItemPackaging
                         mode={isModalEdit ? "edit" : "create"}
                         editItemPackaging={isModalEdit ? editItemPackaging : undefined}
-                        itemOptions={items}
+                        itemOptions={items.filter((it) => it.is_fractionable)}
                         onClose={handleCloseModal}
                         onSubmitCreate={handleCreate}
                         onSubmitEdit={handleEdit}

@@ -16,10 +16,27 @@ import (
 func GetStock(c *gin.Context) {
 	logger.Log.Info("GetStock")
 
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
+		return
+	}
+
+	storeID, err := util.GetStoreIDFromContext(c)
+	if err != nil {
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -28,7 +45,7 @@ func GetStock(c *gin.Context) {
 		return
 	}
 
-	stock, err := stock_repository.GetStock(conn, authenticatedUser.ID)
+	stock, err := stock_repository.GetStock(conn, user.ID, storeID)
 	if err != nil {
 		logger.Log.Error("Error fetching stock: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

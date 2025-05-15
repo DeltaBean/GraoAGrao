@@ -26,6 +26,7 @@ func GetCategories(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -37,6 +38,7 @@ func GetCategories(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -95,6 +97,7 @@ func CreateCategory(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -106,6 +109,7 @@ func CreateCategory(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -138,6 +142,7 @@ func UpdateCategory(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}

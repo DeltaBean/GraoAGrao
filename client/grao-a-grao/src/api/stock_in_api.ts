@@ -1,6 +1,6 @@
 // api/stock_in.ts
 
-import { getAPIUrl, getAuthToken } from "@/util/util";
+import { getAPIUrl, getAuthToken, getSelectedStore } from "@/util/util";
 import {
   CreateStockInRequest,
   UpdateStockInRequest,
@@ -11,11 +11,13 @@ import {
 export async function fetchStockIns(): Promise<StockInResponse[]> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/stock/in`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
     });
 
@@ -34,11 +36,13 @@ export async function fetchStockIns(): Promise<StockInResponse[]> {
 export async function fetchStockInById(id: number): Promise<StockInResponse> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/stock/in/${id}`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
     });
 
@@ -57,12 +61,14 @@ export async function fetchStockInById(id: number): Promise<StockInResponse> {
 export async function createStockIn(request: CreateStockInRequest): Promise<StockInResponse> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/stock/in`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
       body: JSON.stringify(request),
     });
@@ -82,12 +88,14 @@ export async function createStockIn(request: CreateStockInRequest): Promise<Stoc
 export async function updateStockIn(request: UpdateStockInRequest): Promise<StockInResponse> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/stock/in`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
       body: JSON.stringify(request),
     });
@@ -106,11 +114,13 @@ export async function updateStockIn(request: UpdateStockInRequest): Promise<Stoc
 // Delete a stock-in
 export async function deleteStockIn(id: number): Promise<void> {
   const token = getAuthToken();
+  const store = getSelectedStore();
 
   const res = await fetch(`${getAPIUrl()}/stock/in/${id}`, {
     method: "DELETE",
     headers: {
       "Authorization": `Bearer ${token}`,
+      "X-Store-ID": store?.id?.toString() ?? "",
     },
   });
 
@@ -131,11 +141,13 @@ export async function deleteStockIn(id: number): Promise<void> {
 
 export async function finalizeStockIn(id: number): Promise<void> {
   const token = getAuthToken();
+  const store = getSelectedStore();
 
   const res = await fetch(`${getAPIUrl()}/stock/in/finalize/${id}`, {
     method: "PATCH",
     headers: {
       "Authorization": `Bearer ${token}`,
+      "X-Store-ID": store?.id?.toString() ?? "",
     },
   });
 

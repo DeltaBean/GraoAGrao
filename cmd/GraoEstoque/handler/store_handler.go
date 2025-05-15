@@ -25,6 +25,7 @@ func GetStores(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -90,6 +91,7 @@ func CreateStore(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -122,6 +124,7 @@ func UpdateStore(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}

@@ -21,11 +21,27 @@ import (
 func CreateStockOut(c *gin.Context) {
 	logger.Log.Info("CreateStockOut")
 
-	token := c.GetHeader("Authorization")
-	authenticatedUser, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
+		return
+	}
+
+	storeID, err := util.GetStoreIDFromContext(c)
+	if err != nil {
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -38,7 +54,7 @@ func CreateStockOut(c *gin.Context) {
 		return
 	}
 
-	err = stock_out_repository.SaveStockOut(conn, mcor, authenticatedUser.ID)
+	err = stock_out_repository.SaveStockOut(conn, mcor, user.ID, storeID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock out"})
@@ -78,11 +94,27 @@ func GetStockOutByID(c *gin.Context) {
 func ListAllStockOut(c *gin.Context) {
 	logger.Log.Info("ListAllStockOut")
 
-	token := c.GetHeader("Authorization")
-	authenticatedUser, err := util.GetUserFromJWT(token)
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
+		return
+	}
+
+	storeID, err := util.GetStoreIDFromContext(c)
+	if err != nil {
+		if err == util.ErrNoStoreID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -91,7 +123,7 @@ func ListAllStockOut(c *gin.Context) {
 		return
 	}
 
-	outs, err := stock_out_repository.ListAllStockOut(conn, authenticatedUser.ID)
+	outs, err := stock_out_repository.ListAllStockOut(conn, user.ID, storeID)
 	if err != nil {
 		logger.Log.Errorf("Error listing stock out: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stock out list"})

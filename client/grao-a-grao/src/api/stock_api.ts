@@ -1,4 +1,4 @@
-import { getAPIUrl, getAuthToken } from "@/util/util";
+import { getAPIUrl, getAuthToken, getSelectedStore } from "@/util/util";
 import { StockResponse } from "@/types/stock";
 
 /**
@@ -7,10 +7,13 @@ import { StockResponse } from "@/types/stock";
 export async function fetchStocks(): Promise<StockResponse[]> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
+
     const res = await fetch(`${getAPIUrl()}/stock`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
     });
 

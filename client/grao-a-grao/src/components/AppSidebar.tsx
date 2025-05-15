@@ -73,7 +73,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentUrl = pathname + (searchParams.toString() ? `?${searchParams}` : '');
-  
+
   const [stores, setStores] = useState<StoreModel[]>([]);
 
   const fetchStores = async () => {
@@ -105,7 +105,6 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-
       <SidebarHeader>
         <StoreSwitcher
           stores={stores}

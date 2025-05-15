@@ -10,7 +10,7 @@ export async function fetchItemPackaging(): Promise<ItemPackagingResponse[]> {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store.id.toString(),
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
     });
 
@@ -36,7 +36,7 @@ export async function createItemPackaging(itemPackaging: ItemPackagingRequest): 
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store.id.toString(),
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
       body: JSON.stringify(itemPackaging)
     });

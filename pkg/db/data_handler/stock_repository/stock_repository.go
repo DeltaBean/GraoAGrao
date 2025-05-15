@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetStock(conn *pgxpool.Conn, OwnerID uint) ([]model.Stock, error) {
+func GetStock(conn *pgxpool.Conn, OwnerID, StoreID uint) ([]model.Stock, error) {
 	logger.Log.Info("GetStock")
 
 	query := `
@@ -16,11 +16,11 @@ func GetStock(conn *pgxpool.Conn, OwnerID uint) ([]model.Stock, error) {
 		ean13, category_description, category_id, unit_id, unit_description,
 		stock_updated_at
 		FROM vw_stock_summary
-		WHERE created_by = $1
+		WHERE created_by = $1 AND store_id = $2
 		ORDER BY item_description;
 	`
 
-	rows, err := conn.Query(context.Background(), query, OwnerID)
+	rows, err := conn.Query(context.Background(), query, OwnerID, StoreID)
 	if err != nil {
 		logger.Log.Errorf("Error querying items: %v", err)
 		return nil, err

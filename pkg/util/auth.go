@@ -185,12 +185,12 @@ func GetUserFromContext(c *gin.Context) (model.User, error) {
 		return model.User{}, ErrNoUser
 	}
 
-	user, ok := raw.(model.User)
+	user, ok := raw.(*model.User)
 	if !ok {
 		return model.User{}, ErrInvalidUserType
 	}
 
-	return user, nil
+	return *user, nil
 }
 
 var (

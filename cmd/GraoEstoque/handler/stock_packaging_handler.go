@@ -27,6 +27,7 @@ func CreateItemPackaging(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -38,6 +39,7 @@ func CreateItemPackaging(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -93,6 +95,7 @@ func ListItemPackagings(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
@@ -104,6 +107,7 @@ func ListItemPackagings(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 		}
+		logger.Log.Error(err)
 		c.Abort()
 		return
 	}
