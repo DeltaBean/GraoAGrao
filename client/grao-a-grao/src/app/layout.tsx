@@ -45,7 +45,7 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="translucent">
+        <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="solid">
           <ThemePanel />
           <GlobalFetchInterceptor>
             {children}

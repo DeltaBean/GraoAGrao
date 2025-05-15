@@ -4,6 +4,7 @@ export const ErrorCodes = {
     GENERIC_DATABASE_ERROR: "GENERIC_DATABASE_ERROR",
     STOCK_IN_TOTAL_QUANTITY_WRONG: "STOCK_IN_TOTAL_QUANTITY_WRONG",
     STOCK_OUT_TOTAL_QUANTITY_WRONG: "STOCK_OUT_TOTAL_QUANTITY_WRONG",
+    GOOGLE_USER_NOT_FOUND: "GOOGLE_USER_NOT_FOUND",
 } as const;
 
 export interface GenericPostgreSQLErrorResponse {
@@ -39,6 +40,11 @@ export interface StockInTotalQuantityNotMatchingResponse {
 export interface StockOutTotalQuantityNotMatchingResponse {
     error: string;
     code: string;
+    internal_code: string;
+    details: string;
+}
+
+export interface GoogleUserNotFoundResponse {
     internal_code: string;
     details: string;
 }

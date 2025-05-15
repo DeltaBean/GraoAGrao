@@ -9,12 +9,14 @@ import (
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/user_repository"
 
+	"net/http"
+	"net/url"
+
+	dtoResponse "github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 
-	"net/http"
-
 	auth "github.com/IlfGauhnith/GraoAGrao/pkg/auth"
-	data_errors "github.com/IlfGauhnith/GraoAGrao/pkg/errors"
+	errorCodes "github.com/IlfGauhnith/GraoAGrao/pkg/errors"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	util "github.com/IlfGauhnith/GraoAGrao/pkg/util"
 	"github.com/gin-gonic/gin"
@@ -100,19 +102,33 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 		return
 	}
 
+	frontendURL := os.Getenv("FRONTEND_URL")
 	userStruct, err := user_repository.GetUserByGoogleID(googleUserInfoStruct.ID)
 	if err != nil {
-		var googleUserNotFound *data_errors.GoogleIDUserNotFound
+		var googleUserNotFound *errorCodes.GoogleIDUserNotFound
 		if errors.As(err, &googleUserNotFound) {
-			logger.Log.Info("Google user not found in DB. Creating new user.")
-			// Update the outer variable, not creating a new one.
-			userStruct = util.NewUserFromGoogleUserInfo(googleUserInfoStruct)
-			if err = user_repository.SaveUser(userStruct); err != nil {
-				logger.Log.Error("Error saving user: ", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving user"})
+			logger.Log.Info("Google user not found in DB.")
+
+			errPayload := dtoResponse.GoogleUserNotFoundErrorResponse{
+				InternalCode: errorCodes.CodeGoogleUserNotFound,
+				Details:      "No user is associated with this Google account.",
+			}
+
+			jsonBytes, err := json.Marshal(errPayload)
+			if err != nil {
+				logger.Log.Error("failed to marshal Google user not found error: ", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 				return
 			}
-			logger.Log.Info("User successfully created from Google user info.")
+
+			redirectURL := fmt.Sprintf(
+				"%s/OAuthCallback?error=%s",
+				frontendURL,
+				url.QueryEscape(string(jsonBytes)),
+			)
+
+			c.Redirect(http.StatusFound, redirectURL)
+			return
 		} else {
 			logger.Log.Error("Error retrieving user by Google ID: ", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving user by Google ID"})
@@ -131,7 +147,6 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 	user_repository.StampNowLastLogin(userStruct.ID)
 
 	// Redirect to frontend with JWT and user info as query parameters
-	frontendURL := os.Getenv("FRONTEND_URL")
 	redirectURL := fmt.Sprintf("%s/OAuthCallback?token=%s&name=%s&email=%s&user_picture_url=%s", frontendURL, jwt, googleUserInfoStruct.Name, googleUserInfoStruct.Email, googleUserInfoStruct.Picture)
 	c.Redirect(http.StatusFound, redirectURL)
 }

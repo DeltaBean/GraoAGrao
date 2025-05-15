@@ -8,4 +8,5 @@ const (
 	CodeForeignKeyReferenceMissing       ErrorCode = "FOREIGN_KEY_REFERENCE_MISSING"
 	CodeStockInTotalQuantityNotMatching  ErrorCode = "STOCK_IN_TOTAL_QUANTITY_WRONG"
 	CodeStockOutTotalQuantityNotMatching ErrorCode = "STOCK_OUT_TOTAL_QUANTITY_WRONG"
+	CodeGoogleUserNotFound               ErrorCode = "GOOGLE_USER_NOT_FOUND"
 )

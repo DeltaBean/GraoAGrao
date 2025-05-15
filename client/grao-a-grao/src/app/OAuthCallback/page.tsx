@@ -10,6 +10,12 @@ function OAuthCallbackContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    const errorParam = searchParams.get("error");
+
+    if (errorParam) {
+      router.push(`/login?google_auth_error=${encodeURIComponent(errorParam)}`);
+    }
+
     const token = searchParams.get("token");
     const name = searchParams.get("name");
     const email = searchParams.get("email");
@@ -27,7 +33,7 @@ function OAuthCallbackContent() {
 
   return (
     <div>
-      <Heading>Redirecting...</Heading>
+      <Heading>Redirecionando...</Heading>
     </div>
   );
 }

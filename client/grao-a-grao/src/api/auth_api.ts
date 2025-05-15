@@ -12,8 +12,18 @@ export async function GoogleOAuthLogin() {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
+        const contentType = response.headers.get("Content-Type") || "";
+        if (contentType.includes("application/json")) {
+            const data = await response.json();
+
+            // throw structured error with type attached
+            throw {
+                status: response.status,
+                data,
+            };
+        }
+
+        throw new Error('Unknown server error while deleting item.');
     }
 
     const { googleUrl } = await response.json();

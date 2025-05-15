@@ -4,7 +4,46 @@
 import { Flex, Heading, Card, Box, TextField, Text, Button, Skeleton, IconButton } from "@radix-ui/themes";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/16/solid";
 import { GoogleOAuthLogin } from "@/api/auth_api";
+import { ErrorCodes, GoogleUserNotFoundResponse } from "@/errors/api_error";
+import { useEffect, useState } from "react";
+import ModalGenericError from "@/components/Error/ModalGenericError";
+import { useSearchParams } from "next/navigation";
 export default function LoginPage() {
+
+    type ErrorModalState =
+        | {
+            type: "google-user-notfound";
+            data: GoogleUserNotFoundResponse;
+            title: string;
+            details: string;
+        }
+        | { type: "none" };
+    const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
+
+
+    const handleGoogleUserNotFoundError = (
+        err: GoogleUserNotFoundResponse,
+        title: string = "Conta Google não vinculada",
+        details: string = "Não encontramos nenhum usuário vinculado a essa conta Google. Você poderá, em breve, adquirir uma assinatura para usar a ferramenta. Enquanto isso, você pode testar a plataforma usando a opção 'Experimentar' disponível na tela de login."
+    ) => {
+        setErrorModal({ type: "google-user-notfound", data: err, title, details });
+    };
+
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const errorEncoded = searchParams.get("google_auth_error");
+        if (errorEncoded) {
+            try {
+                const parsedError: GoogleUserNotFoundResponse = JSON.parse(decodeURIComponent(errorEncoded));
+                handleGoogleUserNotFoundError(parsedError);
+            } catch (err) {
+                console.error("Erro ao interpretar erro de OAuthCallback", err);
+                alert("Ocorreu um erro inesperado.")
+            }
+        }
+    }, []);
+
     async function handleGoogleLogin() {
         try {
             // Call your authService function
@@ -14,12 +53,11 @@ export default function LoginPage() {
             window.location.href = googleUrl;
         } catch (error) {
             console.error("Google OAUTH error:", error);
-            alert("Unable to initiate Google login.");
         }
     }
 
     return (
-        <Flex direction={"column"} className="min-h-screen">
+        <Flex direction={"column"} className="min-h-screen w-full">
             <Flex
                 id="main-flex"
                 className="flex-1 w-full"
@@ -79,6 +117,14 @@ export default function LoginPage() {
                         </Flex>
                     </Box>
                 </Card>
+                {errorModal.type === "google-user-notfound" && (
+                    <ModalGenericError
+                        title={errorModal.title}
+                        error={errorModal.data}
+                        details={errorModal.details}
+                        onClose={() => setErrorModal({ type: "none" })}
+                    />
+                )}
             </Flex>
         </Flex>
     );

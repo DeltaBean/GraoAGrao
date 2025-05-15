@@ -6,7 +6,7 @@ import { ItemPackagingModel } from "@/types/item_packaging";
 
 type ModalGenericErrorProps = {
   onClose: () => void;
-  error: GenericPostgreSQLErrorResponse;
+  error: any;
   title: string;
   details: string;
 };
