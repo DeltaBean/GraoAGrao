@@ -19,9 +19,9 @@ export default function TryOutPage() {
             >
                 <Card className="w-3/4 sm:w-1/2">
 
-                <IconButton variant="ghost" color="gray" onClick={() => router.push("/login")}>
-                    <ArrowLeft></ArrowLeft>
-                </IconButton>
+                    <IconButton variant="ghost" color="gray" onClick={() => router.push("/login")}>
+                        <ArrowLeft></ArrowLeft>
+                    </IconButton>
 
                     <Flex px="5" pb="5" gap="8" direction={"column"}>
 
@@ -53,7 +53,7 @@ export default function TryOutPage() {
                                         </Text>
                                         <Separator size={"4"}></Separator>
                                         <Text size="3" weight={"light"}>
-                                            Seus dados ficam salvos só durante a demonstração. Depois de 24 horas, tudo é apagado automaticamente, seguindo as regras da <Strong>LGPD</Strong>.
+                                            Seus dados ficam salvos só durante a demonstração. Depois de 24 horas, tudo é apagado automaticamente, em conformidade com a <Strong>LGPD</Strong>.
                                         </Text>
                                     </Flex>
                                 </AccordionContent>

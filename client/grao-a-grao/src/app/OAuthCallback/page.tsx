@@ -20,6 +20,8 @@ function OAuthCallbackContent() {
     const name = searchParams.get("name");
     const email = searchParams.get("email");
     const avatar_url = searchParams.get("user_picture_url");
+    const isTryOut = searchParams.get("isTryOut")
+    const uuid = searchParams.get("uuid")
 
     if (token) {
       localStorage.setItem("authToken", token);
@@ -27,7 +29,23 @@ function OAuthCallbackContent() {
       localStorage.setItem("userEmail", email || "");
       localStorage.setItem("userPictureUrl", avatar_url || "");
       setIsUserLoggedIn(true);
-      router.push("/");
+
+      if (isTryOut === "true" && window.opener) {
+        // send data back to the opener window
+        window.opener.postMessage(
+          {
+            token,
+            uuid,
+            name,
+            email,
+            avatar_url,
+          },
+          window.location.origin
+        );
+        window.close();
+      } else {
+        router.push("/");
+      }
     }
   }, [router, searchParams]);
 

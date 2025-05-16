@@ -17,7 +17,7 @@ import (
 
 // SaveUser inserts a new user into the tb_user table
 // and returns the new user ID and timestamps.
-func SaveUser(user *model.User) error {
+func SaveUser(conn *pgxpool.Conn, user *model.User) error {
 	logger.Log.Info("CreateUser")
 
 	conn, err := db.GetDB().Acquire(context.Background())

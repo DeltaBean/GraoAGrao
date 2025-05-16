@@ -19,6 +19,11 @@ func InitRoutes(router *gin.Engine) {
 		authRoutes.GET("/google/callback", handler.GoogleAuthCallBackHandler)
 	}
 
+	tryOutRoutes := router.Group("/tryOut")
+	{
+		tryOutRoutes.GET("/status", handler.GetTryOutJobStatus)
+	}
+
 	// Store endpoints
 	storeGroup := router.Group("/stores")
 	storeGroup.Use(

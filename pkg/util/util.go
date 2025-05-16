@@ -4,16 +4,18 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/tryout_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/service/tryout_service"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/robfig/cron/v3"
 )
 
 func GetStage() string {
@@ -47,18 +49,8 @@ func WaitForShutdown() {
 func NewUserFromGoogleUserInfo(googleUser model.GoogleUserInfo) *model.User {
 	now := time.Now()
 
-	// Use googleUser.Name as the username if provided;
-	// otherwise, default to the portion of the email before the '@'.
-	username := googleUser.Name
-	if username == "" {
-		parts := strings.Split(googleUser.Email, "@")
-		if len(parts) > 0 {
-			username = parts[0]
-		}
-	}
-
 	return &model.User{
-		Username:     username,
+		Username:     "",
 		Email:        googleUser.Email,
 		GoogleID:     googleUser.ID,
 		GivenName:    googleUser.GivenName,
@@ -68,9 +60,6 @@ func NewUserFromGoogleUserInfo(googleUser model.GoogleUserInfo) *model.User {
 		UpdatedAt:    now,
 		LastLogin:    now,
 		IsActive:     true,
-		Organization: model.Organization{
-			ID: 1, // Default organization ID; TODO to replace with actual logic
-		},
 		// PasswordHash and Salt remain empty because this user signed in with Google.
 	}
 }
@@ -94,4 +83,41 @@ func GetDBConnFromContext(c *gin.Context) *pgxpool.Conn {
 	}
 
 	return conn
+}
+
+func StartTryOutCronWorker() {
+	c := cron.New()
+
+	// Run every 30 seconds
+	// Process tryout environment creation jobs
+	c.AddFunc("@every 30s", func() {
+		jobs, err := tryout_repository.ListTryOutJobByStatus("pending")
+		if err != nil {
+			logger.Log.Error("Failed to list pending demo jobs:", err)
+			return
+		}
+		for _, job := range jobs {
+			err = tryout_service.ProcessTryOutJob(&job)
+			if err != nil {
+				logger.Log.Error(err)
+			}
+		}
+	})
+
+	// Run every 1 hour
+	// Process tryout environment expiration jobs
+	c.AddFunc("@every 1h", func() {
+		jobs, err := tryout_repository.ListTryOutJobByStatus("completed")
+		if err != nil {
+			logger.Log.Error("Failed to list completed demo jobs:", err)
+			return
+		}
+		for _, job := range jobs {
+			err = tryout_service.ExpireTryOutJob(&job)
+			if err != nil {
+				logger.Log.Error(err)
+			}
+		}
+	})
+	c.Start()
 }

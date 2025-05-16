@@ -123,14 +123,13 @@ func TenantMiddleware() gin.HandlerFunc {
 
 		DBSchema := userModel.Organization.DBSchema
 
-		// Validate schema name
-		validSchema := regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+		// Validate schema name, allowing letters, digits, underscores and hyphens (but must start with letter or underscore)
+		validSchema := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_-]*$`)
 		if !validSchema.MatchString(DBSchema) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid schema name"})
 			c.Abort()
 			return
 		}
-
 		// 3) Acquire a conn
 		conn, err := db.GetDB().Acquire(c)
 		if err != nil {
@@ -147,7 +146,7 @@ func TenantMiddleware() gin.HandlerFunc {
 		// This is important for multi-tenancy, as it allows you to use the same database
 		// for multiple organizations, each with its own schema.
 		// This way, you can ensure that each organization only has access to its own data.
-		schemaQuery := fmt.Sprintf(`SET search_path TO %s, public`, DBSchema)
+		schemaQuery := fmt.Sprintf("SET search_path TO \"%s\", public", DBSchema)
 		_, err = conn.Exec(context.Background(), schemaQuery)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to set organization schema"})

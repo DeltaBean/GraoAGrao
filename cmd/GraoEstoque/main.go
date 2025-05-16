@@ -41,6 +41,10 @@ func main() {
 	// for clean shutdown
 	go util.WaitForShutdown()
 
+	// Start the TryOut cron worker in a separate goroutine
+	// to handle background scheduled try out environment tasks.
+	util.StartTryOutCronWorker()
+
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{

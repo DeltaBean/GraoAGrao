@@ -29,3 +29,13 @@ export async function GoogleOAuthLogin() {
     const { googleUrl } = await response.json();
     return googleUrl;
 }
+
+export async function GoogleOAuthTryOutLogin() {
+  const response = await fetch(`${apiUrl}/auth/google?isTryOut=true`, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Failed to initiate demo OAuth");
+  const { googleUrl } = await response.json();
+  return googleUrl;
+}

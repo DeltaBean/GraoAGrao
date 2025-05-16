@@ -21,10 +21,18 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 -- Step 3: Add status and finalized_at to tb_stock_out
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'stock_out_status') THEN
-        CREATE TYPE stock_out_status AS ENUM ('draft', 'finalized');
-    END IF;
-END$$;
+  IF NOT EXISTS (
+    SELECT 1
+      FROM pg_type t
+      JOIN pg_namespace n ON t.typnamespace = n.oid
+     WHERE t.typname = 'stock_out_status'
+       AND n.nspname = current_schema()
+  ) THEN
+    -- unqualified CREATE TYPE lands in the current tenant schema
+    CREATE TYPE stock_out_status AS ENUM ('draft', 'finalized');
+  END IF;
+END
+$$;
 ALTER TABLE tb_stock_out
 ADD COLUMN status stock_out_status DEFAULT 'draft'::stock_out_status NOT NULL,
 ADD COLUMN finalized_at TIMESTAMPTZ NULL;

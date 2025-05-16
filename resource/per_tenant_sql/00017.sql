@@ -2,10 +2,18 @@
 -- Step 1: Create the ENUM type for status
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'stock_in_status') THEN
-        CREATE TYPE stock_in_status AS ENUM ('draft', 'finalized');
-    END IF;
-END$$;
+  IF NOT EXISTS (
+    SELECT 1
+      FROM pg_type t
+      JOIN pg_namespace n ON t.typnamespace = n.oid
+     WHERE t.typname = 'stock_in_status'
+       AND n.nspname = current_schema()
+  ) THEN
+    CREATE TYPE stock_in_status AS ENUM ('draft', 'finalized');
+  END IF;
+END
+$$;
+
 
 -- Step 2: Add status column to tb_stock_in
 ALTER TABLE tb_stock_in

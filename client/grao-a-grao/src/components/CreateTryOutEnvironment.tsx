@@ -1,37 +1,100 @@
 // components/CreateTenantEnvironment.tsx
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Text, Heading, Card, Flex, Box, DataList, Badge } from "@radix-ui/themes";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { GoogleOAuthTryOutLogin } from "@/api/auth_api";
+import { setIsUserLoggedIn } from "@/util/util";
+import { GetTryOutJobStatus } from "@/api/tryout_api";
 
 export default function CreateTryOutEnvironment() {
+    const router = useRouter();
     const [status, setStatus] = useState<"idle" | "creating" | "success" | "error">("idle");
     const [error, setError] = useState<string | null>(null);
+    const [tryOutUuid, setTryOutUuid] = useState<string | null>(null);
 
     const handleGoogleSignUp = async () => {
         setStatus("creating");
         setError(null);
 
         try {
-            // Simula um delay de 2 segundos como se estivesse criando o ambiente
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Depois muda para sucesso por mais 2 segundos
-            setStatus("success");
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Depois volta ao estado inicial (idle), como se estivesse pronto para novo teste
-            setStatus("idle");
+            // Call your authService function
+            const googleUrl = await GoogleOAuthTryOutLogin();
+            window.open(googleUrl, "TryOutWindow", "width=600,height=600");
 
         } catch (err: any) {
             console.error(err);
             setError(err?.message || "Erro inesperado.");
             setStatus("error");
 
-            // Retorna ao estado inicial depois de 2s
-            setTimeout(() => setStatus("idle"), 2000);
+            toast.error(error);
         }
     };
+
+    const onMessage = useCallback(
+        (e: MessageEvent) => {
+            // only accept messages from our own origin
+            if (e.origin !== window.location.origin) return;
+            const { token, uuid, name, email, avatar_url } = e.data || {};
+
+            if (token && uuid) {
+                // persist session
+                localStorage.setItem("authToken", token);
+                localStorage.setItem("userName", name || "");
+                localStorage.setItem("userEmail", email || "");
+                localStorage.setItem("userPictureUrl", avatar_url || "");
+                setIsUserLoggedIn(true);
+
+                setTryOutUuid(uuid);
+            }
+        },
+        [router]
+    );
+
+    // polling try-out job status
+    useEffect(() => {
+        if (!tryOutUuid) return;       // wait until we have a UUID
+        setStatus("creating");         // start with “creating” state
+
+        let intervalId: NodeJS.Timeout;
+        const timeoutId = setTimeout(() => {
+            const poll = async () => {
+                try {
+                    const newStatus = await GetTryOutJobStatus(tryOutUuid);
+                    setStatus(newStatus);
+
+                    if (newStatus === "success") {
+                        clearInterval(intervalId);
+                        setStatus("success");
+                        toast.success("Ambiente criado com sucesso!");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    clearInterval(intervalId);
+                    setStatus("error");
+                    toast.error("Erro ao checar status");
+                }
+            };
+
+            // first call after 2s
+            poll();
+            // then every 3s
+            intervalId = setInterval(poll, 3000);
+        }, 2000);
+
+        return () => {
+            clearTimeout(timeoutId);
+            clearInterval(intervalId);
+        };
+    }, [tryOutUuid, router]);
+
+    // message listener
+    useEffect(() => {
+        window.addEventListener("message", onMessage);
+        return () => window.removeEventListener("message", onMessage);
+    }, [onMessage]);
 
     return (
         <>
@@ -66,7 +129,7 @@ export default function CreateTryOutEnvironment() {
                             transition={{ duration: 0.3 }}
                         >
                             <Box mt="2">
-                                <Button>Entrar!</Button>
+                                <Button onClick={() => router.push("/")}>Entrar!</Button>
                             </Box>
                         </motion.div>
                     )}
@@ -74,28 +137,30 @@ export default function CreateTryOutEnvironment() {
                 <Flex>
                     <Card>
                         <DataList.Root>
-                            <DataList.Label>Ambiente</DataList.Label>
-                            <DataList.Value>
-                                {
-                                    status === "idle" ?
-                                        <Badge color="gold" variant="soft">
-                                            Aguardando início
-                                        </Badge>
-                                        :
-                                        status === "creating" ?
-                                            <Badge color="yellow" variant="soft">
-                                                Configurando ambiente...
+                            <DataList.Item>
+                                <DataList.Label>Ambiente</DataList.Label>
+                                <DataList.Value>
+                                    {
+                                        status === "idle" ?
+                                            <Badge color="gold" variant="soft">
+                                                Aguardando início
                                             </Badge>
-                                            : status === "success" ?
-                                                <Badge color="green" variant="soft">
-                                                    Ambiente pronto!
+                                            :
+                                            status === "creating" ?
+                                                <Badge color="yellow" variant="soft">
+                                                    Configurando ambiente...
                                                 </Badge>
-                                                : status === "error" ?
-                                                    <Badge color="red" variant="soft">
-                                                        Falha na criação
-                                                    </Badge> : <></>
-                                }
-                            </DataList.Value>
+                                                : status === "success" ?
+                                                    <Badge color="green" variant="soft">
+                                                        Ambiente pronto!
+                                                    </Badge>
+                                                    : status === "error" ?
+                                                        <Badge color="red" variant="soft">
+                                                            Falha na criação
+                                                        </Badge> : <></>
+                                    }
+                                </DataList.Value>
+                            </DataList.Item>
                         </DataList.Root>
                     </Card>
                 </Flex>
