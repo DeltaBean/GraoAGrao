@@ -20,14 +20,6 @@ import (
 func SaveUser(conn *pgxpool.Conn, user *model.User) error {
 	logger.Log.Info("CreateUser")
 
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	logger.Log.Info("DB connection successfully acquired.")
-	defer conn.Release()
-
 	query := `
 		INSERT INTO public.tb_user (
 			username, email, password_hash, salt, google_id, organization_id,
@@ -35,7 +27,7 @@ func SaveUser(conn *pgxpool.Conn, user *model.User) error {
 		)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING user_id, created_at, updated_at`
-	err = conn.QueryRow(context.Background(), query,
+	err := conn.QueryRow(context.Background(), query,
 		user.Username,
 		user.Email,
 		user.PasswordHash,
@@ -285,4 +277,21 @@ func StampNowLastLogin(userID uint) error {
 
 	logger.Log.Infof("Successfully updated last login for user id: %d", userID)
 	return nil
+}
+
+func InsertUserTx(ctx context.Context, tx pgx.Tx, user *model.User) error {
+	query := `INSERT INTO public.tb_user (username, email, password_hash, salt, google_id, organization_id, given_name, family_name, picture_url, auth_provider, is_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING user_id, created_at, updated_at`
+	return tx.QueryRow(ctx, query,
+		user.Username,
+		user.Email,
+		user.PasswordHash,
+		user.Salt,
+		user.GoogleID,
+		user.Organization.ID,
+		user.GivenName,
+		user.FamilyName,
+		user.PictureURL,
+		user.AuthProvider,
+		user.IsActive,
+	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 }

@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	db "github.com/IlfGauhnith/GraoAGrao/pkg/db"
-	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/tryout_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/tryout_job_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/service/tryout_service"
@@ -91,13 +91,13 @@ func StartTryOutCronWorker() {
 	// Run every 30 seconds
 	// Process tryout environment creation jobs
 	c.AddFunc("@every 30s", func() {
-		jobs, err := tryout_repository.ListTryOutJobByStatus("pending")
+		jobs, err := tryout_job_repository.ListTryOutJobByStatus("pending")
 		if err != nil {
 			logger.Log.Error("Failed to list pending demo jobs:", err)
 			return
 		}
 		for _, job := range jobs {
-			err = tryout_service.ProcessTryOutJob(&job)
+			err = tryout_service.ProcessTryOutEnvironmentJob(&job)
 			if err != nil {
 				logger.Log.Error(err)
 			}
@@ -107,7 +107,7 @@ func StartTryOutCronWorker() {
 	// Run every 1 hour
 	// Process tryout environment expiration jobs
 	c.AddFunc("@every 1h", func() {
-		jobs, err := tryout_repository.ListTryOutJobByStatus("completed")
+		jobs, err := tryout_job_repository.ListTryOutJobByStatus("completed")
 		if err != nil {
 			logger.Log.Error("Failed to list completed demo jobs:", err)
 			return

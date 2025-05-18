@@ -2,14 +2,16 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/user_repository"
+	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 
 	"net/http"
 
-	auth_handler_util "github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/util"
+	auth_handler_util "github.com/IlfGauhnith/GraoAGrao/cmd/GraoEstoque/handler_util"
 	auth "github.com/IlfGauhnith/GraoAGrao/pkg/auth"
 	errorCodes "github.com/IlfGauhnith/GraoAGrao/pkg/errors"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
@@ -55,7 +57,6 @@ func GoogleAuthHandler(c *gin.Context) {
 
 func GoogleAuthCallBackHandler(c *gin.Context) {
 	logger.Log.Info("GoogleAuthCallBackHandler")
-
 	frontendURL := os.Getenv("FRONTEND_URL")
 
 	// Step 1: Validate state and exchange code for token
@@ -73,7 +74,7 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 
 			isTryOut, _ := c.Cookie("isTryOut")
 			if isTryOut == "true" {
-				auth_handler_util.HandleTryOutFlow(c, googleUserInfoStruct, frontendURL)
+				HandleTryOutFlow(c, googleUserInfoStruct, frontendURL)
 				return
 			}
 
@@ -86,5 +87,26 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 		return
 	}
 
-	auth_handler_util.HandleExistingUserFlow(c, userStruct, googleUserInfoStruct, frontendURL)
+	handleExistingUserFlow(c, userStruct, googleUserInfoStruct, frontendURL)
+}
+
+func handleExistingUserFlow(c *gin.Context, user *model.User, googleUser model.GoogleUserInfo, frontendURL string) {
+	jwt, err := util.GenerateJWT(*user)
+	if err != nil {
+		logger.Log.Error("failed to generate JWT: ", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
+	user_repository.StampNowLastLogin(user.ID)
+
+	redirectURL := fmt.Sprintf(
+		"%s/OAuthCallback?token=%s&name=%s&email=%s&user_picture_url=%s",
+		frontendURL,
+		jwt,
+		googleUser.Name,
+		googleUser.Email,
+		googleUser.Picture,
+	)
+	c.Redirect(http.StatusFound, redirectURL)
 }

@@ -1,4 +1,4 @@
-package tryout_repository
+package tryout_job_repository
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db"
+	"github.com/jackc/pgx/v5"
 
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
@@ -75,118 +76,9 @@ func ListTryOutJobByStatus(status string) ([]model.TryOutJob, error) {
 	return jobs, nil
 }
 
-// CreateTryOutJob inserts a new TryOutJob into the database.
-// It sets JobID and CreatedAt on the passed-in job struct.
-func CreateTryOutJob(job *model.TryOutJob) error {
-	logger.Log.Info("Create TryOutJob")
-
-	conn, err := db.GetDB().Acquire(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error acquiring connection: %v", err)
-		return err
-	}
-	defer conn.Release()
-
-	// start a transaction
-	tx, err := conn.Begin(context.Background())
-	if err != nil {
-		logger.Log.Errorf("Error starting transaction: %v", err)
-		return err
-	}
-	// if anything goes wrong, rollback; else we’ll commit below
-	defer func() {
-		if err != nil {
-			if rbErr := tx.Rollback(context.Background()); rbErr != nil {
-				logger.Log.Errorf("Error rolling back transaction: %v", rbErr)
-			}
-		}
-	}()
-
-	// 1) insert organization
-	insertOrgQ := `
-      INSERT INTO public.tb_organization (
-          organization_name, organization_key, domain, schema_name
-      ) VALUES ($1, $2, $3, $4)
-      RETURNING organization_id;
-    `
-	if err = tx.QueryRow(
-		context.Background(),
-		insertOrgQ,
-		job.Organization.Name,
-		job.Organization.Key,
-		job.Organization.Domain,
-		job.Organization.DBSchema,
-	).Scan(&job.Organization.ID); err != nil {
-		logger.Log.Errorf("Error inserting organization: %v", err)
-		return err
-	}
-
-	// Updating user organization id
-	job.CreatedBy.Organization.ID = job.Organization.ID
-
-	// 2) insert user
-	insertUserQ := `
-		INSERT INTO public.tb_user (
-			username, email, password_hash, salt, google_id, organization_id,
-			given_name, family_name, picture_url, auth_provider, is_active
-		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		RETURNING user_id, created_at, updated_at
-	`
-
-	err = tx.QueryRow(context.Background(), insertUserQ,
-		job.CreatedBy.Username,
-		job.CreatedBy.Email,
-		job.CreatedBy.PasswordHash,
-		job.CreatedBy.Salt,
-		job.CreatedBy.GoogleID,
-		job.CreatedBy.Organization.ID,
-		job.CreatedBy.GivenName,
-		job.CreatedBy.FamilyName,
-		job.CreatedBy.PictureURL,
-		job.CreatedBy.AuthProvider,
-		job.CreatedBy.IsActive,
-	).Scan(&job.CreatedBy.ID, &job.CreatedBy.CreatedAt, &job.CreatedBy.UpdatedAt)
-	if err != nil {
-		logger.Log.Errorf("Error creating user: %v", err)
-		return err
-	}
-
-	// 3) insert tryout job
-	insertJobQ := `
-      INSERT INTO public.tb_tryout_job (
-          tryout_uuid,
-          created_by,
-          organization_id,
-          status,
-          expires_at
-      ) VALUES ($1, $2, $3, $4, $5)
-      RETURNING job_id, created_at;
-    `
-	status := job.Status
-	if status == "" {
-		status = "pending"
-	}
-	if err = tx.QueryRow(
-		context.Background(),
-		insertJobQ,
-		job.TryoutUUID,
-		job.CreatedBy.ID,
-		job.Organization.ID,
-		status,
-		job.ExpiresAt,
-	).Scan(&job.JobID, &job.CreatedAt); err != nil {
-		logger.Log.Errorf("Error inserting TryOutJob: %v", err)
-		return err
-	}
-
-	// 4) commit the transaction
-	if err = tx.Commit(context.Background()); err != nil {
-		logger.Log.Errorf("Error committing transaction: %v", err)
-		return err
-	}
-
-	return nil
+func InsertTryOutJobTx(ctx context.Context, tx pgx.Tx, job *model.TryOutJob) error {
+	query := `INSERT INTO public.tb_tryout_job (tryout_uuid, created_by, organization_id, status, expires_at) VALUES ($1, $2, $3, $4, $5) RETURNING job_id, created_at`
+	return tx.QueryRow(ctx, query, job.TryoutUUID, job.CreatedBy.ID, job.Organization.ID, job.Status, job.ExpiresAt).Scan(&job.JobID, &job.CreatedAt)
 }
 
 func ProcessTryOutJob(job *model.TryOutJob) error {
