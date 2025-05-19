@@ -156,7 +156,7 @@ export default function ItemPage() {
     try {
 
       const itemRequest: ItemRequest = toItemRequest(toUpdateItem);
-      const itemResponse: ItemResponse = await items_api.createItem(itemRequest);
+      const itemResponse: ItemResponse = await items_api.updateItem(itemRequest);
       const updated: ItemModel = normalizeItemResponse(itemResponse);
 
       setItems((prev) => prev.map(item => item.id === updated.id ? updated : item));
@@ -184,6 +184,7 @@ export default function ItemPage() {
       await items_api.deleteItem(id);
       setItems((prev) => prev.filter(item => item.id !== id));
 
+      toast.success('Item deletado com sucesso!');
     } catch (err: any) {
 
       if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {

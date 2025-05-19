@@ -55,12 +55,14 @@ export async function createItem(item: ItemRequest): Promise<ItemResponse> {
 export async function updateItem(item: ItemRequest): Promise<ItemResponse> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
       body: JSON.stringify(item)
     });
@@ -79,10 +81,13 @@ export async function updateItem(item: ItemRequest): Promise<ItemResponse> {
 
 export async function deleteItem(id: number): Promise<void> {
   const token = getAuthToken();
+  const store = getSelectedStore();
+  
   const res = await fetch(`${getAPIUrl()}/items/${id}`, {
     method: 'DELETE',
     headers: {
       "Authorization": `Bearer ${token}`,
+      "X-Store-ID": store?.id?.toString() ?? "",
     },
   });
 

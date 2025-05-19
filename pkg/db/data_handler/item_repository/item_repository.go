@@ -117,7 +117,7 @@ func UpdateItem(conn *pgxpool.Conn, item *model.Item) (*model.Item, error) {
 				unit_id          = $4,
 				is_fractionable  = $5
 			WHERE item_id = $6
-			RETURNING item_id, item_description, ean13, category_id, unit_id, created_by, created_at, updated_at
+			RETURNING item_id, item_description, ean13, category_id, unit_id, created_by, created_at, updated_at, is_fractionable
 		)
 		SELECT 
 			u.item_id,

@@ -58,12 +58,14 @@ export async function createCategory(category: CategoryRequest): Promise<Categor
 export async function updateCategory(category: CategoryRequest): Promise<CategoryResponse> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items/categories`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
       body: JSON.stringify(category)
     });
@@ -83,10 +85,13 @@ export async function updateCategory(category: CategoryRequest): Promise<Categor
 export async function deleteCategory(id: number): Promise<void> {
 
   const token = getAuthToken();
+  const store = getSelectedStore();
+
   const res = await fetch(`${getAPIUrl()}/items/categories/${id}`, {
     method: 'DELETE',
     headers: {
       "Authorization": `Bearer ${token}`,
+      "X-Store-ID": store?.id?.toString() ?? "",
     },
   });
 
