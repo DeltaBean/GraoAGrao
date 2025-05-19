@@ -121,3 +121,8 @@ export function getSelectedStore(): StoreModel | undefined {
     return undefined;
   }
 }
+
+export function clearSelectedStore(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem("selectedStore");
+}

@@ -23,6 +23,7 @@ import * as storesApi from "@/api/stores_api";
 import { getSelectedStore, logout } from "@/util/util"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
+import { useStoreContext } from "@/context/StoreContext"
 
 // Menu items.
 const items = [
@@ -74,48 +75,21 @@ export function AppSidebar() {
   const searchParams = useSearchParams();
   const currentUrl = pathname + (searchParams.toString() ? `?${searchParams}` : '');
 
-  const [stores, setStores] = useState<StoreModel[]>([]);
+  const { stores, selectedStore, setSelectedStore } = useStoreContext();
 
-  const fetchStores = async () => {
-    try {
-      const storeResponse: StoreModel[] = await storesApi.fetchStores();
-      const storeModel: StoreModel[] = storeResponse.map((store) => normalizeStoreResponse(store));
-
-      setStores(storeModel ?? []);
-    } catch (error) {
-      console.error("Error fetching stores:", error);
-    }
-  }
-
-  useEffect(() => {
-    fetchStores();
-  }, []);
-
-  const handleStoreChange = async (store: StoreModel) => {
-    try {
-      sessionStorage.setItem("selectedStore", JSON.stringify(store));
-      toast.success(`Loja alterada para ${store.name}`);
-
-      router.replace(currentUrl);
-    } catch (error) {
-      console.error("Error changing store:", error);
-      toast.error("Erro ao alterar loja");
-    }
-  }
+    const handleStoreChange = (store: StoreModel) => {
+    setSelectedStore(store);
+    toast.success(`Loja alterada para ${store.name}`);
+    router.replace(currentUrl);
+  };
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <StoreSwitcher
           stores={stores}
-          defaultStore={getSelectedStore() || stores[0] || createEmptyStore()}
-          onStoreChange={(store) => {
-            const previous = getSelectedStore();
-            if (previous && previous.id === store.id) {
-              return;
-            }
-            handleStoreChange(store);
-          }}
+          defaultStore={selectedStore ?? createEmptyStore()}
+          onStoreChange={handleStoreChange}
         />
       </SidebarHeader>
 

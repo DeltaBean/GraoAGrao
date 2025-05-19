@@ -19,62 +19,50 @@ import { StoreModel, normalizeStoreResponse } from "@/types/store";
 import ModalFormStore from "@/components/Form/Modal/ModalFormStore";
 import { useStoreForm } from "@/hooks/useStoreForm";
 import { toast } from "sonner";
+import { useStoreContext } from "@/context/StoreContext";
+import { CreateStoreData, UpdateStoreData } from "@/schemas/store_schema";
 
 export default function StorePage() {
-  const [stores, setStores] = useState<StoreModel[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    stores,
+    createStore,
+    updateStore,
+    deleteStore,
+    fetchStores,
+  } = useStoreContext();
 
   const { isOpen, mode, current, openCreate, openEdit, close } =
     useStoreForm();
 
-  useEffect(() => {
-    fetchStores();
-  }, []);
-
-  async function fetchStores() {
-    setLoading(true);
-    try {
-      const res = await storesApi.fetchStores();
-      setStores(res.map(normalizeStoreResponse));
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleCreate(data: { name: string }) {
     try {
-      const created = normalizeStoreResponse(await storesApi.createStore(data));
-      setStores((prev) => [...prev, created]);
+      await createStore(data);
       close();
-      toast.success("Loja criada com sucesso!");
     } catch (err: any) {
-      toast.error(err.message);
+      console.error(err);
+      toast.error("Erro ao criar loja!");
     }
   }
 
   async function handleEdit(data: { store_id: number; name: string }) {
     try {
-      const updated = normalizeStoreResponse(await storesApi.updateStore(data));
-      setStores((prev) =>
-        prev.map((s) => (s.id === updated.id ? updated : s))
-      );
+      await updateStore(data);
       close();
-      toast.success("Loja editada com sucesso!");
     } catch (err: any) {
-      toast.error(err.message);
+      console.error(err);
+      toast.error("Erro ao editar loja!");
     }
   }
 
   async function handleDelete(id: number) {
     try {
-      await storesApi.deleteStore(id);
-      setStores((prev) => prev.filter((s) => s.id !== id));
-      toast.success("Loja deletada com sucesso!");
+      await deleteStore(id);
     } catch (err: any) {
-      toast.error(err.message);
+      console.error(err);
+      toast.error("Erro ao deletar loja!");
     }
   }
 

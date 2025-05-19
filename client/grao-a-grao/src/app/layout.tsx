@@ -50,7 +50,7 @@ export default function RootLayout({
           <GlobalFetchInterceptor>
             {children}
           </GlobalFetchInterceptor>
-          <Toaster richColors />
+          <Toaster duration={3000} closeButton/>
         </Theme>
       </body>
     </html>

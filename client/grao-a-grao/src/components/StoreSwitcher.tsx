@@ -15,17 +15,16 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { StoreModel } from "@/types/store"
+import { useStoreContext } from "@/context/StoreContext"
 
 export function StoreSwitcher({
-    stores,
-    defaultStore,
     onStoreChange,
 }: {
     stores: StoreModel[]
     defaultStore: StoreModel
     onStoreChange: (store: StoreModel) => void
 }) {
-    const [selectedStore, setSelectedStore] = React.useState(defaultStore)
+    const { stores, selectedStore, setSelectedStore } = useStoreContext();
 
     return (
         <SidebarMenu>
@@ -41,7 +40,7 @@ export function StoreSwitcher({
                             </div>
                             <div className="flex flex-col gap-0.5 leading-none">
                                 <span className="font-semibold">Loja</span>
-                                <span className="">{selectedStore.name}</span>
+                                <span className="">{selectedStore ? selectedStore.name : "Selecione uma loja"}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto" />
                         </SidebarMenuButton>

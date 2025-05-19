@@ -17,7 +17,7 @@ export async function fetchStores(): Promise<StoreResponse[]> {
       throw new Error("Error fetching stores");
 
     const data: StoreResponse[] = await res.json();
-    return data;
+    return data ?? [];
   } catch (err: any) {
     console.error(err);
     throw err;
