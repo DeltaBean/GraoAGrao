@@ -7,6 +7,7 @@ import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner"
 import GlobalFetchInterceptor from "@/components/GlobalFetcherInterceptor";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,7 +59,11 @@ export default function RootLayout({
 
           {isDev && <ThemePanel />} {/* ← only in dev */}
 
-          <GlobalFetchInterceptor>{children}</GlobalFetchInterceptor>
+          <GlobalFetchInterceptor>
+            <Suspense fallback={<div>Carregando...</div>}>
+            {children}
+            </Suspense>
+            </GlobalFetchInterceptor>
           <Toaster duration={3000} closeButton />
         </Theme>
       </body>
