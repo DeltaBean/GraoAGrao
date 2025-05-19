@@ -56,12 +56,14 @@ export async function createUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeas
 export async function updateUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeasureResponse> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items/units`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
       body: JSON.stringify(unit)
     });
@@ -80,10 +82,13 @@ export async function updateUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeas
 
 export async function deleteUnit(id: number): Promise<void> {
   const token = getAuthToken();
+  const store = getSelectedStore();
+  
   const res = await fetch(`${getAPIUrl()}/items/units/${id}`, {
     method: 'DELETE',
     headers: {
       "Authorization": `Bearer ${token}`,
+      "X-Store-ID": store?.id?.toString() ?? "",
     },
   });
 

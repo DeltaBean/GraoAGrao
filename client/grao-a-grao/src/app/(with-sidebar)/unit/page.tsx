@@ -125,7 +125,7 @@ export default function UnitPage() {
 
             await units_api.deleteUnit(id);
             setUnitsOfMeasure((prev) => prev.filter(unit => unit.id !== id));
-
+            toast.success('Unidade de Medida deletada com sucesso!');
         } catch (err: any) {
 
             if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {

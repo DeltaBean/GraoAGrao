@@ -56,12 +56,14 @@ export async function createItemPackaging(itemPackaging: ItemPackagingRequest): 
 export async function updateItemPackaging(itemPackaging: ItemPackagingRequest): Promise<ItemPackagingResponse> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
 
     const res = await fetch(`${getAPIUrl()}/items/packaging`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
       body: JSON.stringify(itemPackaging)
     });
@@ -81,10 +83,13 @@ export async function updateItemPackaging(itemPackaging: ItemPackagingRequest): 
 export async function deleteItemPackaging(id: number): Promise<boolean> {
   try {
     const token = getAuthToken();
+    const store = getSelectedStore();
+
     const res = await fetch(`${getAPIUrl()}/items/packaging/${id}`, {
       method: 'DELETE',
       headers: {
         "Authorization": `Bearer ${token}`,
+        "X-Store-ID": store?.id?.toString() ?? "",
       },
     });
 
