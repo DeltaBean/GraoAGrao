@@ -13,7 +13,7 @@ import { ItemModel, ItemRequest, ItemResponse, normalizeItemResponse, toItemRequ
 import { CategoryModel, CategoryResponse, normalizeCategoryResponse } from "@/types/category";
 import { normalizeUnitOfMeasureResponse, UnitOfMeasureModel, UnitOfMeasureResponse } from "@/types/unit_of_measure";
 import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
-import { ItemPackagingResponse } from "@/types/item_packaging";
+import { ItemPackagingModel } from "@/types/item_packaging";
 import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorItemPackage";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { toast } from "sonner";
@@ -21,7 +21,7 @@ import { getSelectedStore } from "@/util/util";
 
 export default function ItemPage() {
   const storeId = getSelectedStore()?.id
-  
+
   // Items list and loading state.
   const [items, setItems] = useState<ItemModel[]>([]);
   const [categories, setCategories] = useState<CategoryModel[]>([]);
@@ -30,7 +30,7 @@ export default function ItemPage() {
   const [loading, setLoading] = useState(false);
 
   type ErrorModalState =
-    | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; item: ItemModel }
+    | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingModel>; item: ItemModel }
     | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
     | { type: "none" };
   const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
@@ -55,7 +55,7 @@ export default function ItemPage() {
   // State for editing modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalEdit, setIsModalEdit] = useState(false);
-  const [_, setIsModalCreate] = useState(true);
+  const [, setIsModalCreate] = useState(true);
 
   // Handlers for open/close modal.
   const handleCloseModal = () => setIsModalOpen(false);
@@ -91,8 +91,12 @@ export default function ItemPage() {
 
       setUnitsOfMeasure(unitOfMeasureModel ?? []);
 
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(String(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -109,8 +113,12 @@ export default function ItemPage() {
 
       setCategories(categoryModel ?? []);
 
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(String(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -126,8 +134,12 @@ export default function ItemPage() {
       );
 
       setItems(itemModel ?? []);
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(String(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -147,8 +159,12 @@ export default function ItemPage() {
 
       toast.success('Item criado com sucesso!');
 
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(String(err));
+      }
     }
   };
 
@@ -165,12 +181,16 @@ export default function ItemPage() {
       setIsModalOpen(false);
 
       toast.success('Item editado com sucesso!');
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(String(err));
+      }
     }
   }
 
-  const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingResponse>, item: ItemModel) => {
+  const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingModel>, item: ItemModel) => {
     setErrorModal({ type: "delete-referenced", item, data: err });
   };
 
@@ -185,16 +205,16 @@ export default function ItemPage() {
       setItems((prev) => prev.filter(item => item.id !== id));
 
       toast.success('Item deletado com sucesso!');
-    } catch (err: any) {
+    } catch (err) {
 
-      if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+      const errorWithData = err as { data?: { internal_code?: string } };
 
-        const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingResponse> = err.data;
+      if (errorWithData?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+        const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingModel> = errorWithData.data as ForeignKeyDeleteReferencedErrorResponse<ItemPackagingModel>;
         handleDeleteReferencedError(errorData, items.find((it) => it.id == id) ?? defaultItem);
 
-      } else if (err?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
-
-        const genericError: GenericPostgreSQLErrorResponse = err.data;
+      } else if (errorWithData?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
+        const genericError: GenericPostgreSQLErrorResponse = errorWithData.data as GenericPostgreSQLErrorResponse;
         handleDeleteGenericError(genericError);
 
       } else {
@@ -339,7 +359,6 @@ export default function ItemPage() {
         <ModalGenericError
           title={"Não é possível deletar."}
           details="Este item é utilizado em outras entradas/saidas de estoque."
-          error={errorModal.data}
           onClose={() => setErrorModal({ type: "none" })}
         />
       )}

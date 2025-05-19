@@ -19,7 +19,7 @@ export async function fetchItems(): Promise<ItemResponse[]> {
     const data: ItemResponse[] = await res.json();
     return data;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -46,7 +46,7 @@ export async function createItem(item: ItemRequest): Promise<ItemResponse> {
     const created: ItemResponse = await res.json();
     return created;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -73,7 +73,7 @@ export async function updateItem(item: ItemRequest): Promise<ItemResponse> {
     const updated: ItemResponse = await res.json();
     return updated;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }

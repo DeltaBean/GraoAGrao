@@ -1,4 +1,6 @@
 // hooks/useStockInForm.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { useEffect, useState } from "react";

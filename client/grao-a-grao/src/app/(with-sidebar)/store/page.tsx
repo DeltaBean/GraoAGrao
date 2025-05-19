@@ -13,14 +13,11 @@ import {
   AlertDialog,
 } from "@radix-ui/themes";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
-import { useEffect, useState } from "react";
-import * as storesApi from "@/api/stores_api";
-import { StoreModel, normalizeStoreResponse } from "@/types/store";
 import ModalFormStore from "@/components/Form/Modal/ModalFormStore";
 import { useStoreForm } from "@/hooks/useStoreForm";
 import { toast } from "sonner";
 import { useStoreContext } from "@/context/StoreContext";
-import { CreateStoreData, UpdateStoreData } from "@/schemas/store_schema";
+import { useState } from "react";
 
 export default function StorePage() {
   const {
@@ -33,14 +30,13 @@ export default function StorePage() {
   const { isOpen, mode, current, openCreate, openEdit, close } =
     useStoreForm();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, ] = useState(false);
 
   async function handleCreate(data: { name: string }) {
     try {
       await createStore(data);
       close();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.error("Erro ao criar loja!");
     }
@@ -50,7 +46,7 @@ export default function StorePage() {
     try {
       await updateStore(data);
       close();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.error("Erro ao editar loja!");
     }
@@ -59,7 +55,7 @@ export default function StorePage() {
   async function handleDelete(id: number) {
     try {
       await deleteStore(id);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       toast.error("Erro ao deletar loja!");
     }

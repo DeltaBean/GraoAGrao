@@ -2,8 +2,8 @@
 
 import CreateTryOutEnvironment from "@/components/CreateTryOutEnvironment"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Box, Card, Container, Flex, Heading, IconButton, Section, Separator, Strong, Text } from "@radix-ui/themes"
-import { ArrowLeft, ArrowUpLeft } from "lucide-react"
+import { Card, Flex, Heading, IconButton, Separator, Strong, Text } from "@radix-ui/themes"
+import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export default function TryOutPage() {

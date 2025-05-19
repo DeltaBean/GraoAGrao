@@ -21,7 +21,7 @@ export async function fetchCategories(): Promise<CategoryResponse[]> {
     const data: CategoryResponse[] = await res.json();
     return data;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -49,7 +49,7 @@ export async function createCategory(category: CategoryRequest): Promise<Categor
     const created: CategoryResponse = await res.json();
     return created;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -76,7 +76,7 @@ export async function updateCategory(category: CategoryRequest): Promise<Categor
     const updated: CategoryResponse = await res.json();
     return updated;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }

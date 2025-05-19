@@ -2,7 +2,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Card, Flex, Box, Heading, IconButton, Button, Section, Container } from "@radix-ui/themes";
+import { Card, Flex, Box, Heading, Button, Container } from "@radix-ui/themes";
 import { ExclamationCircleIcon } from "@heroicons/react/16/solid";
 
 type ModalErrorShellProps = {

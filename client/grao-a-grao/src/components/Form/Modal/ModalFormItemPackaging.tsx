@@ -1,10 +1,9 @@
 import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
-import { TextField, Skeleton, Text, Callout, Select, Flex, Box, Badge } from "@radix-ui/themes";
+import { TextField, Skeleton, Text, Select, Flex, Box, Badge } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
 import { ItemModel } from "@/types/item";
 import { ItemPackagingModel } from "@/types/item_packaging";
-import { QrCodeIcon, TagIcon, InformationCircleIcon, ScaleIcon } from "@heroicons/react/16/solid";
-import { init } from "next/dist/compiled/webpack/webpack";
+import {TagIcon} from "@heroicons/react/16/solid";
 
 
 type ModalFormItemPackagingProps = {
@@ -31,7 +30,8 @@ export default function ModalFormItemPackaging({ mode, editItemPackaging, onClos
         unit_of_measure: {
             id: 0,
             description: "",
-        }
+        },
+        is_fractionable: true
     };
     const defaultItemOption = (itemOptions.length > 0 ? itemOptions[0] : defaultItem)
     const [selectedItem, setSelectedItem] = useState<ItemModel>(defaultItemOption);
@@ -137,7 +137,7 @@ export default function ModalFormItemPackaging({ mode, editItemPackaging, onClos
                             </Select.Trigger>
                             <Select.Content position="popper">
                                 {itemOptions.map((it) => (
-                                    <Flex direction={{ initial: "row" }} justify={"between"} align={"center"} gap="2">
+                                    <Flex key={it.id} direction={{ initial: "row" }} justify={"between"} align={"center"} gap="2">
                                         <Select.Item
                                             key={it.id}
                                             value={String(it.id)}

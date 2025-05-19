@@ -6,10 +6,9 @@ import { ItemModel } from "@/types/item";
 import { ItemPackagingModel } from "@/types/item_packaging";
 import { StockInModel } from "@/types/stock_in";
 import { CheckIcon, InformationCircleIcon, PlusIcon, XMarkIcon } from "@heroicons/react/16/solid";
-import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Box, Section, Container, IconButton, Callout } from "@radix-ui/themes";
+import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Container, IconButton, Callout } from "@radix-ui/themes";
 import { formatDateTimeLocal } from "@/util/util"
 import React, { useEffect, useState } from "react";
-import LoadingModal from "../LoadingModal";
 
 type Props = {
   initialData?: StockInModel; // Optional if editing
@@ -22,16 +21,12 @@ type Props = {
 export default function StockInForm({ initialData, itemOptions, itemPackagingOptions, onSubmit, viewOnly = false }: Props) {
   const {
     stockIn,
-    setStockIn: setForm,
-    resetForm,
-    updateStockInField,
     addItem,
     removeItem,
     addItemPackaging,
     removeItemPackaging,
     updateItemSimpleField,
     updateItemPackagingField,
-    updateItemNestedField,
     isTotalBalanced,
   } = useStockInForm(initialData);
 
@@ -295,18 +290,6 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                       <>
                         {
                           item.item.id && (() => {
-                            // 1) Build a Set of the already-picked packaging IDs
-                            const selectedPackIds = new Set(
-                              item.packagings.map(p => p.item_packaging.id)
-                            );
-
-                            // 2) Derive the dropdown options by filtering out those IDs
-                            const availablePackOptions = itemPackagingOptions
-                              .filter(opt =>
-                                opt.item?.id === item.item.id &&      // only for this item
-                                !selectedPackIds.has(opt.id)          // and not already chosen
-                              );
-
                             return (
                               <>
                                 <Separator size="4" />

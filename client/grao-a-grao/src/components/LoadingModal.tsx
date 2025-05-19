@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Card, Flex, Box, Text, Spinner, Heading } from "@radix-ui/themes";
+import { Card, Flex, Box, Heading } from "@radix-ui/themes";
 
 export type LoadingModalProps = {
     isOpen: boolean;

@@ -1,17 +1,14 @@
-import { TextField, Skeleton, Text } from "@radix-ui/themes";
-import { useState, useEffect } from "react";
+import { Text } from "@radix-ui/themes";
 import ModalErrorShell from "./ModalErrorShell";
-import { ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
-import { ItemPackagingModel } from "@/types/item_packaging";
+
 
 type ModalGenericErrorProps = {
   onClose: () => void;
-  error: any;
   title: string;
   details: string;
 };
 
-export default function ModalGenericError({onClose, error, title, details }: ModalGenericErrorProps) {
+export default function ModalGenericError({onClose, title, details }: ModalGenericErrorProps) {
   return (
     <ModalErrorShell
       title={title}

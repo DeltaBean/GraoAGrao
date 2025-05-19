@@ -1,11 +1,11 @@
+"use-client"
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "@radix-ui/themes/styles.css";
 import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
 import GlobalFetchInterceptor from "@/components/GlobalFetcherInterceptor";
 
 const geistSans = Geist({
@@ -40,17 +40,26 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isDev = process.env.NODE_ENV === "development";
+
   return (
     <html lang="en">
+
       <body
         className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="solid">
-          <ThemePanel />
-          <GlobalFetchInterceptor>
-            {children}
-          </GlobalFetchInterceptor>
-          <Toaster duration={3000} closeButton/>
+        <Theme
+          appearance="dark"
+          accentColor="lime"
+          grayColor="olive"
+          radius="large"
+          panelBackground="solid"
+        >
+
+          {isDev && <ThemePanel />} {/* ← only in dev */}
+
+          <GlobalFetchInterceptor>{children}</GlobalFetchInterceptor>
+          <Toaster duration={3000} closeButton />
         </Theme>
       </body>
     </html>

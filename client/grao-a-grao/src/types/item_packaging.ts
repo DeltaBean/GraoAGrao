@@ -1,4 +1,4 @@
-import { ItemModel } from "./item";
+import { ItemModel, ItemResponse } from "./item";
 
 // Used for POST and PUT requests
 export interface ItemPackagingRequest {
@@ -13,23 +13,7 @@ export interface ItemPackagingResponse {
     id: number;
     description: string;
     quantity: number;
-    item: {
-        id: number;
-        description: string;
-        ean13: string;
-        category: {
-            id: number;
-            description: string;
-            created_at: string;
-            updated_at: string;
-        };
-        unit_of_measure: {
-            id: number;
-            description: string;
-        };
-        created_at: string;
-        updated_at: string;
-    };
+    item: ItemResponse
 }
 
 export interface ItemPackagingModel {
@@ -52,7 +36,7 @@ export function normalizeItemPackagingResponse(res: ItemPackagingResponse): Item
                 updated_at: new Date(res.item.category.updated_at),
             },
             created_at: new Date(res.item.created_at),
-            updated_at: new Date(res.item.updated_at),
+            updated_at: new Date(res.item.updated_at)
         },
     };
 }

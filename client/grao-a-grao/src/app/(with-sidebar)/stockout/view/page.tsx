@@ -22,7 +22,6 @@ export default function StockOutViewPage() {
   const [stockOut, setStockOut] = useState<StockOutModel>(createEmptyStockOut());
   const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
   const [items, setItems] = useState<ItemModel[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   const { loadingData, setIsLoading, setMessage: setLoadingMessage } = useLoading();
 
@@ -41,9 +40,8 @@ export default function StockOutViewPage() {
     try {
       const resp: StockOutResponse = await fetchStockOutById(parseInt(idParam ?? ""));
       setStockOut(normalizeStockOutResponse(resp));
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -55,9 +53,8 @@ export default function StockOutViewPage() {
     try {
       const res: ItemPackagingResponse[] = await fetchItemPackaging();
       setItemPackagings(res.map(normalizeItemPackagingResponse));
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +66,7 @@ export default function StockOutViewPage() {
     try {
       const res: ItemResponse[] = await fetchItemsApi();
       setItems(res.map(normalizeItemResponse));
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -77,7 +74,7 @@ export default function StockOutViewPage() {
   };
 
   // no-op submit for viewOnly
-  const handleSubmit = (_: StockOutModel) => { };
+  const handleSubmit = () => { };
 
   return (
     <Flex direction="column" justify="start" align="center" className="min-h-screen w-full">

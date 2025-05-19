@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowDownFromLine, ArrowUpFromLine, Blocks, Box, Calendar, DoorOpen, Home, Inbox, LogIn, LogOut, Ruler, Search, Settings, Store, Tag, TagIcon } from "lucide-react"
+import { ArrowDownFromLine, ArrowUpFromLine, Blocks, Box, Home, LogOut, Ruler, Store, Tag } from "lucide-react"
 
 import {
   Sidebar,
@@ -8,19 +8,16 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { StoreSwitcher } from "./StoreSwitcher"
-import { SearchForm } from "./SearchForm"
-import { use, useEffect, useState } from "react"
-import { normalizeStoreResponse, StoreModel } from "@/types/store"
+import { StoreModel } from "@/types/store"
 import { createEmptyStore } from "@/util/factory/store"
-import * as storesApi from "@/api/stores_api";
-import { getSelectedStore, logout } from "@/util/util"
+
+import { logout } from "@/util/util"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { useStoreContext } from "@/context/StoreContext"

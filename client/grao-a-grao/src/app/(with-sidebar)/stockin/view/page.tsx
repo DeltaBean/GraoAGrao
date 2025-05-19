@@ -24,7 +24,7 @@ export default function StockInEditPage() {
 
     const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
     const [items, setItems] = useState<ItemModel[]>([]);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
 
     const {
         loadingData,
@@ -52,9 +52,14 @@ export default function StockInEditPage() {
             const stockInModel: StockInModel = normalizeStockInResponse(stockInResponse);
 
             setStockIn(stockInModel);
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setIsLoading(false);
         }
@@ -71,9 +76,14 @@ export default function StockInEditPage() {
             );
 
             setItemPackagings(itemPackagingModel ?? []);
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setIsLoading(false);
         }
@@ -90,8 +100,14 @@ export default function StockInEditPage() {
             );
 
             setItems(itemModel ?? []);
-        } catch (err: any) {
-            console.error(err);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setIsLoading(false);
         }
@@ -103,8 +119,14 @@ export default function StockInEditPage() {
         try {
             const req = toUpdateStockInRequest(data);
             await updateStockIn(req);
-        } catch (err: any) {
-            console.error(err);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setIsLoading(false);
         }

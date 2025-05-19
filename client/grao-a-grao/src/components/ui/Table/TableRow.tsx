@@ -1,4 +1,4 @@
-import { Table, Tooltip } from "@radix-ui/themes";
+import { Table } from "@radix-ui/themes";
 import classNames from "classnames";
 
 export interface CustomTableRowProps extends Table.RowProps {

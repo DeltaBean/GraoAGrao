@@ -20,7 +20,7 @@ export async function fetchUnits(): Promise<UnitOfMeasureResponse[]> {
     const data: UnitOfMeasureResponse[] = await res.json();
     return data;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -47,7 +47,7 @@ export async function createUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeas
     const created: UnitOfMeasureResponse = await res.json();
     return created;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -74,7 +74,7 @@ export async function updateUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeas
     const updated: UnitOfMeasureResponse = await res.json();
     return updated;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }

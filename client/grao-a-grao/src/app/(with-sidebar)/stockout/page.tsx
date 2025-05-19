@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Button, Card, Flex, Heading, IconButton, Skeleton, Table, Text, Tooltip } from "@radix-ui/themes";
+import { Badge, Button, Card, Flex, Heading, IconButton, Skeleton, Table, Tooltip } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { normalizeStockOutResponse, StockOutModel, StockOutResponse } from "@/types/stock_out";
@@ -24,7 +24,6 @@ export default function StockOutPage() {
   const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
 
   const [stockOut, setStockOut] = useState<StockOutModel[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const { loadingData, setIsLoading, setMessage: setLoadingMessage } = useLoading();
 
   // Fetch stock-outs on mount
@@ -42,10 +41,9 @@ export default function StockOutPage() {
       const models = response.map((so) => normalizeStockOutResponse(so));
       setStockOut(models ?? []);
 
-    } catch (err: any) {
+    } catch (err) {
 
       console.error(err);
-      setError(err.message);
 
     } finally {
       setIsLoading(false);
@@ -68,19 +66,18 @@ export default function StockOutPage() {
         prev.map((so) => (so.id === id ? { ...so, status: "finalized", finalized_at: new Date().toISOString() } : so))
       );
 
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
 
-      if (err?.data?.internal_code === ErrorCodes.STOCK_OUT_TOTAL_QUANTITY_WRONG) {
+      const errorWithData = err as { data?: { internal_code?: string } };
 
-        const errorData: StockOutTotalQuantityNotMatchingResponse = err.data;
+      if (errorWithData?.data?.internal_code === ErrorCodes.STOCK_OUT_TOTAL_QUANTITY_WRONG) {
+        const errorData: StockOutTotalQuantityNotMatchingResponse = errorWithData.data as StockOutTotalQuantityNotMatchingResponse;
         handleStockInTotalQuantityNotMatchingError(errorData);
 
       } else {
-
-        alert("Unexpected error occurred while deleting the item.");
+        alert("Unexpected error occurred while finalizing the stock out.");
         console.error(err);
-
       }
     } finally {
       setIsLoading(false);
@@ -96,10 +93,9 @@ export default function StockOutPage() {
       await stock_out_api.deleteStockOut(id);
       setStockOut((prev) => prev.filter((so) => so.id !== id));
 
-    } catch (err: any) {
+    } catch (err) {
 
       console.error(err);
-      setError(err.message);
 
     } finally {
       setIsLoading(false);
@@ -181,7 +177,6 @@ export default function StockOutPage() {
         <ModalGenericError
           title="Não é possível finalizar."
           details=" Quantidade total de algum item desta saída de estoque está inconsistente com a soma de seus fracionamentos. Acesse a saída de estoque e verifique."
-          error={errorModal.data}
           onClose={() => setErrorModal({ type: "none" })}
         />
       )}

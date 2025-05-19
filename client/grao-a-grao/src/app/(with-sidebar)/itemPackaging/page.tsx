@@ -20,7 +20,7 @@ export default function ItemPackagingPage() {
     const [items, setItems] = useState<ItemModel[]>([]);
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
 
 
     const defaultItemPackaging = {
@@ -42,7 +42,7 @@ export default function ItemPackagingPage() {
     // State for editing modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalEdit, setIsModalEdit] = useState(false);
-    const [isModalCreate, setIsModalCreate] = useState(true);
+    const [, setIsModalCreate] = useState(true);
 
     // Handlers for open/close modal.
     const handleCloseModal = () => setIsModalOpen(false);
@@ -75,8 +75,14 @@ export default function ItemPackagingPage() {
             );
 
             setItems(itemModel ?? []);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setLoading(false);
         }
@@ -93,8 +99,14 @@ export default function ItemPackagingPage() {
             );
 
             setItemPackagings(itemPackagingModel ?? []);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setLoading(false);
         }
@@ -111,8 +123,14 @@ export default function ItemPackagingPage() {
             setIsModalOpen(false);
 
             toast.success('Fracionamento criado com sucesso!');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         }
     };
 
@@ -128,8 +146,14 @@ export default function ItemPackagingPage() {
             setIsModalOpen(false);
 
             toast.success('Fracionamento editado com sucesso!');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         }
     }
 
@@ -138,8 +162,14 @@ export default function ItemPackagingPage() {
         try {
             await item_pack_api.deleteItemPackaging(id);
             setItemPackagings((prev) => prev.filter(pack => pack.id !== id));
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         }
 
     }

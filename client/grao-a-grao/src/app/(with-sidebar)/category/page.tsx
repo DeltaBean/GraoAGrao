@@ -9,8 +9,7 @@ import Header from "@/components/Header";
 import ModalFormCategory from "@/components/Form/Modal/ModalFormCategory";
 import { CategoryModel, CategoryRequest, CategoryResponse, normalizeCategoryResponse, toCategoryRequest } from "@/types/category";
 import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
-import { ItemResponse } from "@/types/item";
-import ModalDeleteReferencedErrorItemPackage from "@/components/Error/Delete/Item/ModalDeleteReferencedErrorItemPackage";
+import { ItemModel } from "@/types/item";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/Category/ModalDeleteReferencedErrorItem";
 import { toast } from "sonner";
@@ -21,10 +20,10 @@ export default function CategoryPage() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [loading, setLoading] = useState(false);
     const storeId = getSelectedStore()?.id
-        
-    const [error, setError] = useState<string | null>(null);
+
+    const [, setError] = useState<string | null>(null);
     type ErrorModalState =
-        | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; category: CategoryModel }
+        | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<ItemModel>; category: CategoryModel }
         | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
         | { type: "none" };
     const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
@@ -72,8 +71,12 @@ export default function CategoryPage() {
             const categoryModel: CategoryModel[] = categoryResponse.map((cat) => normalizeCategoryResponse(cat));
 
             setCategories(categoryModel);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError(String(err));
+            }
         } finally {
             setLoading(false);
         }
@@ -90,8 +93,12 @@ export default function CategoryPage() {
             setIsModalOpen(false);
 
             toast.success('Categoria criada com sucesso!');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError(String(err));
+            }
         }
     };
 
@@ -106,12 +113,16 @@ export default function CategoryPage() {
             setIsModalOpen(false);
 
             toast.success('Categoria editada com sucesso!');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError(String(err));
+            }
         }
     }
 
-    const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemResponse>, category: CategoryModel) => {
+    const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemModel>, category: CategoryModel) => {
         setErrorModal({ type: "delete-referenced", category, data: err });
     };
 
@@ -126,16 +137,17 @@ export default function CategoryPage() {
             await categories_api.deleteCategory(id);
             setCategories((prev) => prev.filter(category => category.id !== id));
 
-        } catch (err: any) {
+        } catch (err) {
+            const errorWithData = err as { data?: { internal_code?: string } };
 
-            if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+            if (errorWithData?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
 
-                const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemResponse> = err.data;
+                const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemModel> = errorWithData.data as ForeignKeyDeleteReferencedErrorResponse<ItemModel>;
                 handleDeleteReferencedError(errorData, categories.find((cat) => cat.id == id) ?? defaultCategory);
 
-            } else if (err?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
+            } else if (errorWithData?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
 
-                const genericError: GenericPostgreSQLErrorResponse = err.data;
+                const genericError: GenericPostgreSQLErrorResponse = errorWithData.data as GenericPostgreSQLErrorResponse;
                 handleDeleteGenericError(genericError);
 
             } else {
@@ -147,7 +159,7 @@ export default function CategoryPage() {
 
     return (
         <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen w-full">
-            <Header/>
+            <Header />
             <Card
                 id="main-flex"
                 className="flex-1 w-8/10 sm:w-9/10 sm:my-12 flex-col"
@@ -275,7 +287,6 @@ export default function CategoryPage() {
                 <ModalGenericError
                     title={"Não é possível deletar."}
                     details="Esta categoria é utilizada em outros itens de estoque."
-                    error={errorModal.data}
                     onClose={() => setErrorModal({ type: "none" })}
                 />
             )}

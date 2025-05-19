@@ -10,7 +10,7 @@ type ModalDeleteReferencedErrorItemPackageProps = {
   error: ForeignKeyDeleteReferencedErrorResponse<ItemPackagingModel>;
 };
 
-export default function ModalDeleteReferencedErrorItemPackage({ onClose, item, error }: ModalDeleteReferencedErrorItemPackageProps) {
+export default function ModalDeleteReferencedErrorItemPackage({ onClose, error }: ModalDeleteReferencedErrorItemPackageProps) {
   return (
     <ModalErrorShell
       title={"Não é possível deletar."}
@@ -22,11 +22,11 @@ export default function ModalDeleteReferencedErrorItemPackage({ onClose, item, e
       <ScrollArea type="always" scrollbars="vertical" style={{ height: "10vh" }}>
         <Box>
           <Flex direction="column" gap="4">
-            {error.referencingEntities.map((stp, idx, entities) => {
+            {error.referencingEntities.map((stp) => {
 
               return (
 
-                <Text>{stp.description}</Text>
+                <Text key={stp.id}>{stp.description}</Text>
 
               )
             })}

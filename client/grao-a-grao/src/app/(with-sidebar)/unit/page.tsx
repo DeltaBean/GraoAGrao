@@ -10,7 +10,7 @@ import ModalFormUnitOfMeasure from "@/components/Form/Modal/ModalFormUnitOfMeasu
 import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/UnitOfMeasure/ModalDeleteReferencedErrorItem";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLErrorResponse } from "@/errors/api_error";
-import { ItemResponse } from "@/types/item";
+import { ItemModel } from "@/types/item";
 import { toast } from "sonner";
 import { getSelectedStore } from "@/util/util";
 
@@ -20,10 +20,9 @@ export default function UnitPage() {
     
     const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasureModel[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     type ErrorModalState =
-        | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<any>; unit: UnitOfMeasureModel }
+        | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<ItemModel>; unit: UnitOfMeasureModel }
         | { type: "generic-error"; data: GenericPostgreSQLErrorResponse }
         | { type: "none" };
     const [errorModal, setErrorModal] = useState<ErrorModalState>({ type: "none" });
@@ -39,7 +38,7 @@ export default function UnitPage() {
     // State for editing modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalEdit, setIsModalEdit] = useState(false);
-    const [_, setIsModalCreate] = useState(true);
+    const [, setIsModalCreate] = useState(true);
 
     // Handlers for open/close modal.
     const handleCloseModal = () => setIsModalOpen(false);
@@ -72,8 +71,8 @@ export default function UnitPage() {
             );
 
             setUnitsOfMeasure(unitOfMeasureModel ?? []);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -89,8 +88,8 @@ export default function UnitPage() {
             setIsModalOpen(false);
 
             toast.success('Unidade de Medida criada com sucesso!');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -106,12 +105,12 @@ export default function UnitPage() {
             setIsModalOpen(false);
 
             toast.success('Unidade de Medida editada com sucesso!');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            console.error(err);
         }
     }
 
-    const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemResponse>, unit: UnitOfMeasureModel) => {
+    const handleDeleteReferencedError = (err: ForeignKeyDeleteReferencedErrorResponse<ItemModel>, unit: UnitOfMeasureModel) => {
         setErrorModal({ type: "delete-referenced", unit, data: err });
     };
 
@@ -126,16 +125,18 @@ export default function UnitPage() {
             await units_api.deleteUnit(id);
             setUnitsOfMeasure((prev) => prev.filter(unit => unit.id !== id));
             toast.success('Unidade de Medida deletada com sucesso!');
-        } catch (err: any) {
+        } catch (err) {
 
-            if (err?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+            const errorWithData = err as { data?: { internal_code?: string } };
 
-                const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemResponse> = err.data;
+            if (errorWithData?.data?.internal_code === ErrorCodes.DELETE_REFERENCED_ENTITY) {
+
+                const errorData: ForeignKeyDeleteReferencedErrorResponse<ItemModel> = errorWithData.data as ForeignKeyDeleteReferencedErrorResponse<ItemModel>;
                 handleDeleteReferencedError(errorData, unitsOfMeasure.find((un) => un.id == id) ?? defaultUnitOfMeasure);
 
-            } else if (err?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
+            } else if (errorWithData?.data?.internal_code === ErrorCodes.GENERIC_DATABASE_ERROR) {
 
-                const genericError: GenericPostgreSQLErrorResponse = err.data;
+                const genericError: GenericPostgreSQLErrorResponse = errorWithData.data as GenericPostgreSQLErrorResponse;
                 handleDeleteGenericError(genericError);
 
             } else {
@@ -276,7 +277,6 @@ export default function UnitPage() {
                 <ModalGenericError
                     title="Não é possível deletar."
                     details=" Esta unidade de medida é utilizada por outro item."
-                    error={errorModal.data}
                     onClose={() => setErrorModal({ type: "none" })}
                 />
             )}

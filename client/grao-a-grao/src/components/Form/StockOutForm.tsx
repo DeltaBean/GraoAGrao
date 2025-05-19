@@ -8,7 +8,6 @@ import { InformationCircleIcon, PlusIcon, XMarkIcon } from "@heroicons/react/16/
 import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Container, IconButton, Callout } from "@radix-ui/themes";
 import { formatDateTimeLocal } from "@/util/util";
 import React, { useEffect, useState } from "react";
-import LoadingModal from "../LoadingModal";
 import { CheckIcon } from "@heroicons/react/16/solid";
 
 type Props = {
@@ -22,15 +21,12 @@ type Props = {
 export default function StockOutForm({ initialData, itemOptions, itemPackagingOptions, onSubmit, viewOnly = false }: Props) {
   const {
     stockOut,
-    resetForm,
-    updateStockOutField,
     addItem,
     removeItem,
     addItemPackaging,
     removeItemPackaging,
     updateItemSimpleField,
     updateItemPackagingField,
-    updateItemNestedField,
     isTotalBalanced,
     setStockOut: setForm,
   } = useStockOutForm(initialData);

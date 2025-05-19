@@ -1,10 +1,10 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Flex, Heading, Card, Box, TextField, Text, Button, Skeleton, IconButton, Tooltip, Link } from "@radix-ui/themes";
+import { Flex, Heading, Card, Box, TextField, Text, Button, Skeleton, Tooltip, Link } from "@radix-ui/themes";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/16/solid";
 import { GoogleOAuthLogin } from "@/api/auth_api";
-import { ErrorCodes, GoogleUserNotFoundResponse } from "@/errors/api_error";
+import { GoogleUserNotFoundResponse } from "@/errors/api_error";
 import { useEffect, useState } from "react";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -136,7 +136,6 @@ export default function LoginPage() {
                 {errorModal.type === "google-user-notfound" && (
                     <ModalGenericError
                         title={errorModal.title}
-                        error={errorModal.data}
                         details={errorModal.details}
                         onClose={() => setErrorModal({ type: "none" })}
                     />

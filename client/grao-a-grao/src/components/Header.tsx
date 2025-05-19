@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Box, Flex, Text, Link as RadixLink, IconButton, Avatar, Skeleton, Card } from "@radix-ui/themes";
+import { Box, Flex, Text, Link as RadixLink, Avatar } from "@radix-ui/themes";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
-import { getUserAvatarUrl, getUserEmail, getUserName, isUserLoggedIn } from "@/util/util";
+import { useRouter } from "next/navigation";
+import { getUserAvatarUrl, getUserName, isUserLoggedIn } from "@/util/util";
 import { SidebarTrigger } from "./ui/sidebar";
 
 export default function Header() {
-    const [menuOpen, setMenuOpen] = useState(false);
-
-    const [userLoggedIn, setUserLoggedIn] = useState(false);
+    const [, setUserLoggedIn] = useState(false);
     const router = useRouter();
 
     useEffect(() => {

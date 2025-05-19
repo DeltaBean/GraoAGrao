@@ -25,7 +25,7 @@ export async function fetchStockOuts(): Promise<StockOutResponse[]> {
 
     const data: StockOutResponse[] = await res.json();
     return data;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -49,7 +49,7 @@ export async function fetchStockOutById(id: number): Promise<StockOutResponse> {
 
     const data: StockOutResponse = await res.json();
     return data;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -77,7 +77,7 @@ export async function createStockOut(
 
     const created: StockOutResponse = await res.json();
     return created;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -105,7 +105,7 @@ export async function updateStockOut(
 
     const updated: StockOutResponse = await res.json();
     return updated;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }

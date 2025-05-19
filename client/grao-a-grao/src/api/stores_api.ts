@@ -18,7 +18,7 @@ export async function fetchStores(): Promise<StoreResponse[]> {
 
     const data: StoreResponse[] = await res.json();
     return data ?? [];
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -41,7 +41,7 @@ export async function createStore(store: CreateStoreRequest): Promise<StoreRespo
 
     const created: StoreResponse = await res.json();
     return created;
-  } catch (err: any) {
+  } catch (err) {
     throw err;
   }
 }
@@ -63,7 +63,7 @@ export async function updateStore(store: UpdateStoreRequest): Promise<StoreRespo
 
     const updated: StoreResponse = await res.json();
     return updated;
-  } catch (err: any) {
+  } catch (err) {
     throw err;
   }
 }

@@ -74,6 +74,7 @@ export function formatDateTime(dateStr: string | undefined): string {
     });
   } catch (error) {
     console.error("Invalid date string:", dateStr);
+    console.error(error);
     return dateStr ?? ""; // fallback
   }
 }

@@ -10,7 +10,7 @@ type ModalDeleteReferencedErrorItemProps = {
   error: ForeignKeyDeleteReferencedErrorResponse<ItemModel>;
 };
 
-export default function ModalDeleteReferencedErrorItem({ onClose, unit, error }: ModalDeleteReferencedErrorItemProps) {
+export default function ModalDeleteReferencedErrorItem({ onClose, error }: ModalDeleteReferencedErrorItemProps) {
   return (
     <ModalErrorShell
       title={"Não é possível deletar."}
@@ -26,7 +26,7 @@ export default function ModalDeleteReferencedErrorItem({ onClose, unit, error }:
 
               return (
 
-                <Text>{it.description}</Text>
+                <Text key={it.id} >{it.description}</Text>
 
               )
             })}

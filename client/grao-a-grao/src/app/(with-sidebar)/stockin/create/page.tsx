@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { Card, Flex } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
-import { CreateStockInRequest, StockInModel, toCreateStockInRequest } from "@/types/stock_in";
+import { StockInModel, toCreateStockInRequest } from "@/types/stock_in";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { InvalidBuyPriceError, InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, MissingPackagingsError, NoItemsError, NonFractionablePackagingError } from "@/errors/stockInValidation";
@@ -20,8 +20,8 @@ export default function StockInCreatePage() {
 
     const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
     const [items, setItems] = useState<ItemModel[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [, setLoading] = useState(false);
+    const [, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchItemPackagings();
@@ -38,8 +38,14 @@ export default function StockInCreatePage() {
             );
 
             setItemPackagings(itemPackagingModel ?? []);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setLoading(false);
         }
@@ -54,8 +60,14 @@ export default function StockInCreatePage() {
                 (it) => normalizeItemResponse(it)
             );
             setItems(itemModel ?? []);
-        } catch (err: any) {
-
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error(err.message);
+                setError(err.message);
+            } else {
+                console.error(String(err));
+                setError(String(err));
+            }
         } finally {
             setLoading(false);
         }

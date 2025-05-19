@@ -26,7 +26,7 @@ export async function fetchStockIns(): Promise<StockInResponse[]> {
 
     const data: StockInResponse[] = await res.json();
     return data;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -51,7 +51,7 @@ export async function fetchStockInById(id: number): Promise<StockInResponse> {
 
     const data: StockInResponse = await res.json();
     return data;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -78,7 +78,7 @@ export async function createStockIn(request: CreateStockInRequest): Promise<Stoc
 
     const created: StockInResponse = await res.json();
     return created;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -105,7 +105,7 @@ export async function updateStockIn(request: UpdateStockInRequest): Promise<Stoc
 
     const updated: StockInResponse = await res.json();
     return updated;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }

@@ -23,7 +23,7 @@ export async function fetchStocks(): Promise<StockResponse[]> {
 
     const data: StockResponse[] = await res.json();
     return data;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }

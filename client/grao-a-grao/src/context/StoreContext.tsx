@@ -38,7 +38,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             if (!selectedStore && normalized.length > 0) {
                 setSelectedStore(normalized[0]);
             }
-        } catch (err: any) {
+        } catch (err) {
             console.error(err);
             toast.error("Erro ao carregar lojas");
         }

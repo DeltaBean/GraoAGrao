@@ -26,8 +26,7 @@ import {
 export default function StockOutCreatePage() {
   const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
   const [items, setItems] = useState<ItemModel[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setLoading] = useState(false);
 
   useEffect(() => {
     fetchItemPackagings();
@@ -39,8 +38,12 @@ export default function StockOutCreatePage() {
     try {
       const resp: ItemPackagingResponse[] = await item_pack_api.fetchItemPackaging();
       setItemPackagings(resp.map(sp => normalizeItemPackagingResponse(sp)));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(String(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -51,8 +54,12 @@ export default function StockOutCreatePage() {
     try {
       const resp: ItemResponse[] = await item_api.fetchItems();
       setItems(resp.map(it => normalizeItemResponse(it)));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error(String(err));
+      }
     } finally {
       setLoading(false);
     }

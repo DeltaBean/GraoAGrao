@@ -1,7 +1,7 @@
 "use client";
 
 import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
-import { TextField, Text, Skeleton, Button, Callout } from "@radix-ui/themes";
+import { TextField, Text, Callout } from "@radix-ui/themes";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -36,7 +36,7 @@ export default function ModalFormStore({
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting },
+        formState: { errors },
     } = useForm<CreateStoreData | UpdateStoreData>({
         resolver: zodResolver(isEdit ? UpdateStoreSchema : CreateStoreSchema),
         defaultValues: isEdit

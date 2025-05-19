@@ -20,7 +20,7 @@ export async function fetchItemPackaging(): Promise<ItemPackagingResponse[]> {
     const data: ItemPackagingResponse[] = await res.json();
     return data;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -47,7 +47,7 @@ export async function createItemPackaging(itemPackaging: ItemPackagingRequest): 
     const created: ItemPackagingResponse = await res.json();
     return created;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -74,7 +74,7 @@ export async function updateItemPackaging(itemPackaging: ItemPackagingRequest): 
     const updated: ItemPackagingResponse = await res.json();
     return updated;
 
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }
@@ -97,7 +97,7 @@ export async function deleteItemPackaging(id: number): Promise<boolean> {
       throw new Error('Error deleting item packaging');
 
     return true;
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
     throw err;
   }

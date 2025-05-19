@@ -2,7 +2,7 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Text, Heading, Card, Flex, Box, DataList, Badge } from "@radix-ui/themes";
+import { Button, Text, Card, Flex, Box, DataList, Badge } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { GoogleOAuthTryOutLogin } from "@/api/auth_api";
@@ -12,24 +12,20 @@ import { GetTryOutJobStatus } from "@/api/tryout_api";
 export default function CreateTryOutEnvironment() {
     const router = useRouter();
     const [status, setStatus] = useState<"idle" | "creating" | "success" | "error">("idle");
-    const [error, setError] = useState<string | null>(null);
     const [tryOutUuid, setTryOutUuid] = useState<string | null>(null);
 
     const handleGoogleSignUp = async () => {
         setStatus("creating");
-        setError(null);
 
         try {
             // Call your authService function
             const googleUrl = await GoogleOAuthTryOutLogin();
             window.open(googleUrl, "TryOutWindow", "width=600,height=600");
 
-        } catch (err: any) {
+        } catch (err) {
             console.error(err);
-            setError(err?.message || "Erro inesperado.");
             setStatus("error");
-
-            toast.error(error);
+            toast.error("Erro inesperado.");
         }
     };
 
