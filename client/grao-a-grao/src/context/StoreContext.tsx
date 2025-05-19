@@ -6,7 +6,6 @@ import { StoreModel, normalizeStoreResponse } from "@/types/store";
 import * as storesApi from "@/api/stores_api";
 import { toast } from "sonner";
 import { CreateStoreData, UpdateStoreData } from "@/schemas/store_schema";
-import { clearSelectedStore, getSelectedStore } from "@/util/util";
 import { createEmptyStore } from "@/util/factory/store";
 
 interface StoreContextType {

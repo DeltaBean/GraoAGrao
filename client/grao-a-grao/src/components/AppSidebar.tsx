@@ -34,37 +34,37 @@ const items = [
   },
   {
     title: "Loja",
-    url: "store",
+    url: "/store",
     icon: Store,
   },
   {
     title: "Item",
-    url: "item",
+    url: "/item",
     icon: Box,
   },
   {
     title: "Categoria",
-    url: "category",
+    url: "/category",
     icon: Tag,
   },
   {
     title: "Unidade de Medida",
-    url: "unit",
+    url: "/unit",
     icon: Ruler,
   },
   {
     title: "Fracionamento",
-    url: "itemPackaging",
+    url: "/itemPackaging",
     icon: Blocks,
   },
   {
     title: "Entrada de Estoque",
-    url: "stockin",
+    url: "/stockin",
     icon: ArrowUpFromLine,
   },
   {
     title: "Saída de Estoque",
-    url: "stockout",
+    url: "/stockout",
     icon: ArrowDownFromLine,
   },
 ]
@@ -99,8 +99,8 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  <SidebarMenuButton asChild onClick={() => router.push(item.url)}>
+                    <a>
                       <item.icon />
                       <span>{item.title}</span>
                     </a>

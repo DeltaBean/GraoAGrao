@@ -28,7 +28,6 @@ export default function StorePage() {
     createStore,
     updateStore,
     deleteStore,
-    fetchStores,
   } = useStoreContext();
 
   const { isOpen, mode, current, openCreate, openEdit, close } =
