@@ -4,7 +4,6 @@ import "@radix-ui/themes/styles.css";
 import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
 import Providers from "./providers";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

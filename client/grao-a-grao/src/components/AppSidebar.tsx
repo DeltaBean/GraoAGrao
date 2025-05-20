@@ -21,7 +21,6 @@ import { logout } from "@/util/util"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { useStoreContext } from "@/context/StoreContext"
-import { useAuthGuard } from "@/hooks/useAuthGuard"
 
 // Menu items.
 const items = [
