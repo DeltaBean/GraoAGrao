@@ -21,6 +21,7 @@ import { logout } from "@/util/util"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { useStoreContext } from "@/context/StoreContext"
+import { useAuthGuard } from "@/hooks/useAuthGuard"
 
 // Menu items.
 const items = [
@@ -74,7 +75,7 @@ export function AppSidebar() {
 
   const { stores, selectedStore, setSelectedStore } = useStoreContext();
 
-    const handleStoreChange = (store: StoreModel) => {
+  const handleStoreChange = (store: StoreModel) => {
     setSelectedStore(store);
     toast.success(`Loja alterada para ${store.name}`);
     router.replace(currentUrl);

@@ -22,7 +22,7 @@ export default function GlobalFetchInterceptor({
                     logout();
                     
                     // Redirect to the root page.
-                    router.push("/");
+                    router.push("/login");
                 }
                 return response;
             };

@@ -4,6 +4,7 @@ import "@radix-ui/themes/styles.css";
 import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
 import Providers from "./providers";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,11 +41,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR">
       <body className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="solid">
-          
-          {isDev && <ThemePanel/>}
-          
+
+          {isDev && <ThemePanel />}
+
           <Providers>{children}</Providers>
-          
+
         </Theme>
       </body>
     </html>
