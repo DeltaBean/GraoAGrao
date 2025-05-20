@@ -2,9 +2,9 @@
 
 import "@radix-ui/themes/styles.css";
 import "@/styles/globals.css";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { StoreProvider } from "@/context/StoreContext";
+import MainProviders from "@/providers/MainProviders";
 
 export default function MainLayout({
   children,
@@ -13,10 +13,10 @@ export default function MainLayout({
 }>) {
   return (
       <StoreProvider>
-        <SidebarProvider>
+        <MainProviders>
           <AppSidebar />
           {children}
-        </SidebarProvider>
+        </MainProviders>
       </StoreProvider>
   );
 }

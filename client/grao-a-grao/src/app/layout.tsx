@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "@radix-ui/themes/styles.css";
 import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
-import Providers from "./providers";
+import RootProviders from "@/providers/RootProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           {isDev && <ThemePanel />}
 
-          <Providers>{children}</Providers>
+          <RootProviders>{children}</RootProviders>
 
         </Theme>
       </body>
