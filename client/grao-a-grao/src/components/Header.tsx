@@ -3,11 +3,8 @@
 import { Box, Flex, Text, Link as RadixLink, Avatar } from "@radix-ui/themes";
 import { getUserAvatarUrl, getUserName } from "@/util/util";
 import { SidebarTrigger } from "./ui/sidebar";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function Header() {
-
-    useAuthGuard();
 
     return (
         <Box className="w-full border-b-1 px-4 py-2">
