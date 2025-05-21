@@ -10,7 +10,7 @@ export async function fetchUnits(): Promise<UnitOfMeasureResponse[]> {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
@@ -36,7 +36,7 @@ export async function createUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeas
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(unit)
     });
@@ -63,7 +63,7 @@ export async function updateUnit(unit: UnitOfMeasureRequest): Promise<UnitOfMeas
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(unit)
     });
@@ -88,7 +88,7 @@ export async function deleteUnit(id: number): Promise<void> {
     method: 'DELETE',
     headers: {
       "Authorization": `Bearer ${token}`,
-      "X-Store-ID": store?.id?.toString() ?? "",
+      "X-Store-ID": store?.id?.toString() ?? "0",
     },
   });
 

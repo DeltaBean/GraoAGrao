@@ -11,7 +11,7 @@ export async function fetchCategories(): Promise<CategoryResponse[]> {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
@@ -37,7 +37,7 @@ export async function createCategory(category: CategoryRequest): Promise<Categor
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
 
       body: JSON.stringify(category)
@@ -65,7 +65,7 @@ export async function updateCategory(category: CategoryRequest): Promise<Categor
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(category)
     });
@@ -91,7 +91,7 @@ export async function deleteCategory(id: number): Promise<void> {
     method: 'DELETE',
     headers: {
       "Authorization": `Bearer ${token}`,
-      "X-Store-ID": store?.id?.toString() ?? "",
+      "X-Store-ID": store?.id?.toString() ?? "0",
     },
   });
 

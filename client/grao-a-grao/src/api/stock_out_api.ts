@@ -17,7 +17,7 @@ export async function fetchStockOuts(): Promise<StockOutResponse[]> {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
@@ -41,7 +41,7 @@ export async function fetchStockOutById(id: number): Promise<StockOutResponse> {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
@@ -68,7 +68,7 @@ export async function createStockOut(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(request),
     });
@@ -96,7 +96,7 @@ export async function updateStockOut(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(request),
     });
@@ -120,7 +120,7 @@ export async function deleteStockOut(id: number): Promise<void> {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
-      "X-Store-ID": store?.id?.toString() ?? "",
+      "X-Store-ID": store?.id?.toString() ?? "0",
     },
   });
 
@@ -149,7 +149,7 @@ export async function finalizeStockOut(id: number): Promise<void> {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
-      "X-Store-ID": store?.id?.toString() ?? "",
+      "X-Store-ID": store?.id?.toString() ?? "0",
     },
   });
 

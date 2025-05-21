@@ -17,7 +17,7 @@ export async function fetchStockIns(): Promise<StockInResponse[]> {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
@@ -42,7 +42,7 @@ export async function fetchStockInById(id: number): Promise<StockInResponse> {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
@@ -68,7 +68,7 @@ export async function createStockIn(request: CreateStockInRequest): Promise<Stoc
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(request),
     });
@@ -95,7 +95,7 @@ export async function updateStockIn(request: UpdateStockInRequest): Promise<Stoc
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(request),
     });
@@ -120,7 +120,7 @@ export async function deleteStockIn(id: number): Promise<void> {
     method: "DELETE",
     headers: {
       "Authorization": `Bearer ${token}`,
-      "X-Store-ID": store?.id?.toString() ?? "",
+      "X-Store-ID": store?.id?.toString() ?? "0",
     },
   });
 
@@ -147,7 +147,7 @@ export async function finalizeStockIn(id: number): Promise<void> {
     method: "PATCH",
     headers: {
       "Authorization": `Bearer ${token}`,
-      "X-Store-ID": store?.id?.toString() ?? "",
+      "X-Store-ID": store?.id?.toString() ?? "0",
     },
   });
 

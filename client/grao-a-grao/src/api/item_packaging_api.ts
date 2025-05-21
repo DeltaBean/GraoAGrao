@@ -10,7 +10,7 @@ export async function fetchItemPackaging(): Promise<ItemPackagingResponse[]> {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
@@ -36,7 +36,7 @@ export async function createItemPackaging(itemPackaging: ItemPackagingRequest): 
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(itemPackaging)
     });
@@ -63,7 +63,7 @@ export async function updateItemPackaging(itemPackaging: ItemPackagingRequest): 
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
       body: JSON.stringify(itemPackaging)
     });
@@ -89,7 +89,7 @@ export async function deleteItemPackaging(id: number): Promise<boolean> {
       method: 'DELETE',
       headers: {
         "Authorization": `Bearer ${token}`,
-        "X-Store-ID": store?.id?.toString() ?? "",
+        "X-Store-ID": store?.id?.toString() ?? "0",
       },
     });
 
