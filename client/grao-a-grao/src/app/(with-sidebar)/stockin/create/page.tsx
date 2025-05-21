@@ -80,7 +80,7 @@ export default function StockInCreatePage() {
             await createStockIn(req);
 
             router.push("/stockin");
-            toast.success("Entrada editada com sucesso!");
+            toast.success("Entrada criada com sucesso!");
 
         } catch (err) {
 

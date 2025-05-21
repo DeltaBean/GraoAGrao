@@ -15,9 +15,14 @@ import {
   createEmptyStockInPackaging,
 } from "@/util/factory/stock_in";
 import { ItemModel } from "@/types/item";
+import { isValidTwoDecimalNumber } from "@/util/util";
+
+type InternalStockInItem = StockInItemModel & {
+  _buy_price_input?: string; // temporary local state
+};
 
 export function useStockInForm(initial?: StockInModel) {
-  const [stockIn, setStockIn] = useState<StockInModel>(
+  const [stockIn, setStockIn] = useState<Omit<StockInModel, "items"> & { items: InternalStockInItem[] }>(
     initial ?? createEmptyStockIn()
   );
 
@@ -91,7 +96,7 @@ export function useStockInForm(initial?: StockInModel) {
 
       if (field === "item" && !value.is_fractionable)
         prev.items[index].packagings = [];
-      
+
       return {
         ...prev,
         items: prev.items.map((item, i) =>
@@ -149,6 +154,26 @@ export function useStockInForm(initial?: StockInModel) {
     }));
   }
 
+  function updateBuyPriceInputField(index: number, inputValue: string) {
+
+    if (!isValidTwoDecimalNumber(inputValue)) return; // block invalid input
+    
+    setStockIn((prev) => {
+      const floatValue = parseFloat(inputValue);
+      const newItems = [...prev.items];
+
+      newItems[index] = {
+        ...newItems[index],
+        _buy_price_input: inputValue,
+        buy_price: isNaN(floatValue) ? 0 : Math.round(floatValue * 100) / 100,
+      };
+      return {
+        ...prev,
+        items: newItems,
+      };
+    });
+  }
+
   // Check if total_quantity equals the sum of pack quantities * packaging.unit
   function isTotalBalanced(itemIndex: number): boolean {
     const item = stockIn.items[itemIndex];
@@ -183,5 +208,6 @@ export function useStockInForm(initial?: StockInModel) {
     updateItemPackagingField,
     updateItemNestedField,
     isTotalBalanced,
+    updateBuyPriceInputField,
   };
 }

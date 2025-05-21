@@ -127,3 +127,7 @@ export function clearSelectedStore(): void {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem("selectedStore");
 }
+
+export function isValidTwoDecimalNumber(value: string): boolean {
+  return /^(\d+)?(\.\d{0,2})?$/.test(value);
+}

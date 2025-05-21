@@ -123,7 +123,7 @@ export default function StockInEditPage() {
             const req = toUpdateStockInRequest(data);
             await updateStockIn(req);
             router.push("/stockin");
-            toast.success("Entrada criada com sucesso!");
+            toast.success("Entrada editada com sucesso!");
         } catch (err) {
             if (err instanceof Error) {
                 console.error(err.message);

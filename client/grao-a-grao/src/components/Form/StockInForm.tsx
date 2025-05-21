@@ -28,6 +28,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
     updateItemSimpleField,
     updateItemPackagingField,
     isTotalBalanced,
+    updateBuyPriceInputField,
   } = useStockInForm(initialData);
 
   // tick state
@@ -258,8 +259,9 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                           disabled={viewOnly}
                           type="number"
                           placeholder="0.00"
-                          value={item.buy_price ?? item.buy_price != 0 ? item.buy_price : ""}
-                          onChange={(e) => updateItemSimpleField(index, "buy_price", parseFloat(e.target.value))}
+                          step="0.01"
+                          value={item._buy_price_input ?? (item.buy_price !== null ? item.buy_price.toFixed(2) : "")}
+                          onChange={(e) => updateBuyPriceInputField(index, e.target.value)}
                         />
                       </Tooltip>
 
