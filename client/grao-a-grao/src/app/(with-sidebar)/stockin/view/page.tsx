@@ -41,7 +41,7 @@ export default function StockInEditPage() {
     useEffect(() => {
         fetchItemPackagings();
         fetchItems();
-    }, []); // empty array = run once on mount
+    }, []);
 
     const fetchStockIn = async () => {
         setIsLoading(true);

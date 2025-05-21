@@ -1,3 +1,4 @@
+import { InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, NonFractionablePackagingError } from "@/errors/stockOutValidation";
 import { ItemModel, ItemResponse, normalizeItemResponse } from "./item";
 import { ItemPackagingModel, ItemPackagingResponse, normalizeItemPackagingResponse } from "./item_packaging";
 
@@ -108,31 +109,24 @@ export function toCreateStockOutRequest(model: StockOutModel): CreateStockOutReq
 
     return {
         items: model.items.map(item => {
-            if (item.item.id === undefined) {
-                throw new Error("Item ID is required for each item.");
-            }
-            if (item.total_quantity <= 0) {
-                throw new Error("Total Quantity must be greater than 0.");
-            }
+            
+            if (item.item.id === undefined) throw new MissingItemIdError();
 
-            if (!item.item.is_fractionable && item.packagings.length > 0) {
-                throw new Error("Item não fracionável não pode conter fracionamento.");
-            }
+            if (item.total_quantity <= 0) throw new InvalidTotalQuantityError();
 
-            if (item.item.is_fractionable && (!item.packagings || item.packagings.length === 0)) {
-                throw new Error("At least one packaging must be specified for fractionable item.");
-            }
+            if (!item.item.is_fractionable && item.packagings.length > 0) throw new NonFractionablePackagingError();
+
+            if (item.item.is_fractionable && (!item.packagings || item.packagings.length === 0)) throw new InvalidPackagingQuantityError();
 
             return {
                 item_id: item.item.id,
                 total_quantity: item.total_quantity,
                 packagings: item.packagings.map(pkg => {
-                    if (pkg.item_packaging.id === undefined) {
-                        throw new Error("Item Packaging ID is required for each packaging.");
-                    }
-                    if (pkg.quantity <= 0) {
-                        throw new Error("Packaging quantity must be greater than 0.");
-                    }
+
+                    if (pkg.item_packaging.id === undefined) throw new MissingPackagingIdError();
+                    
+                    if (pkg.quantity <= 0) throw new InvalidPackagingQuantityError();
+                    
                     return {
                         item_packaging_id: pkg.item_packaging.id,
                         quantity: pkg.quantity,

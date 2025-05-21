@@ -12,6 +12,7 @@ import { formatDateTime, getSelectedStore } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { ErrorCodes, StockOutTotalQuantityNotMatchingResponse } from "@/errors/api_error";
+import { toast } from "sonner";
 
 export default function StockOutPage() {
   const storeId = getSelectedStore()?.id
@@ -66,6 +67,7 @@ export default function StockOutPage() {
         prev.map((so) => (so.id === id ? { ...so, status: "finalized", finalized_at: new Date().toISOString() } : so))
       );
 
+      toast.success('Saída finalizada com sucesso!');
     } catch (err) {
       console.error(err);
 

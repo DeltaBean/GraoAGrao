@@ -18,15 +18,21 @@ import {
   normalizeItemResponse,
 } from "@/types/item";
 import {
-  CreateStockOutRequest,
   StockOutModel,
   toCreateStockOutRequest,
 } from "@/types/stock_out";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, MissingPackagingsError, NoItemsError, NonFractionablePackagingError } from "@/errors/stockOutValidation";
+import { useLoading } from "@/hooks/useLoading";
+import LoadingModal from "@/components/LoadingModal";
 
 export default function StockOutCreatePage() {
+  const router = useRouter();
+
   const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
   const [items, setItems] = useState<ItemModel[]>([]);
-  const [, setLoading] = useState(false);
+  const { loadingData, setIsLoading, setMessage: setLoadingMessage } = useLoading();
 
   useEffect(() => {
     fetchItemPackagings();
@@ -34,7 +40,8 @@ export default function StockOutCreatePage() {
   }, []);
 
   const fetchItemPackagings = async () => {
-    setLoading(true);
+    setIsLoading(true);
+    setLoadingMessage("Carregando Fracionamentos de Itens...");
     try {
       const resp: ItemPackagingResponse[] = await item_pack_api.fetchItemPackaging();
       setItemPackagings(resp.map(sp => normalizeItemPackagingResponse(sp)));
@@ -44,13 +51,16 @@ export default function StockOutCreatePage() {
       } else {
         console.error(String(err));
       }
+
+      toast.error("Ocorreu um erro inesperado ao carregar Fracionamentos de Itens.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const fetchItems = async () => {
-    setLoading(true);
+    setIsLoading(true);
+    setLoadingMessage("Carregando Itens...");
     try {
       const resp: ItemResponse[] = await item_api.fetchItems();
       setItems(resp.map(it => normalizeItemResponse(it)));
@@ -60,14 +70,55 @@ export default function StockOutCreatePage() {
       } else {
         console.error(String(err));
       }
+
+      toast.error("Ocorreu um erro inesperado ao carregar Itens.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  const handleSubmit = async (data: StockOutModel) => {
+    setIsLoading(true);
+    setLoadingMessage("Salvando Saída de Estoque...");
+
+    try {
+
+      const req = toCreateStockOutRequest(data);
+      await createStockOut(req);
+
+      router.push("/stockout");
+      toast.success("Saída criada com sucesso!");
+
+    } catch (err) {
+
+      console.error(err);
+
+      if (err instanceof NoItemsError) {
+        toast.error("É necessário adicionar pelo menos um item.");
+      } else if (err instanceof MissingItemIdError) {
+        toast.error("É necessário adicionar pelo menos um item.");
+      } else if (err instanceof InvalidTotalQuantityError) {
+        toast.error("A quantidade total deve ser maior que 0.");
+      } else if (err instanceof MissingPackagingsError) {
+        toast.error("É necessário adicionar pelo menos um fracionamento.");
+      } else if (err instanceof NonFractionablePackagingError) {
+        toast.error("Item não fracionável não pode ter fracionamentos.");
+      } else if (err instanceof InvalidPackagingQuantityError) {
+        toast.error("A quantidade de fracionamento deve ser maior que 0.");
+      } else if (err instanceof MissingPackagingIdError) {
+        toast.error("Todo fracionamento deve ter um tipo selecionado.");
+      } else {
+        toast.error("Erro ao criar saída.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+
   return (
     <Flex direction="column" justify="start" align="center" className="min-h-screen w-full">
-      <Header/>
+      <Header />
       <Card
         id="main-flex"
         className="flex-1 w-8/10 sm:w-9/10 h-full sm:my-12 flex-col"
@@ -76,12 +127,10 @@ export default function StockOutCreatePage() {
         <StockOutForm
           itemOptions={items}
           itemPackagingOptions={itemPackagings}
-          onSubmit={async (data: StockOutModel) => {
-            const req: CreateStockOutRequest = toCreateStockOutRequest(data);
-            await createStockOut(req);
-          }}
+          onSubmit={handleSubmit}
         />
       </Card>
+      <LoadingModal isOpen={loadingData.isLoading} message={loadingData.message} />
     </Flex>
   );
 }

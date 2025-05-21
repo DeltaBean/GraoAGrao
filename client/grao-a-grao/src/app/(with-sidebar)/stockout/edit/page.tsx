@@ -9,13 +9,17 @@ import { ItemPackagingModel, ItemPackagingResponse, normalizeItemPackagingRespon
 import { ItemModel, ItemResponse, normalizeItemResponse } from "@/types/item";
 import { normalizeStockOutResponse, StockOutModel, StockOutResponse, toUpdateStockOutRequest } from "@/types/stock_out";
 import { createEmptyStockOut } from "@/util/factory/stock_out";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, Flex } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import LoadingModal from "@/components/LoadingModal";
 import { useLoading } from "@/hooks/useLoading";
+import { toast } from "sonner";
+import { InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, MissingPackagingsError, NoItemsError, NonFractionablePackagingError } from "@/errors/stockOutValidation";
 
 export default function StockOutEditPage() {
+  const router = useRouter();
+
   const searchParams = useSearchParams();
   const idParam = searchParams.get("id");
 
@@ -42,6 +46,7 @@ export default function StockOutEditPage() {
       setStockOut(normalizeStockOutResponse(resp));
     } catch (err) {
       console.error(err);
+      toast.error("Ocorreu um erro inesperado ao carregar Saída de Estoque.");
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +60,7 @@ export default function StockOutEditPage() {
       setItemPackagings(res.map(normalizeItemPackagingResponse));
     } catch (err) {
       console.error(err);
+      toast.error("Ocorreu um erro inesperado ao carregar Fracionamentos de Itens.");
     } finally {
       setIsLoading(false);
     }
@@ -62,12 +68,13 @@ export default function StockOutEditPage() {
 
   const fetchItems = async () => {
     setIsLoading(true);
-    setLoadingMessage("Carregando Itens...");
+    setLoadingMessage("Carregando Itens de Estoque...");
     try {
       const res: ItemResponse[] = await fetchItemsApi();
       setItems(res.map(normalizeItemResponse));
     } catch (err) {
       console.error(err);
+      toast.error("Ocorreu um erro inesperado ao carregar Itens de Estoque.");
     } finally {
       setIsLoading(false);
     }
@@ -79,8 +86,31 @@ export default function StockOutEditPage() {
     try {
       const req = toUpdateStockOutRequest(data);
       await updateStockOut(req);
+
+      router.push("/stockout");
+      toast.success("Saída editada com sucesso!");
+
     } catch (err) {
       console.error(err);
+
+      if (err instanceof NoItemsError) {
+        toast.error("É necessário adicionar pelo menos um item.");
+      } else if (err instanceof MissingItemIdError) {
+        toast.error("É necessário adicionar pelo menos um item.");
+      } else if (err instanceof InvalidTotalQuantityError) {
+        toast.error("A quantidade total deve ser maior que 0.");
+      } else if (err instanceof MissingPackagingsError) {
+        toast.error("É necessário adicionar pelo menos um fracionamento.");
+      } else if (err instanceof NonFractionablePackagingError) {
+        toast.error("Item não fracionável não pode ter fracionamentos.");
+      } else if (err instanceof InvalidPackagingQuantityError) {
+        toast.error("A quantidade de fracionamento deve ser maior que 0.");
+      } else if (err instanceof MissingPackagingIdError) {
+        toast.error("Todo fracionamento deve ter um tipo selecionado.");
+      } else {
+        toast.error("Erro inesperado ao criar saída.");
+      }
+      
     } finally {
       setIsLoading(false);
     }

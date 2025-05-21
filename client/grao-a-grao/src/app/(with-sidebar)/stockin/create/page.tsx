@@ -14,13 +14,14 @@ import { StockInModel, toCreateStockInRequest } from "@/types/stock_in";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { InvalidBuyPriceError, InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, MissingPackagingsError, NoItemsError, NonFractionablePackagingError } from "@/errors/stockInValidation";
+import { useLoading } from "@/hooks/useLoading";
+import LoadingModal from "@/components/LoadingModal";
 
 export default function StockInCreatePage() {
     const router = useRouter();
 
     const [itemPackagings, setItemPackagings] = useState<ItemPackagingModel[]>([]);
     const [items, setItems] = useState<ItemModel[]>([]);
-    const [, setLoading] = useState(false);
     const [, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -28,8 +29,15 @@ export default function StockInCreatePage() {
         fetchItems();
     }, []); // empty array = run once on mount
 
+    const {
+        loadingData,
+        setIsLoading,
+        setMessage: setLoadingMessage,
+    } = useLoading();
+
     const fetchItemPackagings = async () => {
-        setLoading(true);
+        setIsLoading(true);
+        setLoadingMessage("Carregando Fracionamento de Itens...");
 
         try {
             const itemPackagingResponse: ItemPackagingResponse[] = await item_pack_api.fetchItemPackaging();
@@ -46,13 +54,16 @@ export default function StockInCreatePage() {
                 console.error(String(err));
                 setError(String(err));
             }
+
+            toast.error("Ocorreu um erro inesperado ao carregar Fracionamento de Itens.");
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     const fetchItems = async () => {
-        setLoading(true);
+        setIsLoading(true);
+        setLoadingMessage("Carregando Itens de Estoque...");
 
         try {
             const itemResponse: ItemResponse[] = await item_api.fetchItems();
@@ -68,8 +79,10 @@ export default function StockInCreatePage() {
                 console.error(String(err));
                 setError(String(err));
             }
+
+            toast.error("Ocorreu um erro inesperado ao carregar Itens de Estoque.");
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     }
 
@@ -122,6 +135,7 @@ export default function StockInCreatePage() {
                     onSubmit={handleSubmit}
                 />
             </Card>
+            <LoadingModal isOpen={loadingData.isLoading} message={loadingData.message} />
         </Flex>
     );
 }

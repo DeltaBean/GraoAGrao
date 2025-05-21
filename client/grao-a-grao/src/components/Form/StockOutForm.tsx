@@ -196,7 +196,7 @@ export default function StockOutForm({ initialData, itemOptions, itemPackagingOp
                     <> <Separator size="4" />
                       <Flex justify="between">
                         <Heading size="3" mb="-4">Fracionamentos</Heading>
-                        <IconButton disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}><PlusIcon width="16" height="16" /></IconButton>
+                        <IconButton type="button" disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}><PlusIcon width="16" height="16" /></IconButton>
                       </Flex>
                       {item.packagings.map((pack, pi) => {
                         const otherPacks = new Set(item.packagings.filter((_, j) => j !== pi).map(p => p.item_packaging.id));
@@ -221,7 +221,7 @@ export default function StockOutForm({ initialData, itemOptions, itemPackagingOp
                                 </>
                               )}
                               <Container>
-                                <Button disabled={viewOnly} variant="outline" color="red" size="1" onClick={() => removeItemPackaging(index, pi)} style={{ marginTop: 8 }}>Excluir</Button>
+                                <Button type="button" disabled={viewOnly} variant="outline" color="red" size="1" onClick={() => removeItemPackaging(index, pi)} style={{ marginTop: 8 }}>Excluir</Button>
                               </Container>
                             </Flex>
                           </Card>

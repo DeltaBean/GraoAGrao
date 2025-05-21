@@ -16,6 +16,7 @@ import Header from "@/components/Header";
 import LoadingModal from "@/components/LoadingModal";
 import { useLoading } from "@/hooks/useLoading";
 import { toast } from "sonner";
+import { InvalidBuyPriceError, InvalidPackagingQuantityError, InvalidTotalQuantityError, MissingItemIdError, MissingPackagingIdError, MissingPackagingsError, NoItemsError, NonFractionablePackagingError } from "@/errors/stockInValidation";
 
 export default function StockInEditPage() {
     const router = useRouter();
@@ -63,6 +64,8 @@ export default function StockInEditPage() {
                 console.error(String(err));
                 setError(String(err));
             }
+
+            toast.error("Ocorreu um erro inesperado ao carregar Entrada de Estoque.");
         } finally {
             setIsLoading(false);
         }
@@ -87,6 +90,8 @@ export default function StockInEditPage() {
                 console.error(String(err));
                 setError(String(err));
             }
+
+            toast.error("Ocorreu um erro inesperado ao carregar Fracionamento de Itens.");
         } finally {
             setIsLoading(false);
         }
@@ -111,6 +116,8 @@ export default function StockInEditPage() {
                 console.error(String(err));
                 setError(String(err));
             }
+
+            toast.error("Ocorreu um erro inesperado ao carregar Itens de Estoque.");
         } finally {
             setIsLoading(false);
         }
@@ -125,13 +132,28 @@ export default function StockInEditPage() {
             router.push("/stockin");
             toast.success("Entrada editada com sucesso!");
         } catch (err) {
-            if (err instanceof Error) {
-                console.error(err.message);
-                setError(err.message);
+            console.error(err);
+
+            if (err instanceof NoItemsError) {
+                toast.error("É necessário adicionar pelo menos um item.");
+            } else if (err instanceof MissingItemIdError) {
+                toast.error("É necessário adicionar pelo menos um item.");
+            } else if (err instanceof InvalidBuyPriceError) {
+                toast.error("O preço de compra deve ser maior que 0.");
+            } else if (err instanceof InvalidTotalQuantityError) {
+                toast.error("A quantidade total deve ser maior que 0.");
+            } else if (err instanceof MissingPackagingsError) {
+                toast.error("É necessário adicionar pelo menos um fracionamento.");
+            } else if (err instanceof NonFractionablePackagingError) {
+                toast.error("Item não fracionável não pode ter fracionamentos.");
+            } else if (err instanceof InvalidPackagingQuantityError) {
+                toast.error("A quantidade de fracionamento deve ser maior que 0.");
+            } else if (err instanceof MissingPackagingIdError) {
+                toast.error("Todo fracionamento deve ter um tipo selecionado.");
             } else {
-                console.error(String(err));
-                setError(String(err));
+                toast.error("Erro ao criar entrada.");
             }
+
         } finally {
             setIsLoading(false);
         }

@@ -300,7 +300,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                                     <Heading size="3" mb="-4">Fracionamentos</Heading>
                                   </Tooltip>
                                   <Tooltip content="Adicionar fracionamento">
-                                    <IconButton disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
+                                    <IconButton type="button" disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
                                       <PlusIcon width="16" height="16">
                                       </PlusIcon>
                                     </IconButton>
@@ -388,6 +388,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                                         )}
                                         <Container>
                                           <Button
+                                            type="button"
                                             disabled={viewOnly}
                                             variant="outline"
                                             color="red"
