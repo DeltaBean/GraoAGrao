@@ -64,7 +64,7 @@ export default function StorePage() {
   return (
     <Flex direction="column" align="center" className="min-h-screen w-full">
       <Header />
-      <Card className="flex-1 w-4/5 sm:my-12 flex-col">
+      <Card className="flex-1 my-3 w-14/16 sm:my-12 flex-col">
         <Flex
           justify="between"
           align="center"

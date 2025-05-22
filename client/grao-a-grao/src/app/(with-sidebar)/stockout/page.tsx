@@ -108,7 +108,7 @@ export default function StockOutPage() {
     <Flex direction="column" className="min-h-screen w-full">
       <Header />
       <Flex id="main-flex" className="flex-1 w-full" direction="column" justify="center" align="center">
-        <Card className="flex-1 w-8/10 sm:w-9/10 sm:my-12 flex-col" style={{ display: "flex" }}>
+        <Card className="flex-1 my-3 w-14/16 sm:w-9/10 sm:my-12 flex-col" style={{ display: "flex" }}>
           <Flex className="w-full bg-[var(--accent-4)]" p="3" justify="between" align="center" style={{ borderTopLeftRadius: "var(--radius-3)", borderTopRightRadius: "var(--radius-3)" }}>
             <Heading size={{ sm: "8" }} weight="bold">Saída de Estoque</Heading>
             <Tooltip content="Criar nova saída de estoque">

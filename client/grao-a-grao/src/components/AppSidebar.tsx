@@ -99,7 +99,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild onClick={() => router.push(item.url)}>
                     <a>
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span className="cursor-default">{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

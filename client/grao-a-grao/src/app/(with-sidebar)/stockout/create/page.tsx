@@ -121,7 +121,7 @@ export default function StockOutCreatePage() {
       <Header />
       <Card
         id="main-flex"
-        className="flex-1 w-8/10 sm:w-9/10 h-full sm:my-12 flex-col"
+        className="flex-1 my-3 w-14/16 sm:w-9/10 h-full sm:my-12 flex-col"
         style={{ display: "flex" }}
       >
         <StockOutForm

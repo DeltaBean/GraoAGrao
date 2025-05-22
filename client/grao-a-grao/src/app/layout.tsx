@@ -26,7 +26,6 @@ export const metadata: Metadata = {
   description: "Gerenciamento de estoque de grão a grão",
 };
 
-// Export viewport separately.
 export const viewport = {
   width: "device-width",
   initialScale: 1.0,

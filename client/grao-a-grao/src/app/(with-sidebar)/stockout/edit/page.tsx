@@ -119,7 +119,7 @@ export default function StockOutEditPage() {
   return (
     <Flex direction="column" justify="start" align="center" className="min-h-screen w-full">
       <Header />
-      <Card className="flex-1 w-8/10 sm:w-9/10 h-full sm:my-12 flex-col" style={{ display: "flex" }}>
+      <Card className="flex-1 my-3 w-14/16 sm:w-9/10 h-full sm:my-12 flex-col" style={{ display: "flex" }}>
         <StockOutForm
           initialData={stockOut}
           itemPackagingOptions={itemPackagings}

@@ -213,7 +213,20 @@ export default function StockOutForm({ initialData, itemOptions, itemPackagingOp
                               </Select.Root>
                               {pack.item_packaging.id && (
                                 <> <DataList.Root>
-                                  <DataList.Item><DataList.Label>Fracionamento</DataList.Label><DataList.Value>{`${pack.item_packaging.quantity}x ${item.item.unit_of_measure?.description}`}</DataList.Value></DataList.Item>
+                                  <DataList.Item>
+                                    <DataList.Label>
+                                      Fracionamento
+                                    </DataList.Label>
+                                    <DataList.Value>
+                                      {(() => {
+                                        const uom = item.item.unit_of_measure;
+                                        const qty = pack.item_packaging.quantity;
+                                        return uom?.description
+                                          ? <Badge color="blue" variant="soft">{`${qty}x ${uom.description}`}</Badge>
+                                          : "N/A";
+                                      })()}
+                                    </DataList.Value>
+                                  </DataList.Item>
                                 </DataList.Root>
                                   <Text mb="-4" size="2">Quantidade</Text>
                                   <TextField.Root disabled={viewOnly} type="number" placeholder="0" value={pack.quantity || ""}
