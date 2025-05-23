@@ -64,10 +64,15 @@ func GetStock(c *gin.Context) {
 func GetStockByCategory(c *gin.Context) {
 	logger.Log.Info("GetStockByCategory")
 
-	authenticatedUser, err := util.GetUserFromJWT(c.Request.Header["Authorization"][0])
+	user, err := util.GetUserFromContext(c)
 	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -83,7 +88,7 @@ func GetStockByCategory(c *gin.Context) {
 		return
 	}
 
-	stock, err := stock_repository.GetStockByCategory(conn, authenticatedUser.ID, categoryID)
+	stock, err := stock_repository.GetStockByCategory(conn, user.ID, categoryID)
 	if err != nil {
 		logger.Log.Error("Error fetching stock: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

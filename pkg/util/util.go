@@ -103,21 +103,5 @@ func StartTryOutCronWorker() {
 			}
 		}
 	})
-
-	// Run every 1 hour
-	// Process tryout environment expiration jobs
-	c.AddFunc("@every 1h", func() {
-		jobs, err := tryout_job_repository.ListTryOutJobByStatus("completed")
-		if err != nil {
-			logger.Log.Error("Failed to list completed demo jobs:", err)
-			return
-		}
-		for _, job := range jobs {
-			err = tryout_service.ExpireTryOutJob(&job)
-			if err != nil {
-				logger.Log.Error(err)
-			}
-		}
-	})
 	c.Start()
 }

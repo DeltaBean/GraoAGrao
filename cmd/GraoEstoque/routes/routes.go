@@ -9,6 +9,13 @@ import (
 
 // InitRoutes initializes the API routes
 func InitRoutes(router *gin.Engine) {
+
+	// Support browser preflight OPTIONS requests explicitly
+	// Ensures the browser receives the appropriate headers even on preflight requests
+	router.OPTIONS("/*path", func(c *gin.Context) {
+		c.AbortWithStatus(204)
+	})
+
 	// Health endpoint
 	router.GET("/health", handler.HealthHandler)
 
@@ -29,6 +36,7 @@ func InitRoutes(router *gin.Engine) {
 	storeGroup.Use(
 		middleware.AuthMiddleware(),
 		middleware.TenantMiddleware(),
+		middleware.TenantAccessGuard(),
 	)
 	{
 		storeGroup.GET("", handler.GetStores)
@@ -49,6 +57,7 @@ func InitRoutes(router *gin.Engine) {
 	itemGroup.Use(
 		middleware.AuthMiddleware(),
 		middleware.TenantMiddleware(),
+		middleware.TenantAccessGuard(),
 		middleware.StoreMiddleware(),
 	)
 	{
@@ -122,6 +131,7 @@ func InitRoutes(router *gin.Engine) {
 	stockGroup.Use(
 		middleware.AuthMiddleware(),
 		middleware.TenantMiddleware(),
+		middleware.TenantAccessGuard(),
 		middleware.StoreMiddleware(),
 	)
 	{

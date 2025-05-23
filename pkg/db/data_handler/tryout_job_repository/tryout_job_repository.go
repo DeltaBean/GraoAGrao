@@ -34,9 +34,10 @@ func ListTryOutJobByStatus(status string) ([]model.TryOutJob, error) {
           tjb.created_by,
           tjb.status,
           tjb.created_at,
-          tjb.expires_at,
 		  org.organization_id,
-		  org.schema_name
+		  org.schema_name,
+		  org.is_try_out,
+		  org.expires_at,
         FROM public.tb_tryout_job tjb
 		JOIN public.tb_organization org ON org.organization_id = tjb.organization_id
         WHERE status = $1
@@ -59,9 +60,10 @@ func ListTryOutJobByStatus(status string) ([]model.TryOutJob, error) {
 			&job.CreatedBy.ID,
 			&job.Status,
 			&job.CreatedAt,
-			&job.ExpiresAt,
 			&job.Organization.ID,
 			&job.Organization.DBSchema,
+			&job.Organization.IsTryOut,
+			&job.Organization.ExpiresAt,
 		); err != nil {
 			logger.Log.Errorf("Error scanning TryOutJob: %v", err)
 			return nil, err
@@ -77,8 +79,8 @@ func ListTryOutJobByStatus(status string) ([]model.TryOutJob, error) {
 }
 
 func InsertTryOutJobTx(ctx context.Context, tx pgx.Tx, job *model.TryOutJob) error {
-	query := `INSERT INTO public.tb_tryout_job (tryout_uuid, created_by, organization_id, status, expires_at) VALUES ($1, $2, $3, $4, $5) RETURNING job_id, created_at`
-	return tx.QueryRow(ctx, query, job.TryoutUUID, job.CreatedBy.ID, job.Organization.ID, job.Status, job.ExpiresAt).Scan(&job.JobID, &job.CreatedAt)
+	query := `INSERT INTO public.tb_tryout_job (tryout_uuid, created_by, organization_id, status) VALUES ($1, $2, $3, $4) RETURNING job_id, created_at`
+	return tx.QueryRow(ctx, query, job.TryoutUUID, job.CreatedBy.ID, job.Organization.ID, job.Status).Scan(&job.JobID, &job.CreatedAt)
 }
 
 func ProcessTryOutJob(job *model.TryOutJob) error {
@@ -152,8 +154,8 @@ func ProcessTryOutJob(job *model.TryOutJob) error {
 		}
 	}
 
-	// 6) Set job status as completed
-	job.Status = "completed"
+	// 6) Set job status as created
+	job.Status = "created"
 	_, err = tx.Exec(
 		ctx,
 		"UPDATE tb_tryout_job SET status = $1 WHERE tryout_uuid = $2",
@@ -176,7 +178,7 @@ func ProcessTryOutJob(job *model.TryOutJob) error {
 	return nil
 }
 
-// UpdateTryOutJob persists any changes to a TryOutJob (status and expires_at) back to the database.
+// UpdateTryOutJob persists any changes to a TryOutJob (status) back to the database.
 func UpdateTryOutJob(job *model.TryOutJob) error {
 	logger.Log.Info("UpdateTryOutJob")
 	ctx := context.Background()
@@ -192,13 +194,11 @@ func UpdateTryOutJob(job *model.TryOutJob) error {
 	// 2) Execute the UPDATE statement by UUID
 	const updateSQL = `
         UPDATE public.tb_tryout_job
-           SET status     = $1,
-               expires_at = $2
+           SET status     = $1
          WHERE tryout_uuid = $3
     `
 	cmd, err := conn.Exec(ctx, updateSQL,
 		job.Status,
-		job.ExpiresAt,
 		job.TryoutUUID,
 	)
 	if err != nil {
@@ -211,10 +211,9 @@ func UpdateTryOutJob(job *model.TryOutJob) error {
 		return fmt.Errorf("no TryOutJob found with uuid %s", job.TryoutUUID)
 	}
 
-	logger.Log.Infof("TryOutJob %s updated: status=%s expires_at=%s",
+	logger.Log.Infof("TryOutJob %s updated: status=%s",
 		job.TryoutUUID,
 		job.Status,
-		job.ExpiresAt.Format("2006-01-02 15:04:05"),
 	)
 	return nil
 }
@@ -228,7 +227,7 @@ func GetTryOutJobStatusByUuid(uuid string) (string, error) {
 	}
 	defer conn.Release()
 
-	// 2) Query status + expires_at
+	// 2) Query status
 	var status string
 	query := `
         SELECT status

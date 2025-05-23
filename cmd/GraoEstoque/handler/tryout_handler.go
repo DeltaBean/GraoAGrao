@@ -48,7 +48,7 @@ func HandleTryOutFlow(c *gin.Context, googleUser model.GoogleUserInfo, frontendU
 		return
 	}
 
-	jwt, err := util.GenerateJWT(job.CreatedBy)
+	jwt, err := util.GenerateTryOutJWT(job.CreatedBy, job.Organization.ExpiresAt)
 	if err != nil {
 		logger.Log.Error("failed to generate JWT: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})

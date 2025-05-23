@@ -38,4 +38,6 @@ type Organization struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	DBSchema  string    `json:"db_schema"`
 	Key       string    `json:"key"`
+	ExpiresAt time.Time `json:"expires_at"`
+	IsTryOut  bool      `json:"is_try_out"`
 }

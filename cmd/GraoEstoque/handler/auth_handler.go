@@ -91,7 +91,15 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 }
 
 func handleExistingUserFlow(c *gin.Context, user *model.User, googleUser model.GoogleUserInfo, frontendURL string) {
-	jwt, err := util.GenerateJWT(*user)
+	var jwt string
+	var err error
+
+	if user.Organization.IsTryOut {
+		jwt, err = util.GenerateTryOutJWT(*user, user.Organization.ExpiresAt)
+	} else {
+		jwt, err = util.GenerateJWT(*user)
+	}
+
 	if err != nil {
 		logger.Log.Error("failed to generate JWT: ", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})

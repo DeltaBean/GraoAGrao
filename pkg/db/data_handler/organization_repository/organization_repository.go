@@ -10,6 +10,6 @@ import (
 )
 
 func InsertOrganizationTx(ctx context.Context, tx pgx.Tx, org *model.Organization) error {
-	query := `INSERT INTO public.tb_organization (organization_name, organization_key, domain, schema_name) VALUES ($1, $2, $3, $4) RETURNING organization_id`
-	return tx.QueryRow(ctx, query, org.Name, org.Key, org.Domain, org.DBSchema).Scan(&org.ID)
+	query := `INSERT INTO public.tb_organization (organization_name, organization_key, domain, schema_name, expires_at, is_try_out) VALUES ($1, $2, $3, $4, $5, $6) RETURNING organization_id`
+	return tx.QueryRow(ctx, query, org.Name, org.Key, org.Domain, org.DBSchema, org.ExpiresAt, org.IsTryOut).Scan(&org.ID)
 }

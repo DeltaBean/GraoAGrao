@@ -196,14 +196,6 @@ func FinalizeStockOutByID(c *gin.Context) {
 func UpdateStockOut(c *gin.Context) {
 	logger.Log.Info("UpdateStockOut")
 
-	token := c.GetHeader("Authorization")
-	_, err := util.GetUserFromJWT(token)
-	if err != nil {
-		logger.Log.Error("Error getting user from JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
-
 	// Retrieved from BindAndValidate middleware
 	stockOutReq := c.MustGet("dto").(*dtoRequest.UpdateStockOutRequest)
 	stockOutModel := dtoMapper.UpdateStockOutToModel(stockOutReq)
@@ -213,7 +205,7 @@ func UpdateStockOut(c *gin.Context) {
 		return
 	}
 
-	err = stock_out_repository.UpdateStockOut(conn, stockOutModel)
+	err := stock_out_repository.UpdateStockOut(conn, stockOutModel)
 	if err != nil {
 		logger.Log.Error("Error updating stock out: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
@@ -42,14 +43,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Validate the JWT token.
 		token, err := util.ValidateJWT(tokenString)
 		if err != nil || !token.Valid {
-			logger.Log.Warnf("Invalid token: %v", err)
+			logger.Log.Errorf("Invalid token: %v", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
 			return
 		}
 
 		// Extract user information from the token.
-		user, err := util.GetUserFromJWT(authHeader)
+		user, err := util.GetUserFromJWT(*token)
 		if err != nil {
 			logger.Log.Error(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to extract user from jwt"})
@@ -58,6 +59,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		if user == nil {
+			logger.Log.Error("User not found")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
 			c.Abort()
 			return
@@ -67,6 +69,19 @@ func AuthMiddleware() gin.HandlerFunc {
 		// This can be used in subsequent handlers to access the authenticated user.
 		// For example, you can use c.Get("authenticated") in your handlers.
 		c.Set("authenticated", user)
+
+		expTime, err := util.GetTryOutExpirationFromJWT(*token)
+		if err != nil {
+			// If claim is present but malformed, treat as an error
+			logger.Log.Error("Invalid tryout_expires_at in JWT:", err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid tryout_expires_at claim"})
+			c.Abort()
+			return
+		}
+
+		if !expTime.IsZero() {
+			c.Set("tryout_expires_at", expTime)
+		}
 
 		// Proceed to the next middleware or handler
 		c.Next()
@@ -84,6 +99,7 @@ func BindAndValidateMiddleware[T any]() gin.HandlerFunc {
 
 		// 1) bind
 		if err := c.ShouldBindJSON(dto); err != nil {
+			logger.Log.Error(err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			c.Abort()
 			return
@@ -91,6 +107,7 @@ func BindAndValidateMiddleware[T any]() gin.HandlerFunc {
 
 		// 2) validate
 		if err := validator.Validate.Struct(dto); err != nil {
+			logger.Log.Error(err)
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"validation_error": err.Error()})
 			c.Abort()
 			return
@@ -107,6 +124,7 @@ func TenantMiddleware() gin.HandlerFunc {
 		// 1) Get the rawUser from the context
 		rawUser, exists := c.Get("authenticated")
 		if !exists {
+			logger.Log.Error("User not found at context")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
 			c.Abort()
 			return
@@ -116,6 +134,7 @@ func TenantMiddleware() gin.HandlerFunc {
 		// Assuming user is of type *model.User
 		userModel, ok := rawUser.(*model.User)
 		if !ok {
+			logger.Log.Error("User type assertion failed")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user type assertion failed"})
 			c.Abort()
 			return
@@ -126,6 +145,7 @@ func TenantMiddleware() gin.HandlerFunc {
 		// Validate schema name, allowing letters, digits, underscores and hyphens (but must start with letter or underscore)
 		validSchema := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_-]*$`)
 		if !validSchema.MatchString(DBSchema) {
+			logger.Log.Error("invalid schema name")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid schema name"})
 			c.Abort()
 			return
@@ -133,6 +153,7 @@ func TenantMiddleware() gin.HandlerFunc {
 		// 3) Acquire a conn
 		conn, err := db.GetDB().Acquire(c)
 		if err != nil {
+			logger.Log.Error(err)
 			c.Status(500)
 			c.Abort()
 			return
@@ -149,6 +170,7 @@ func TenantMiddleware() gin.HandlerFunc {
 		schemaQuery := fmt.Sprintf("SET search_path TO \"%s\", public", DBSchema)
 		_, err = conn.Exec(context.Background(), schemaQuery)
 		if err != nil {
+			logger.Log.Error(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to set organization schema"})
 			c.Abort()
 			return
@@ -174,12 +196,41 @@ func StoreMiddleware() gin.HandlerFunc {
 
 		storeID, err := strconv.Atoi(raw)
 		if err != nil {
+			logger.Log.Error(err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
 			c.Abort()
 			return
 		}
 
 		c.Set("storeID", uint(storeID))
+		c.Next()
+	}
+}
+
+func TenantAccessGuard() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		expRaw, exists := c.Get("tryout_expires_at")
+		if !exists {
+			c.Next() // Not a tryout user
+			return
+		}
+
+		expTime, ok := expRaw.(time.Time)
+		if !ok {
+			logger.Log.Warn("Invalid tryout_expires_at type in context")
+			c.Next()
+			return
+		}
+
+		if time.Now().After(expTime) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error":   "trial_expired",
+				"message": "Your free trial has expired. Please subscribe or delete your environment.",
+			})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }

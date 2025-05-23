@@ -43,12 +43,14 @@ func PublishTryOutEnvironmentJob(user *model.User) (model.TryOutJob, error) {
 	job := model.TryOutJob{
 		TryoutUUID: uuid,
 		CreatedAt:  time.Now(),
-		ExpiresAt:  time.Now().Add(24 * time.Hour),
+
 		Organization: model.Organization{
-			Name:     user.GivenName,
-			Domain:   user.GivenName,
-			DBSchema: fmt.Sprintf("%s-%s", user.GivenName, uuid),
-			Key:      fmt.Sprintf("%s-%s", user.GivenName, uuid),
+			Name:      user.GivenName,
+			Domain:    user.GivenName,
+			DBSchema:  fmt.Sprintf("%s-%s", user.GivenName, uuid),
+			Key:       fmt.Sprintf("%s-%s", user.GivenName, uuid),
+			ExpiresAt: time.Now().Add(24 * time.Hour),
+			IsTryOut:  true,
 		},
 		Status: "pending",
 	}
