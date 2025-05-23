@@ -134,7 +134,7 @@ export default function CreateTryOutEnvironment() {
                     <Card>
                         <DataList.Root>
                             <DataList.Item>
-                                <DataList.Label>Ambiente</DataList.Label>
+                                <DataList.Label minWidth={{initial:"60px", sm:"120px"}}>Ambiente</DataList.Label>
                                 <DataList.Value>
                                     {
                                         status === "idle" ?

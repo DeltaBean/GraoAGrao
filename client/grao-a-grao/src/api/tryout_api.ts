@@ -14,7 +14,7 @@ export type TryOutStatus = "idle" | "creating" | "success" | "error";
  * Backend statuses:
  *  - "pending"      → "idle"
  *  - "in_progress"  → "creating"
- *  - "completed"    → "success"
+ *  - "created"    → "success"
  *  - "failed"       → "error"
  *
  * @param uuid - the Try-Out job UUID
@@ -43,7 +43,7 @@ export async function GetTryOutJobStatus(uuid: string): Promise<TryOutStatus> {
       return "creating";
     case "in_progress":
       return "creating";
-    case "completed":
+    case "created":
       return "success";
     case "failed":
       return "error";

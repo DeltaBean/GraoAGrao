@@ -17,7 +17,7 @@ export default function TryOutPage() {
                 justify={"center"}
                 align={"center"}
             >
-                <Card className="w-3/4 sm:w-1/2">
+                <Card className="my-3 w-14/16 sm:w-1/2">
 
                     <IconButton variant="ghost" color="gray" onClick={() => router.push("/login")}>
                         <ArrowLeft></ArrowLeft>
