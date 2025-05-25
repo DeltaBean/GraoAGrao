@@ -5,10 +5,10 @@ DO $$
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM pg_enum
-        WHERE enumlabel = 'create'
+        WHERE enumlabel = 'created'
         AND enumtypid = 'tryout_job_status'::regtype
     ) THEN
-        ALTER TYPE tryout_job_status ADD VALUE 'create';
+        ALTER TYPE tryout_job_status ADD VALUE 'created';
     END IF;
 
     IF NOT EXISTS (
