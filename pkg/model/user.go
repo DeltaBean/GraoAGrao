@@ -31,13 +31,14 @@ type User struct {
 }
 
 type Organization struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	DBSchema  string    `json:"db_schema"`
-	Key       string    `json:"key"`
-	ExpiresAt time.Time `json:"expires_at"`
-	IsTryOut  bool      `json:"is_try_out"`
+	ID        uint       `json:"id"`
+	Name      string     `json:"name"`
+	Domain    string     `json:"domain"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DBSchema  string     `json:"db_schema"`
+	Key       string     `json:"key"`
+	ExpiresAt *time.Time `json:"expires_at"` // Its a pointer, so it can be null
+	IsTryOut  bool       `json:"is_try_out"`
+	IsActive  bool       `json:"is_active"`
 }

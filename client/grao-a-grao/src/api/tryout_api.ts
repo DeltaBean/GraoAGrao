@@ -1,7 +1,9 @@
+import { getAuthToken } from "@/util/util";
+
 const apiUrl = process.env.NEXT_PUBLIC_GOPHIC_PROCESSOR_API_URL as string;
 
 if (!apiUrl) {
-    throw new Error("Environment variable NEXT_PUBLIC_GOPHIC_PROCESSOR_API_URL is not defined.");
+  throw new Error("Environment variable NEXT_PUBLIC_GOPHIC_PROCESSOR_API_URL is not defined.");
 }
 
 // Frontend–facing statuses
@@ -49,5 +51,31 @@ export async function GetTryOutJobStatus(uuid: string): Promise<TryOutStatus> {
       return "error";
     default:
       throw new Error(`Unknown backend status: ${data.status}`);
+  }
+}
+
+export async function DestroyTryOutEnv(): Promise<void> {
+  const token = getAuthToken();
+
+  const res = await fetch(`${apiUrl}/tryOut/destroyEnv`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const contentType = res.headers.get("Content-Type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
+
+      // throw structured error with type attached
+      throw {
+        status: res.status,
+        data,
+      };
+    }
+
+    throw new Error('Unknown server error while deleting try out env.');
   }
 }

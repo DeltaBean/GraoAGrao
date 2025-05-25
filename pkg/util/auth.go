@@ -136,6 +136,10 @@ func GetUserFromJWT(token jwt.Token) (*model.User, error) {
 			user.Organization.DBSchema = dbSchema
 		}
 
+		if orgIDFloat, ok := claims["user_organization_id"].(float64); ok {
+			user.Organization.ID = uint(orgIDFloat)
+		}
+
 		// Other fields can be set to defaults (or left zero) since they are not in the token.
 		return user, nil
 	}
@@ -195,6 +199,7 @@ func buildCommonClaims(user model.User) jwt.MapClaims {
 		"user_id":                  user.ID,
 		"user_email":               user.Email,
 		"user_picture_url":         user.PictureURL,
+		"user_organization_id":     user.Organization.ID,
 		"user_organization_schema": user.Organization.DBSchema,
 		"user_given_name":          user.GivenName,
 		"user_family_name":         user.FamilyName,

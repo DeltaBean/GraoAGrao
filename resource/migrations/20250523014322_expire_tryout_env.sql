@@ -20,3 +20,6 @@ BEGIN
     END IF;
 END$$;
 -- +goose StatementEnd
+
+ALTER TABLE tb_organization
+    ADD COLUMN is_active BOOLEAN DEFAULT TRUE;

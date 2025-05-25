@@ -205,7 +205,7 @@ func GetUserByGoogleID(googleID string) (*model.User, error) {
 		       us.given_name, us.family_name, us.picture_url, us.auth_provider,
 		       us.created_at, us.updated_at, us.last_login, us.is_active,
 			   org.organization_id, org.organization_name, org.organization_key, org.domain, org.schema_name,
-			   org.is_try_out, org.expires_at
+			   org.is_try_out, org.expires_at, org.is_active
 		FROM public.tb_user us
 		JOIN tb_organization org ON us.organization_id = org.organization_id
 		WHERE google_id = $1`
@@ -232,6 +232,7 @@ func GetUserByGoogleID(googleID string) (*model.User, error) {
 		&user.Organization.DBSchema,
 		&user.Organization.IsTryOut,
 		&user.Organization.ExpiresAt,
+		&user.Organization.IsActive,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {

@@ -40,6 +40,7 @@ func PublishTryOutEnvironmentJob(user *model.User) (model.TryOutJob, error) {
 
 	// Creating job object
 	uuid := uuid.New().String()
+	expirationT := time.Now().Add(24 * time.Hour)
 	job := model.TryOutJob{
 		TryoutUUID: uuid,
 		CreatedAt:  time.Now(),
@@ -49,7 +50,7 @@ func PublishTryOutEnvironmentJob(user *model.User) (model.TryOutJob, error) {
 			Domain:    user.GivenName,
 			DBSchema:  fmt.Sprintf("%s-%s", user.GivenName, uuid),
 			Key:       fmt.Sprintf("%s-%s", user.GivenName, uuid),
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: &expirationT,
 			IsTryOut:  true,
 		},
 		Status: "pending",

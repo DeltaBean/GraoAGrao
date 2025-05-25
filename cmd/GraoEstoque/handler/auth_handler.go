@@ -95,7 +95,7 @@ func handleExistingUserFlow(c *gin.Context, user *model.User, googleUser model.G
 	var err error
 
 	if user.Organization.IsTryOut {
-		jwt, err = util.GenerateTryOutJWT(*user, user.Organization.ExpiresAt)
+		jwt, err = util.GenerateTryOutJWT(*user, *user.Organization.ExpiresAt)
 	} else {
 		jwt, err = util.GenerateJWT(*user)
 	}

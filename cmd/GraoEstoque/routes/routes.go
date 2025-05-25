@@ -20,15 +20,21 @@ func InitRoutes(router *gin.Engine) {
 	router.GET("/health", handler.HealthHandler)
 
 	// Authentication endpoints
-	authRoutes := router.Group("/auth")
+	authGroup := router.Group("/auth")
 	{
-		authRoutes.GET("/google", handler.GoogleAuthHandler)
-		authRoutes.GET("/google/callback", handler.GoogleAuthCallBackHandler)
+		authGroup.GET("/google", handler.GoogleAuthHandler)
+		authGroup.GET("/google/callback", handler.GoogleAuthCallBackHandler)
 	}
 
-	tryOutRoutes := router.Group("/tryOut")
+	tryOutGroup := router.Group("/tryOut")
+	tryOutGroup.Use()
 	{
-		tryOutRoutes.GET("/status", handler.GetTryOutJobStatus)
+		tryOutGroup.GET("/status", handler.GetTryOutJobStatus)
+		tryOutGroup.DELETE(
+			"/destroyEnv",
+			middleware.AuthMiddleware(), // Needed to destroy user specific env
+			handler.DestroyTryOutEnvironment,
+		)
 	}
 
 	// Store endpoints

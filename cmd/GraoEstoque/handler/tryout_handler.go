@@ -48,7 +48,7 @@ func HandleTryOutFlow(c *gin.Context, googleUser model.GoogleUserInfo, frontendU
 		return
 	}
 
-	jwt, err := util.GenerateTryOutJWT(job.CreatedBy, job.Organization.ExpiresAt)
+	jwt, err := util.GenerateTryOutJWT(job.CreatedBy, *job.Organization.ExpiresAt)
 	if err != nil {
 		logger.Log.Error("failed to generate JWT: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
@@ -68,4 +68,30 @@ func HandleTryOutFlow(c *gin.Context, googleUser model.GoogleUserInfo, frontendU
 	)
 
 	c.Redirect(http.StatusFound, redirectURL)
+}
+
+func DestroyTryOutEnvironment(c *gin.Context) {
+	logger.Log.Info("DestroyTryOutEnvironment")
+
+	user, err := util.GetUserFromContext(c)
+	if err != nil {
+		if err == util.ErrNoUser {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		}
+		logger.Log.Error(err)
+		c.Abort()
+		return
+	}
+
+	err = tryout_job_repository.DestroyTryOutEnvironment(user.Organization.ID)
+
+	if err != nil {
+		logger.Log.Errorf("Error destroying organization <id>:%d", user.Organization.ID)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

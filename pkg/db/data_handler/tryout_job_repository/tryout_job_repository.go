@@ -38,6 +38,7 @@ func ListTryOutJobByStatus(status string) ([]model.TryOutJob, error) {
 		  org.schema_name,
 		  org.is_try_out,
 		  org.expires_at,
+		  org.is_active
         FROM public.tb_tryout_job tjb
 		JOIN public.tb_organization org ON org.organization_id = tjb.organization_id
         WHERE status = $1
@@ -64,6 +65,7 @@ func ListTryOutJobByStatus(status string) ([]model.TryOutJob, error) {
 			&job.Organization.DBSchema,
 			&job.Organization.IsTryOut,
 			&job.Organization.ExpiresAt,
+			&job.Organization.IsActive,
 		); err != nil {
 			logger.Log.Errorf("Error scanning TryOutJob: %v", err)
 			return nil, err
@@ -247,4 +249,81 @@ func GetTryOutJobStatusByUuid(uuid string) (string, error) {
 	}
 
 	return status, nil
+}
+
+func DestroyTryOutEnvironment(organizationID uint) error {
+	logger.Log.Infof("DestroyTryOutEnvironment <organizationID>:%d", organizationID)
+
+	ctx := context.Background()
+	conn, err := db.GetDB().Acquire(ctx)
+	if err != nil {
+		logger.Log.Errorf("Error acquiring connection: %v", err)
+		return err
+	}
+	defer conn.Release()
+
+	// Begin transaction
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		logger.Log.Errorf("Error starting transaction: %v", err)
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				logger.Log.Errorf("Error rolling back transaction: %v", rbErr)
+			}
+		}
+	}()
+
+	// Step 1: Get the schema name
+	var schemaName string
+	err = tx.QueryRow(ctx, `
+		SELECT schema_name 
+		FROM public.tb_organization 
+		WHERE organization_id = $1
+	`, organizationID).Scan(&schemaName)
+	if err != nil {
+		logger.Log.Errorf("Error querying schema name: %v", err)
+		return err
+	}
+
+	// Step 2: Drop schema cascade
+	dropSCHQuery := fmt.Sprintf(`DROP SCHEMA IF EXISTS "%s" CASCADE;`, schemaName)
+	_, err = tx.Exec(ctx, dropSCHQuery)
+	if err != nil {
+		logger.Log.Errorf("Error dropping schema: %v", err)
+		return err
+	}
+
+	// Step 3: Deactive the organization record
+	_, err = tx.Exec(ctx, `
+		UPDATE public.tb_organization
+		SET is_active = $1 
+		WHERE organization_id = $2
+	`, false, organizationID)
+	if err != nil {
+		logger.Log.Errorf("Error deactivating organization record: %v", err)
+		return err
+	}
+
+	// Step 4: Deactivating related organization users
+	_, err = tx.Exec(ctx, `
+		UPDATE public.tb_user
+		SET is_active = $1
+		WHERE organization_id = $2
+	`, false, organizationID)
+	if err != nil {
+		logger.Log.Errorf("Error deleting user record: %v", err)
+		return err
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(ctx); err != nil {
+		logger.Log.Errorf("Error committing transaction: %v", err)
+		return err
+	}
+
+	logger.Log.Infof("Schema %s dropped and organization %d deleted successfully", schemaName, organizationID)
+	return nil
 }

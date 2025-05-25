@@ -1,9 +1,37 @@
 "use client"
 
+import { DestroyTryOutEnv } from "@/api/tryout_api";
+import LoadingModal from "@/components/LoadingModal";
+import { useLoading } from "@/hooks/useLoading";
 import { Button, Card, Flex, Heading, Link, Text, Tooltip } from "@radix-ui/themes"
 import { Hourglass } from "lucide-react"
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function TrialExpiredPage() {
+    const router = useRouter();
+
+    const {
+        loadingData,
+        setIsLoading,
+        setMessage: setLoadingMessage,
+    } = useLoading();
+
+    const handleDeleteEnv = async () => {
+        setIsLoading(true);
+        setLoadingMessage("Excluindo ambiente...")
+        try {
+            await DestroyTryOutEnv();
+            toast.success("Ambiente excluído com sucesso");
+            router.push("/login");
+        } catch (err) {
+            console.error(err);
+            toast.error("Erro ao excluir o ambiente")
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     return (
         <Flex direction={"column"} className="min-h-screen w-full">
             <Flex
@@ -34,7 +62,7 @@ export default function TrialExpiredPage() {
                         </Flex>
 
                         <Flex direction={"row"} justify={"between"}>
-                            <Button size="3" color="ruby">
+                            <Button onClick={handleDeleteEnv} size="3" color="ruby">
                                 Deletar Ambiente
                             </Button>
                             <Tooltip content="Em breve...">
@@ -49,6 +77,7 @@ export default function TrialExpiredPage() {
 
                     </Flex>
                 </Card>
+                <LoadingModal isOpen={loadingData.isLoading} message={loadingData.message} />
             </Flex>
         </Flex>
     )
