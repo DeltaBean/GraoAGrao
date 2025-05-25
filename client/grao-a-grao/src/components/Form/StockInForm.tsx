@@ -6,9 +6,10 @@ import { ItemModel } from "@/types/item";
 import { ItemPackagingModel } from "@/types/item_packaging";
 import { StockInModel } from "@/types/stock_in";
 import { CheckIcon, InformationCircleIcon, PlusIcon, XMarkIcon } from "@heroicons/react/16/solid";
-import { Button, Flex, Text, TextField, Select, Card, Heading, Grid, Separator, DataList, Badge, Tooltip, Container, IconButton, Callout } from "@radix-ui/themes";
+import { Button, Flex, Text, TextField, Select, Heading, Grid, Separator, DataList, Badge, Tooltip, Container, IconButton, Callout } from "@radix-ui/themes";
 import { formatDateTimeLocal } from "@/util/util"
 import React, { useEffect, useState } from "react";
+import { Card } from "../ui/card";
 
 type Props = {
   initialData?: StockInModel; // Optional if editing
@@ -52,18 +53,7 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
 
       <Flex id="stock-in-form-header" direction={{ initial: "column", sm: "row" }} justify="between" p="3" gap="3">
 
-        <Heading size="6">{initialData ? "Editar Entrada de Estoque" : "Criar Entrada de Estoque"}</Heading>
-
-        <Flex gap="5">
-          <Button disabled={viewOnly} size="3" type="button" onClick={addItem} variant="outline">
-            Adicionar Item
-          </Button>
-
-          <Button disabled={viewOnly} onClick={handleSubmit} size="3" type="submit" variant="solid">
-            {initialData ? "Atualizar" : "Salvar"}
-          </Button>
-
-        </Flex>
+        <Heading className="text-[var(--accent-11)]" size="6">{initialData ? "Editar Entrada de Estoque" : "Criar Entrada de Estoque"}</Heading>
 
       </Flex>
       <Flex id="stock-in-form-details" direction="row" justify="between" p="3">
@@ -123,14 +113,21 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
       </Flex>
 
       <Separator size="4"></Separator>
-
+      <Flex justify={"end"} gap="5">
+        <Button disabled={viewOnly} size="3" type="button" onClick={addItem} variant="outline">
+          Adicionar Item
+        </Button>
+        <Button disabled={viewOnly} onClick={handleSubmit} size="3" type="submit" variant="solid">
+          {initialData ? "Atualizar" : "Salvar"}
+        </Button>
+      </Flex>
       <form onSubmit={handleSubmit}>
-        <Grid gap={{ initial: "2", sm: "6" }} columns={{ initial: "1", sm: "2", md: "3" }} p="3">
+        <Grid gap={{ initial: "2", sm: "3", md: "5", lg: "7" }} columns={{ initial: "1", sm: "1", md: "2", xl: "4" }} px="3">
           {stockIn.items?.map((item, index) => {
 
             // Conditions for showing callout:
             const qtyBalanceCalloutVisible =
-              !!item.item.id &&                               // 1) item chosen
+              !!item.item.id &&                             // 1) item chosen
               item.item.is_fractionable &&                  // 2) item is fractionable  
               item.total_quantity > 0 &&                    // 3) total quantity filled
               item.packagings.length > 0 &&                 // 4) at least one pack
@@ -150,12 +147,17 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
 
 
             return (
-              <Card key={index} className="p-4">
-                <Flex direction="column" gap="5">
-                  <Heading size="3" mb="-4">Item</Heading>
-                  <Card>
+              <Card key={index} className="p-6 bg-[var(--gray-1)]">
+                <Flex direction="column" gap="6">
+                  <Heading size="3" mb="-2">Item de Entrada</Heading>
+                  <Card className="p-4 bg-[var(--gray-2)] gap-8">
                     <Flex direction="column" gap="5">
                       {/* Item */}
+                      <Text mb="-4" size="2">
+                        <Flex gap="2">
+                          Produto
+                        </Flex>
+                      </Text>
                       <Select.Root
                         disabled={viewOnly}
                         value={item.item.id ? String(item.item.id) : ""}
@@ -285,142 +287,137 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                         />
                       </Tooltip>
                     </Flex>
-                  </Card>
-                  {/* StockIn Packaging */}
-                  {
-                    item.item.is_fractionable ?
-                      <>
-                        {
-                          item.item.id && (() => {
-                            return (
-                              <>
-                                <Separator size="4" />
-                                <Flex justify="between">
-                                  <Tooltip content="Itens que compõe fracionamento obrigatoriamente entram no estoque de forma fracionada">
-                                    <Heading size="3" mb="-4">Fracionamentos</Heading>
-                                  </Tooltip>
-                                  <Tooltip content="Adicionar fracionamento">
-                                    <IconButton type="button" disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
-                                      <PlusIcon width="16" height="16">
-                                      </PlusIcon>
-                                    </IconButton>
-                                  </Tooltip>
-                                </Flex>
-                                {item.packagings.map((pack, packIndex) => {
+                    {/* StockIn Packaging */}
+                    {
+                      item.item.is_fractionable ?
+                        <>
+                          {
+                            item.item.id && (() => {
+                              return (
+                                <>
+                                  <Flex direction="column" gap="3">
+                                    <Flex justify="between">
+                                      <Tooltip content="Itens que compõe fracionamento obrigatoriamente entram no estoque de forma fracionada">
+                                        <Heading size="3" mb="-4" weight={"regular"}>Fracionamentos</Heading>
+                                      </Tooltip>
+                                      <Tooltip content="Adicionar fracionamento">
+                                        <IconButton type="button" disabled={viewOnly} size="1" variant="soft" radius="full" onClick={() => addItemPackaging(index)}>
+                                          <PlusIcon width="16" height="16">
+                                          </PlusIcon>
+                                        </IconButton>
+                                      </Tooltip>
+                                    </Flex>
+                                    {item.packagings.map((pack, packIndex) => {
 
-                                  // Build the set of other selected packaging IDs (exclude this row)
-                                  const otherSelected = new Set(
-                                    item.packagings
-                                      .filter((_, j) => j !== packIndex)
-                                      .map(p => p.item_packaging.id)
-                                  );
+                                      // Build the set of other selected packaging IDs (exclude this row)
+                                      const otherSelected = new Set(
+                                        item.packagings
+                                          .filter((_, j) => j !== packIndex)
+                                          .map(p => p.item_packaging.id)
+                                      );
 
-                                  // Now filter: same item, and not in the “otherSelected” set
-                                  const optionsForThisRow = itemPackagingOptions.filter(
-                                    opt =>
-                                      opt.item?.id === item.item.id &&
-                                      !otherSelected.has(opt.id)
-                                  );
+                                      // Now filter: same item, and not in the “otherSelected” set
+                                      const optionsForThisRow = itemPackagingOptions.filter(
+                                        opt =>
+                                          opt.item?.id === item.item.id &&
+                                          !otherSelected.has(opt.id)
+                                      );
 
-                                  return (
-                                    <Card key={packIndex}>
-                                      <Flex direction="column" gap="4">
-                                        {/* 1) Select which packaging to use */}
-                                        <Select.Root
-                                          disabled={viewOnly}
-                                          value={pack.item_packaging.id ? String(pack.item_packaging.id) : ""}
-                                          onValueChange={(value) => {
-                                            const selected = itemPackagingOptions.find(o => o.id === parseInt(value));
-                                            if (selected) {
-                                              updateItemPackagingField(
-                                                index,
-                                                packIndex,
-                                                "item_packaging",
-                                                selected
-                                              );
-                                            }
-                                          }}
-                                        >
-                                          <Select.Trigger />
-                                          <Select.Content>
-                                            {optionsForThisRow.map(opt => (
-                                              <Select.Item key={opt.id} value={String(opt.id)}>
-                                                {opt.description}
-                                              </Select.Item>
-                                            ))}
-                                          </Select.Content>
-                                        </Select.Root>
-
-                                        {/* 2) Show the details once a packaging is chosen */}
-                                        {pack.item_packaging.id && (
-                                          <>
-                                            <DataList.Root>
-                                              <DataList.Item>
-                                                <DataList.Label>Fracionamento</DataList.Label>
-                                                <DataList.Value>
-                                                  {(() => {
-                                                    const uom = item.item.unit_of_measure;
-                                                    const qty = pack.item_packaging.quantity;
-                                                    return uom?.description
-                                                      ? <Badge color="blue" variant="soft">{`${qty}x ${uom.description}`}</Badge>
-                                                      : "N/A";
-                                                  })()}
-                                                </DataList.Value>
-                                              </DataList.Item>
-                                            </DataList.Root>
-
-                                            {/* Pack Quantity */}
-                                            <Text mb="-4" size="2">Quantidade</Text>
-                                            <TextField.Root
+                                      return (
+                                        <Card key={packIndex} className="p-4 bg-[var(--gray-2)]">
+                                          <Flex direction="column" gap="4">
+                                            {/* 1) Select which packaging to use */}
+                                            <Text mb="-2" size="2">
+                                              <Flex gap="2">
+                                                Porção
+                                              </Flex>
+                                            </Text>
+                                            <Select.Root
                                               disabled={viewOnly}
-                                              type="number"
-                                              placeholder="0"
-                                              value={pack.quantity ?? ""}
-                                              onChange={(e) =>
-                                                updateItemPackagingField(
-                                                  index,
-                                                  packIndex,
-                                                  "quantity",
-                                                  parseInt(e.target.value) || 0
-                                                )}
-                                            />
-                                          </>
-                                        )}
-                                        <Container>
-                                          <Button
-                                            type="button"
-                                            disabled={viewOnly}
-                                            variant="outline"
-                                            color="red"
-                                            size="1"
-                                            onClick={() => removeItemPackaging(index, packIndex)}
-                                            style={{ marginTop: 8 }}
-                                          >
-                                            Excluir
-                                          </Button>
-                                        </Container>
-                                      </Flex>
-                                    </Card>
-                                  )
-                                })}
-                              </>
-                            );
-                          })()
-                        }
-                      </>
-                      : ""}
-                  < Separator size="4"></Separator>
-                  {/* Remove button */}
-                  <Button
-                    variant="soft"
-                    color="red"
-                    type="button"
-                    onClick={() => removeItem(index)}
-                    disabled={viewOnly || stockIn.items?.length === 1}
-                  >
-                    Remover
-                  </Button>
+                                              value={pack.item_packaging.id ? String(pack.item_packaging.id) : ""}
+                                              onValueChange={(value) => {
+                                                const selected = itemPackagingOptions.find(o => o.id === parseInt(value));
+                                                if (selected) {
+                                                  updateItemPackagingField(
+                                                    index,
+                                                    packIndex,
+                                                    "item_packaging",
+                                                    selected
+                                                  );
+                                                }
+                                              }}
+                                            >
+                                              <Select.Trigger />
+                                              <Select.Content>
+                                                {optionsForThisRow.map(opt => (
+                                                  <Select.Item key={opt.id} value={String(opt.id)}>
+                                                    {opt.description}
+                                                  </Select.Item>
+                                                ))}
+                                              </Select.Content>
+                                            </Select.Root>
 
+                                            {/* 2) Show the details once a packaging is chosen */}
+                                            {pack.item_packaging.id && (
+                                              <>
+                                                <DataList.Root>
+                                                  <DataList.Item>
+                                                    <DataList.Label>Fracionamento</DataList.Label>
+                                                    <DataList.Value>
+                                                      {(() => {
+                                                        const uom = item.item.unit_of_measure;
+                                                        const qty = pack.item_packaging.quantity;
+                                                        return uom?.description
+                                                          ? <Badge color="blue" variant="soft">{`${qty}x ${uom.description}`}</Badge>
+                                                          : "N/A";
+                                                      })()}
+                                                    </DataList.Value>
+                                                  </DataList.Item>
+                                                </DataList.Root>
+
+                                                {/* Pack Quantity */}
+                                                <Text mb="-4" size="2">Quantidade</Text>
+                                                <TextField.Root
+                                                  disabled={viewOnly}
+                                                  type="number"
+                                                  placeholder="0"
+                                                  value={pack.quantity ?? ""}
+                                                  onChange={(e) =>
+                                                    updateItemPackagingField(
+                                                      index,
+                                                      packIndex,
+                                                      "quantity",
+                                                      parseInt(e.target.value) || 0
+                                                    )}
+                                                />
+                                              </>
+                                            )}
+                                            <Container>
+                                              <Button
+                                                type="button"
+                                                disabled={viewOnly}
+                                                variant="outline"
+                                                color="red"
+                                                size="1"
+                                                onClick={() => removeItemPackaging(index, packIndex)}
+                                                style={{ marginTop: 8 }}
+                                              >
+                                                Excluir
+                                              </Button>
+                                            </Container>
+                                          </Flex>
+                                        </Card>
+                                      )
+                                    })}
+                                  </Flex>
+                                </>
+                              );
+                            })()
+                          }
+                        </>
+                        : ""}
+                  </Card>
+                  {/* Remove button */}
                   {(qtyBalanceCalloutVisible && !isTotalBalanced(index)) && (
                     <>
                       <Callout.Root variant="soft" color="gray" size="1">
@@ -433,6 +430,16 @@ export default function StockInForm({ initialData, itemOptions, itemPackagingOpt
                       </Callout.Root>
                     </>
                   )}
+                  <Button
+                    variant="soft"
+                    color="red"
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    disabled={viewOnly || stockIn.items?.length === 1}
+                  >
+                    Remover
+                  </Button>
+
                 </Flex>
               </Card>
             )
