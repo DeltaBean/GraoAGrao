@@ -197,7 +197,7 @@ func UpdateTryOutJob(job *model.TryOutJob) error {
 	const updateSQL = `
         UPDATE public.tb_tryout_job
            SET status     = $1
-         WHERE tryout_uuid = $3
+         WHERE tryout_uuid = $2
     `
 	cmd, err := conn.Exec(ctx, updateSQL,
 		job.Status,

@@ -46,7 +46,7 @@ func upApplyAllPerTenantSql(ctx context.Context, tx *sql.Tx) error {
 		start := time.Now()
 		fmt.Printf("[Goose] 🚀 Starting migrations for schema: %s\n", schema)
 
-		for i := 2; i <= 24; i++ {
+		for i := 2; i <= 23; i++ {
 			filename := fmt.Sprintf("%05d.sql", i)
 			fullPath := filepath.Join(basePath, filename)
 
