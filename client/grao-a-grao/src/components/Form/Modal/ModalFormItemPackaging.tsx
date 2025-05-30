@@ -1,9 +1,9 @@
 import ModalFormShell from "@/components/Form/Modal/ModalFormShell";
-import { TextField, Skeleton, Text, Select, Flex, Box, Badge } from "@radix-ui/themes";
+import { TextField, Skeleton, Text, Select, Flex, Box, Badge, Tooltip } from "@radix-ui/themes";
 import { useState, useEffect } from "react";
 import { ItemModel } from "@/types/item";
 import { ItemPackagingModel } from "@/types/item_packaging";
-import {TagIcon} from "@heroicons/react/16/solid";
+import { TagIcon } from "@heroicons/react/16/solid";
 
 
 type ModalFormItemPackagingProps = {
@@ -45,7 +45,7 @@ export default function ModalFormItemPackaging({ mode, editItemPackaging, onClos
                 (it) => {
                     return it.id == (
                         editItemPackaging.item ?
-                        editItemPackaging.item.id
+                            editItemPackaging.item.id
                             :
                             itemOptions[0].id
                     )
@@ -101,11 +101,22 @@ export default function ModalFormItemPackaging({ mode, editItemPackaging, onClos
                 </Skeleton>
                 <Skeleton loading={false}>
                     <Box className="w-2/3">
-                        <TextField.Root type="number" size="3" placeholder="Quantidade" value={quantity} onChange={(ev) => setQuantity(parseFloat(ev.target.value))}>
-                            <Flex justify={"center"} align={"center"} p="2">
-                                <Badge color="purple" size="2" variant="surface">{selectedItem.unit_of_measure?.description}</Badge>
-                            </Flex>
-                        </TextField.Root>
+                        {
+                            mode === "edit" ?
+                                <Tooltip content="Esta quantidade é fixa por motivos de integridade das informações. Por favor, crie um novo fracionamento com a quantidade correta e arquive este.">
+                                    <TextField.Root disabled type="number" size="3" placeholder="Quantidade" value={quantity} onChange={(ev) => setQuantity(parseFloat(ev.target.value))}>
+                                        <Flex justify={"center"} align={"center"} p="2">
+                                            <Badge color="purple" size="2" variant="surface">{selectedItem.unit_of_measure?.description}</Badge>
+                                        </Flex>
+                                    </TextField.Root>
+                                </Tooltip>
+                                :
+                                <TextField.Root type="number" size="3" placeholder="Quantidade" value={quantity} onChange={(ev) => setQuantity(parseFloat(ev.target.value))}>
+                                    <Flex justify={"center"} align={"center"} p="2">
+                                        <Badge color="purple" size="2" variant="surface">{selectedItem.unit_of_measure?.description}</Badge>
+                                    </Flex>
+                                </TextField.Root>
+                        }
                     </Box>
                 </Skeleton>
             </Text>
@@ -126,7 +137,7 @@ export default function ModalFormItemPackaging({ mode, editItemPackaging, onClos
                         }}
                     >
                         <Flex className="w-2/3">
-                            <Select.Trigger style={{width: "100%"}}>
+                            <Select.Trigger style={{ width: "100%" }}>
                                 <Flex as="span" align="center" gap="2">
                                     <TagIcon height="16" width="16" />
                                     <Flex direction={{ initial: "row" }} justify={"start"} align={"center"} gap="2">
