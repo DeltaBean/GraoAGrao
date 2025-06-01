@@ -87,6 +87,15 @@ func GetCategoryByID(c *gin.Context) {
 	c.JSON(http.StatusOK, mapper.ToCategoryResponse(cat))
 }
 
+// @Summary Crate Category
+// @Description Create a stock category
+// @Security BearerAuth
+// @Tags category
+// @Accept json
+// @Produce json
+// @Param category body request.CreateCategoryRequest true "Create category request"
+// @Success 200 {object} response.CategoryResponse
+// @Router /items/categories [post]
 func CreateCategory(c *gin.Context) {
 	logger.Log.Info("CreateCategory")
 

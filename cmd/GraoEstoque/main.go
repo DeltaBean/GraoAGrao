@@ -16,6 +16,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @title Grão a Grão API
+// @version 1.0
+// @description This is the API documentation for Grão a Grão
+// @host localhost:8080
+// @BasePath /
 func main() {
 
 	// Initializes db
