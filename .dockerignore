@@ -1,6 +1,3 @@
-frontend/
-readme.md
-.git
-.gitignore
-.dockerignore
-docker-compose.yml
+client
+docker-compose.yaml
+README.md

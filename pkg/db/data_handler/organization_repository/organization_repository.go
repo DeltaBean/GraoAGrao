@@ -34,6 +34,7 @@ func ListOrganizations() ([]model.Organization, error) {
 			domain, 
 			schema_name, 
 			expires_at, 
+			is_try_out,
 			is_active
 		FROM tb_organization
 	`
