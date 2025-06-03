@@ -82,7 +82,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="cursor-pointer">
         <StoreSwitcher
           stores={stores}
           defaultStore={selectedStore ?? createEmptyStore()}
@@ -96,10 +96,10 @@ export function AppSidebar() {
             <SidebarMenu className="gap-3">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild onClick={() => router.push(item.url)}>
+                  <SidebarMenuButton  className="cursor-pointer" asChild onClick={() => router.push(item.url)}>
                     <a>
                       <item.icon />
-                      <span className="cursor-default">{item.title}</span>
+                      <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -114,7 +114,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => {
+                <SidebarMenuButton className="cursor-pointer" asChild onClick={() => {
                   logout();
                   router.push("/login");
                 }}>
