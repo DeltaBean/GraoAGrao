@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/user_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
 
 	"net/http"
@@ -24,6 +25,16 @@ import (
 // The handler distinguishes between development ("DEV") and production ("PROD") environments to set cookies appropriately:
 //   - In "DEV", cookies are set with default domain and security settings.
 //   - In "PROD", cookies are set with the API domain, secure, and SameSite=None attributes for cross-site requests.
+//
+// GoogleAuthHandler godoc
+// @Summary Initiates the Google OAuth2 authentication process
+// @Description Generates a new OAuth2 state, stores it in cookies, and returns a Google authentication URL.
+// @Tags Auth
+// @Produce  json
+// @Param isTryOut query string false "Flag to indicate if the user is creating a try-out environment"
+// @Success 200 {object} response.GoogleInitOAuthResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /auth/google [get]
 func GoogleAuthHandler(c *gin.Context) {
 	logger.Log.Info("GoogleAuthHandler")
 
@@ -31,7 +42,7 @@ func GoogleAuthHandler(c *gin.Context) {
 	state, err := util.GenerateOAuthState(32)
 	if err != nil {
 		logger.Log.Error("failed to generate oauth state")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate state"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "failed to generate state"})
 		return
 	}
 
@@ -52,9 +63,20 @@ func GoogleAuthHandler(c *gin.Context) {
 
 	// Send redirect url as googleUrl
 	url := auth.GetAuthURL(state)
-	c.JSON(http.StatusOK, gin.H{"googleUrl": url})
+	c.JSON(http.StatusOK, response.GoogleInitOAuthResponse{GoogleUrl: url})
 }
 
+// GoogleAuthCallBackHandler godoc
+// @Summary OAuth2 callback handler for Google login
+// @Description This endpoint is used internally by Google OAuth2. It validates the OAuth state, retrieves user info, and redirects the user to the frontend with a JWT or error information. **This endpoint should not be called directly.**
+// @Tags Auth
+// @Produce json
+// @Param state query string true "OAuth2 state"
+// @Param code query string true "OAuth2 authorization code"
+// @Success 302 "Redirects to frontend with JWT or error payload in query parameters"
+// @Failure 400 {object} response.ErrorResponse "Invalid OAuth2 state or failed to exchange code"
+// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Router /auth/google/callback [get]
 func GoogleAuthCallBackHandler(c *gin.Context) {
 	logger.Log.Info("GoogleAuthCallBackHandler")
 	frontendURL := os.Getenv("FRONTEND_URL")
@@ -83,7 +105,7 @@ func GoogleAuthCallBackHandler(c *gin.Context) {
 		}
 
 		logger.Log.Error("Error retrieving user by Google ID: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving user by Google ID"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error retrieving user by Google ID"})
 		return
 	}
 
@@ -102,7 +124,7 @@ func handleExistingUserFlow(c *gin.Context, user *model.User, googleUser model.G
 
 	if err != nil {
 		logger.Log.Error("failed to generate JWT: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "failed to generate token"})
 		return
 	}
 

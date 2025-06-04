@@ -9,6 +9,7 @@ import (
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/tryout_job_repository"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/user_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
 	errorCodes "github.com/IlfGauhnith/GraoAGrao/pkg/errors"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	model "github.com/IlfGauhnith/GraoAGrao/pkg/model"
@@ -51,7 +52,7 @@ func HandleTryOutFlow(c *gin.Context, googleUser model.GoogleUserInfo, frontendU
 	jwt, err := util.GenerateTryOutJWT(job.CreatedBy, *job.Organization.ExpiresAt)
 	if err != nil {
 		logger.Log.Error("failed to generate JWT: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "failed to generate token"})
 		return
 	}
 
