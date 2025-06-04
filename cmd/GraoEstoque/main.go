@@ -19,8 +19,11 @@ import (
 // @title Grão a Grão API
 // @version 1.0
 // @description This is the API documentation for Grão a Grão
-// @host localhost:8080
 // @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and your token, e.g. 'Bearer abc123'
 func main() {
 
 	// Initializes db
