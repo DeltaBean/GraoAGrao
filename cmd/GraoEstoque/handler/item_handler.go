@@ -16,16 +16,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetItems returns all items for the authenticated user
+// GetItems godoc
+// @Summary      List all items
+// @Description  Retrieves all items for the authenticated user within the given store
+// @Security     BearerAuth
+// @Tags         Item
+// @Produce      json
+// @Param        X-Store-ID  header    string  true  "Store ID"
+// @Success      200  {array}  dtoResponse.ItemResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid or missing store ID"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /items [get]
 func GetItems(c *gin.Context) {
 	logger.Log.Info("GetItems")
 
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -35,9 +46,9 @@ func GetItems(c *gin.Context) {
 	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
 		if err == util.ErrNoStoreID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "store id not found"})
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "invalid store id"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -52,7 +63,7 @@ func GetItems(c *gin.Context) {
 	items, err := item_repository.ListItems(conn, user.ID, storeID)
 	if err != nil {
 		logger.Log.Error("Error fetching items: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 
@@ -65,12 +76,24 @@ func GetItems(c *gin.Context) {
 	c.JSON(http.StatusOK, rep)
 }
 
-// GetItemByID returns a single item by its ID
+// GetItemByID godoc
+// @Summary      Get an item by ID
+// @Description  Retrieves a single item by its ID
+// @Security     BearerAuth
+// @Tags         Item
+// @Produce      json
+// @Param        id          path      int     true  "Item ID"
+// @Param        X-Store-ID  header    string  true  "Store ID"
+// @Success      200  {object}  dtoResponse.ItemResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid item ID"
+// @Failure      404  {object}  dtoResponse.ErrorResponse "Item not found"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /items/{id} [get]
 func GetItemByID(c *gin.Context) {
 	logger.Log.Info("GetItemByID")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be an integer"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Id should be an integer"})
 		return
 	}
 
@@ -82,17 +105,30 @@ func GetItemByID(c *gin.Context) {
 	item, err := item_repository.GetItemByID(conn, uint(id))
 	if err != nil {
 		logger.Log.Error("Error fetching item: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	} else if item == nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Item not found"})
+		c.JSON(http.StatusNotFound, dtoResponse.ErrorResponse{Error: "Item not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, mapper.ToItemResponse(item))
 }
 
-// CreateItem creates a new item from the validated DTO
+// CreateItem godoc
+// @Summary      Create a new item
+// @Description  Creates a new item in the current store for the authenticated user
+// @Security     BearerAuth
+// @Tags         Item
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header    string                     true  "Store ID"
+// @Param        data        body      dtoRequest.CreateItemRequest  true  "Item creation payload"
+// @Success      201  {object}  dtoResponse.ItemResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid input or missing store ID"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /items [post]
 func CreateItem(c *gin.Context) {
 	logger.Log.Info("CreateItem")
 
@@ -102,9 +138,9 @@ func CreateItem(c *gin.Context) {
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -114,9 +150,9 @@ func CreateItem(c *gin.Context) {
 	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
 		if err == util.ErrNoStoreID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "store id not found"})
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "invalid store id"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -133,23 +169,36 @@ func CreateItem(c *gin.Context) {
 
 	if err := item_repository.SaveItem(conn, modelItem); err != nil {
 		logger.Log.Error("Error saving item: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, mapper.ToItemResponse(modelItem))
 }
 
-// UpdateItem updates an existing item with the validated DTO
+// UpdateItem godoc
+// @Summary      Update an item
+// @Description  Updates an existing item for the authenticated user
+// @Security     BearerAuth
+// @Tags         Item
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header    string                      true  "Store ID"
+// @Param        data        body      dtoRequest.UpdateItemRequest  true  "Item update payload"
+// @Success      200  {object}  dtoResponse.ItemResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid input or store ID"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /items [put]
 func UpdateItem(c *gin.Context) {
 	logger.Log.Info("UpdateItem")
 
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -169,19 +218,33 @@ func UpdateItem(c *gin.Context) {
 
 	if err != nil {
 		logger.Log.Error("Error updating item: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 
 	c.JSON(http.StatusOK, mapper.ToItemResponse(updatedItem))
 }
 
-// DeleteItem removes an item by its ID
+// DeleteItem godoc
+// @Summary      Delete an item
+// @Description  Deletes an item by ID. Returns 409 if the item is referenced by other entities.
+// @Security     BearerAuth
+// @Tags         Item
+// @Accept       json
+// @Produce      json
+// @Param        id          path      int     true  "Item ID"
+// @Param        X-Store-ID  header    string  true  "Store ID"
+// @Success      204  "Item deleted successfully"
+// @Failure      400  {object}  dtoResponse.ErrorResponse                        "Invalid item ID"
+// @Failure      401  {object}  dtoResponse.ErrorResponse                        "Unauthorized"
+// @Failure      409  {object}  dtoResponse.ForeignKeyDeleteReferencedErrorResponse  "Item is still referenced"
+// @Failure      500  {object}  dtoResponse.ErrorResponse                        "Internal server error"
+// @Router       /items/{id} [delete]
 func DeleteItem(c *gin.Context) {
 	logger.Log.Info("DeleteItem")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id should be an integer"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Id should be an integer"})
 		return
 	}
 

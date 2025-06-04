@@ -21,7 +21,6 @@ import (
 // @Description  Get all categories for the authenticated user in the specified store
 // @Security BearerAuth
 // @Tags         Category
-// @Accept       json
 // @Produce      json
 // @Param        X-Store-ID  header    string  true  "Store ID"
 // @Success      200  {array} response.CategoryResponse
@@ -80,7 +79,6 @@ func GetCategories(c *gin.Context) {
 // @Description  Retrieves a single category by its ID
 // @Security     BearerAuth
 // @Tags         Category
-// @Accept       json
 // @Produce      json
 // @Param        id          path      int     true  "Category ID"
 // @Param        X-Store-ID  header    string  true  "Store ID"
@@ -225,7 +223,6 @@ func UpdateCategory(c *gin.Context) {
 // @Description  Deletes a category by ID. Returns 409 if the category is still referenced by other entities.
 // @Security     BearerAuth
 // @Tags         Category
-// @Accept       json
 // @Produce      json
 // @Param        id          path      int     true  "Category ID"
 // @Param        X-Store-ID  header    string  true  "Store ID"
