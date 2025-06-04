@@ -19,6 +19,15 @@ func InitRoutes(router *gin.Engine) {
 	// Health endpoint
 	router.GET("/health", handler.HealthHandler)
 
+	docsGroup := router.Group("/docs")
+	{
+		// Serve Redoc HTML
+		docsGroup.StaticFile("/openapi", "./public/docs.html")
+
+		// Serve raw YAML
+		docsGroup.StaticFile("/openapi.yaml", "./docs/swagger.yaml")
+	}
+
 	// Authentication endpoints
 	authGroup := router.Group("/auth")
 	{

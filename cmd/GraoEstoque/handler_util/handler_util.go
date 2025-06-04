@@ -19,14 +19,14 @@ func ValidateOAuthStateAndGetUser(c *gin.Context) (model.GoogleUserInfo, error) 
 	expectedState, err := c.Cookie("oauthstate")
 	if err != nil {
 		logger.Log.Error("state cookie not found")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "state cookie not found"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "state cookie not found"})
 		return model.GoogleUserInfo{}, err
 	}
 
 	state := c.Query("state")
 	if state != expectedState {
 		logger.Log.Error("invalid oauth state")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid oauth state"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "invalid oauth state"})
 		return model.GoogleUserInfo{}, fmt.Errorf("invalid oauth state")
 	}
 
@@ -34,14 +34,14 @@ func ValidateOAuthStateAndGetUser(c *gin.Context) (model.GoogleUserInfo, error) 
 	token, err := auth.ExchangeCode(code)
 	if err != nil {
 		logger.Log.Error("failed to exchange code: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: err.Error()})
 		return model.GoogleUserInfo{}, err
 	}
 
 	userInfo, err := auth.GetUserInfo(token)
 	if err != nil {
 		logger.Log.Error("failed to get user info: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Failed to get user info."})
 		return model.GoogleUserInfo{}, err
 	}
 
@@ -49,14 +49,14 @@ func ValidateOAuthStateAndGetUser(c *gin.Context) (model.GoogleUserInfo, error) 
 	userInfoBytes, err := json.Marshal(userInfo)
 	if err != nil {
 		logger.Log.Error("failed to marshal user info: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal user info"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to marshal user info"})
 		return model.GoogleUserInfo{}, err
 	}
 
 	err = json.Unmarshal(userInfoBytes, &googleUserInfoStruct)
 	if err != nil {
 		logger.Log.Error("failed to unmarshal user info: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to unmarshal user info"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to unmarshal user info"})
 		return model.GoogleUserInfo{}, err
 	}
 
