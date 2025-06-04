@@ -18,7 +18,21 @@ import (
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 )
 
-// ListUnits returns paginated units for the auth'd user
+// ListUnits godoc
+// @Summary      List units of measure
+// @Description  Retrieves a paginated list of units of measure for the authenticated user and store
+// @Security     BearerAuth
+// @Tags         Unit Of Measure
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header    string  true   "Store ID"
+// @Param        offset      query     int     false  "Pagination offset"
+// @Param        limit       query     int     false  "Pagination limit"
+// @Success      200  {array}  response.UnitOfMeasureResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid or missing store ID"
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/units [get]
 func ListUnits(c *gin.Context) {
 	logger.Log.Info("ListUnits")
 
@@ -69,7 +83,20 @@ func ListUnits(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// GetUnitByID returns a single unit by its ID
+// GetUnitByID godoc
+// @Summary      Get unit of measure by ID
+// @Description  Retrieves a specific unit of measure by its ID
+// @Security     BearerAuth
+// @Tags         Unit Of Measure
+// @Accept       json
+// @Produce      json
+// @Param        id          path     int     true  "Unit ID"
+// @Param        X-Store-ID  header   string  true  "Store ID"
+// @Success      200  {object}  response.UnitOfMeasureResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid ID"
+// @Failure      404  {object}  response.ErrorResponse "Unit not found"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/units/{id} [get]
 func GetUnitByID(c *gin.Context) {
 	logger.Log.Info("GetUnitByID")
 	id, err := strconv.Atoi(c.Param("id"))
@@ -97,7 +124,20 @@ func GetUnitByID(c *gin.Context) {
 	c.JSON(http.StatusOK, mapper.ToUnitOfMeasureResponse(modelUnit))
 }
 
-// CreateUnit creates a new unit-of-measure
+// CreateUnit godoc
+// @Summary      Create a unit of measure
+// @Description  Creates a new unit of measure for the authenticated user and store
+// @Security     BearerAuth
+// @Tags         Unit Of Measure
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header  string                             true  "Store ID"
+// @Param        data        body    request.CreateUnitOfMeasureRequest  true  "Unit of measure creation payload"
+// @Success      201  {object}  response.UnitOfMeasureResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid input or store ID"
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/units [post]
 func CreateUnit(c *gin.Context) {
 	logger.Log.Info("CreateUnitOfMeasure")
 
@@ -142,7 +182,20 @@ func CreateUnit(c *gin.Context) {
 	c.JSON(http.StatusCreated, mapper.ToUnitOfMeasureResponse(modelUnit))
 }
 
-// UpdateUnit updates an existing unit-of-measure
+// UpdateUnit godoc
+// @Summary      Update a unit of measure
+// @Description  Updates an existing unit of measure
+// @Security     BearerAuth
+// @Tags         Unit Of Measure
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header  string                             true  "Store ID"
+// @Param        data        body    request.UpdateUnitOfMeasureRequest  true  "Unit of measure update payload"
+// @Success      200  {object}  response.UnitOfMeasureResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid input"
+// @Failure      401  {object}  response.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/units [put]
 func UpdateUnit(c *gin.Context) {
 	logger.Log.Info("UpdateUnitOfMeasure")
 
@@ -177,7 +230,20 @@ func UpdateUnit(c *gin.Context) {
 	c.JSON(http.StatusOK, mapper.ToUnitOfMeasureResponse(updated))
 }
 
-// DeleteUnit deletes a unit-of-measure by its ID
+// DeleteUnit godoc
+// @Summary      Delete a unit of measure
+// @Description  Deletes a unit of measure by its ID. Returns 409 if the unit is still referenced by items.
+// @Security     BearerAuth
+// @Tags         Unit Of Measure
+// @Accept       json
+// @Produce      json
+// @Param        id          path     int     true  "Unit ID"
+// @Param        X-Store-ID  header   string  true  "Store ID"
+// @Success      204  "Unit of measure deleted successfully"
+// @Failure      400  {object}  response.ErrorResponse "Invalid ID"
+// @Failure      409  {object}  response.ForeignKeyDeleteReferencedErrorResponse "Unit is still referenced by other records"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/units/{id} [delete]
 func DeleteUnit(c *gin.Context) {
 	logger.Log.Info("DeleteUnitOfMeasure")
 	id, err := strconv.Atoi(c.Param("id"))
