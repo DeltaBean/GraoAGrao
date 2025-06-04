@@ -14,7 +14,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetStores returns all stores created by the authenticated user
+// GetStores godoc
+// @Summary      List all stores
+// @Description  Retrieves all stores created by the authenticated user
+// @Security     BearerAuth
+// @Tags         Store
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}  dtoResponse.StoreResponse
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stores [get]
 func GetStores(c *gin.Context) {
 	logger.Log.Info("GetStores")
 
@@ -50,7 +60,19 @@ func GetStores(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-// GetStoreByID returns a single store by ID
+// GetStoreByID godoc
+// @Summary      Get store by ID
+// @Description  Retrieves a single store by its ID
+// @Security     BearerAuth
+// @Tags         Store
+// @Accept       json
+// @Produce      json
+// @Param        id   path     int  true  "Store ID"
+// @Success      200  {object}  dtoResponse.StoreResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid ID"
+// @Failure      404  {object}  dtoResponse.ErrorResponse "Store not found"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stores/{id} [get]
 func GetStoreByID(c *gin.Context) {
 	logger.Log.Info("GetStoreByID")
 
@@ -78,7 +100,19 @@ func GetStoreByID(c *gin.Context) {
 	c.JSON(http.StatusOK, mapper.ToStoreResponse(store))
 }
 
-// CreateStore creates a new store from DTO
+// CreateStore godoc
+// @Summary      Create a new store
+// @Description  Creates a new store for the authenticated user
+// @Security     BearerAuth
+// @Tags         Store
+// @Accept       json
+// @Produce      json
+// @Param        data  body  dtoRequest.CreateStoreRequest  true  "Store creation payload"
+// @Success      201  {object}  dtoResponse.StoreResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid input"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stores [post]
 func CreateStore(c *gin.Context) {
 	logger.Log.Info("CreateStore")
 
@@ -111,7 +145,19 @@ func CreateStore(c *gin.Context) {
 	c.JSON(http.StatusCreated, mapper.ToStoreResponse(storeModel))
 }
 
-// UpdateStore updates a store by ID
+// UpdateStore godoc
+// @Summary      Update a store
+// @Description  Updates an existing store for the authenticated user
+// @Security     BearerAuth
+// @Tags         Store
+// @Accept       json
+// @Produce      json
+// @Param        data  body  dtoRequest.UpdateStoreRequest  true  "Store update payload"
+// @Success      200  {object}  dtoResponse.StoreResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid input"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stores [put]
 func UpdateStore(c *gin.Context) {
 	logger.Log.Info("UpdateStore")
 
@@ -143,7 +189,18 @@ func UpdateStore(c *gin.Context) {
 	c.JSON(http.StatusOK, mapper.ToStoreResponse(updated))
 }
 
-// DeleteStore deletes a store by ID
+// DeleteStore godoc
+// @Summary      Delete a store
+// @Description  Deletes a store by its ID
+// @Security     BearerAuth
+// @Tags         Store
+// @Accept       json
+// @Produce      json
+// @Param        id   path     int  true  "Store ID"
+// @Success      204  "Store deleted successfully"
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid ID"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stores/{id} [delete]
 func DeleteStore(c *gin.Context) {
 	logger.Log.Info("DeleteStore")
 
