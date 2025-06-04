@@ -25,9 +25,9 @@ func ListUnits(c *gin.Context) {
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -37,9 +37,9 @@ func ListUnits(c *gin.Context) {
 	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
 		if err == util.ErrNoStoreID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+			c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "store id not found"})
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "invalid store id"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -57,7 +57,7 @@ func ListUnits(c *gin.Context) {
 	models, err := unit_of_measure_repository.ListUnitsPaginated(conn, user.ID, storeID, uint(offset), uint(limit))
 	if err != nil {
 		logger.Log.Error("Error listing units: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error listing units"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error listing units"})
 		return
 	}
 
@@ -74,7 +74,7 @@ func GetUnitByID(c *gin.Context) {
 	logger.Log.Info("GetUnitByID")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid ID"})
 		return
 	}
 
@@ -86,11 +86,11 @@ func GetUnitByID(c *gin.Context) {
 	modelUnit, err := unit_of_measure_repository.GetUnitOfMeasureByID(conn, uint(id))
 	if err != nil {
 		logger.Log.Error("Error retrieving unit: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving unit"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error retrieving unit"})
 		return
 	}
 	if modelUnit == nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Unit not found"})
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Unit not found"})
 		return
 	}
 
@@ -106,9 +106,9 @@ func CreateUnit(c *gin.Context) {
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -118,9 +118,9 @@ func CreateUnit(c *gin.Context) {
 	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
 		if err == util.ErrNoStoreID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+			c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "store id not found"})
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "invalid store id"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -135,7 +135,7 @@ func CreateUnit(c *gin.Context) {
 	modelUnit := mapper.CreateUnitOfMeasureToModel(req, user.ID, storeID)
 	if err := unit_of_measure_repository.SaveUnitOfMeasure(conn, modelUnit); err != nil {
 		logger.Log.Error("Error saving unit: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving unit"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error saving unit"})
 		return
 	}
 
@@ -149,9 +149,9 @@ func UpdateUnit(c *gin.Context) {
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -170,7 +170,7 @@ func UpdateUnit(c *gin.Context) {
 
 	if err != nil {
 		logger.Log.Error("Error updating unit: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating unit"})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error updating unit"})
 		return
 	}
 
@@ -182,7 +182,7 @@ func DeleteUnit(c *gin.Context) {
 	logger.Log.Info("DeleteUnitOfMeasure")
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid ID"})
 		return
 	}
 
