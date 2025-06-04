@@ -17,7 +17,7 @@ import { StoreSwitcher } from "./StoreSwitcher"
 import { StoreModel } from "@/types/store"
 import { createEmptyStore } from "@/util/factory/store"
 
-import { logout } from "@/util/util"
+import { ModalFormLogout } from "@/components/Form/Modal/ModalLogoutConfirmation";
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { useStoreContext } from "@/context/StoreContext"
@@ -114,15 +114,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton className="cursor-pointer" asChild onClick={() => {
-                  logout();
-                  router.push("/login");
-                }}>
-                  <div>
-                    <LogOut />
-                    <span>Sair</span>
-                  </div>
-                </SidebarMenuButton>
+                <ModalFormLogout />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
