@@ -21,9 +21,9 @@ func GetStores(c *gin.Context) {
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -38,7 +38,7 @@ func GetStores(c *gin.Context) {
 	stores, err := store_repository.ListStoresPaginated(conn, user.ID, 0, 100)
 	if err != nil {
 		logger.Log.Error("Error fetching stores: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 
@@ -56,7 +56,7 @@ func GetStoreByID(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id must be a number"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Id must be a number"})
 		return
 	}
 
@@ -68,10 +68,10 @@ func GetStoreByID(c *gin.Context) {
 	store, err := store_repository.GetStoreByID(conn, uint(id))
 	if err != nil {
 		logger.Log.Error("Error getting store: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	} else if store == nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Store not found"})
+		c.JSON(http.StatusNotFound, dtoResponse.ErrorResponse{Error: "Store not found"})
 		return
 	}
 
@@ -87,9 +87,9 @@ func CreateStore(c *gin.Context) {
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -104,7 +104,7 @@ func CreateStore(c *gin.Context) {
 	storeModel := mapper.CreateStoreToModel(req, user.ID)
 	if err := store_repository.SaveStore(conn, storeModel, user.ID); err != nil {
 		logger.Log.Error("Error saving store:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 
@@ -120,9 +120,9 @@ func UpdateStore(c *gin.Context) {
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -136,7 +136,7 @@ func UpdateStore(c *gin.Context) {
 	updated, err := store_repository.UpdateStore(conn, store)
 	if err != nil {
 		logger.Log.Error("Error updating store: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 
@@ -149,7 +149,7 @@ func DeleteStore(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Id must be a number"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Id must be a number"})
 		return
 	}
 
