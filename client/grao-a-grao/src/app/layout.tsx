@@ -4,6 +4,7 @@ import "@radix-ui/themes/styles.css";
 import { Theme, ThemePanel } from "@radix-ui/themes";
 import "@/styles/globals.css";
 import RootProviders from "@/providers/RootProviders";
+import { ThemeProvider } from "next-themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,13 +39,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Theme appearance="dark" accentColor="lime" grayColor="olive" radius="large" panelBackground="solid">
+        <ThemeProvider attribute={"class"}>
+          <Theme appearance="inherit" accentColor="lime" grayColor="olive" radius="large" panelBackground="solid">
 
           {isDev && <ThemePanel />}
 
           <RootProviders>{children}</RootProviders>
 
-        </Theme>
+          </Theme>
+        </ThemeProvider>
       </body>
     </html>
   );
