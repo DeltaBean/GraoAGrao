@@ -21,25 +21,27 @@ export function ModalFormLogout() {
 
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 backdrop-blur-sm z-40" />
-        <AlertDialog.Content className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-card p-6 rounded-xl shadow-xl w-[90vw] max-w-sm">
-          <AlertDialog.Title className="text-lg font-semibold">
+        <AlertDialog.Content className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-modal text-card p-6 rounded-xl shadow-xl w-[90vw] max-w-sm">
+          <AlertDialog.Title className="text-lg font-semibold text-muted-foreground ">
             Deseja finalizar a sessão?
           </AlertDialog.Title>
 
-          <AlertDialog.Description className="text-sm text-muted mt-2">
+          <AlertDialog.Description className="text-sm text-muted-foreground mt-2">
             Você será desconectado e redirecionado para a tela de login.
           </AlertDialog.Description>
 
           <div className="mt-6 flex justify-end gap-3">
             <AlertDialog.Cancel asChild>
-              <button className="px-4 py-2 rounded bg-muted text-foreground hover:brightness-110 transition cursor-pointer">
+              <button
+                className="px-4 py-2 rounded-md border border-border bg-muted text-foreground hover:bg-muted/80 transition cursor-pointer"
+              >
                 Cancelar
               </button>
             </AlertDialog.Cancel>
-
+            
             <AlertDialog.Action asChild>
               <button
-                className="px-4 py-2 rounded bg-destructive text-white hover:brightness-110 transition cursor-pointer"
+                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition cursor-pointer"
                 onClick={() => {
                   logout();
                   router.push("/login");
