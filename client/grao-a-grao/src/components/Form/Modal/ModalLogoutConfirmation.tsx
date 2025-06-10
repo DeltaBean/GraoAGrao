@@ -3,7 +3,7 @@ import { LogOut } from "lucide-react";
 import { logout } from "@/util/util";
 import { useRouter } from "next/navigation";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
-import { Button } from "@radix-ui/themes";
+import { Button, Flex } from "@radix-ui/themes";
 
 export function ModalFormLogout() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export function ModalFormLogout() {
       Você será desconectado e redirecionado para a tela de login.
     </AlertDialog.Description>
 
-    <div className="mt-6 flex justify-end gap-3">
+    <Flex justify="end" gap="3"> 
       <AlertDialog.Cancel asChild>
         <Button
           color="gray"
@@ -43,16 +43,16 @@ export function ModalFormLogout() {
       </AlertDialog.Cancel>
 
       <AlertDialog.Action asChild>
-        <button className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition cursor-pointer"
+        <Button color="red"
           onClick={() => {
             logout();
             router.push("/login");
           }}
         >
           Sair
-        </button>
+        </Button>
       </AlertDialog.Action>
-    </div>
+    </Flex>
 </AlertDialog.Content>
 
       </AlertDialog.Portal>
