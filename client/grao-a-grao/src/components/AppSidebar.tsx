@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { ArrowDownFromLine, ArrowUpFromLine, Blocks, Box, Home, LogOut, Ruler, Store, Tag } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -12,15 +12,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { StoreSwitcher } from "./StoreSwitcher"
-import { StoreModel } from "@/types/store"
-import { createEmptyStore } from "@/util/factory/store"
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { StoreSwitcher } from "./StoreSwitcher";
+import { StoreModel } from "@/types/store";
+import { createEmptyStore } from "@/util/factory/store";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { useStoreContext } from "@/context/StoreContext";
+import { useState } from "react";
 import { ModalFormLogout } from "@/components/Form/Modal/ModalLogoutConfirmation";
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { toast } from "sonner"
-import { useStoreContext } from "@/context/StoreContext"
 
 // Menu items.
 const items = [
@@ -64,15 +66,18 @@ const items = [
     url: "/stockout",
     icon: ArrowDownFromLine,
   },
-]
+];
 
 export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentUrl = pathname + (searchParams.toString() ? `?${searchParams}` : '');
+  const currentUrl =
+    pathname + (searchParams.toString() ? `?${searchParams}` : "");
 
   const { stores, selectedStore, setSelectedStore } = useStoreContext();
+  const { setOpenMobile } = useSidebar();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleStoreChange = (store: StoreModel) => {
     setSelectedStore(store);
@@ -81,14 +86,15 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="cursor-pointer">
-        <StoreSwitcher
-          stores={stores}
-          defaultStore={selectedStore ?? createEmptyStore()}
-          onStoreChange={handleStoreChange}
-        />
-      </SidebarHeader>
+    <>
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="cursor-pointer">
+          <StoreSwitcher
+            stores={stores}
+            defaultStore={selectedStore ?? createEmptyStore()}
+            onStoreChange={handleStoreChange}
+          />
+        </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
@@ -115,25 +121,37 @@ export function AppSidebar() {
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <ModalFormLogout />
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarFooter>
-
-    </Sidebar>
-  )
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton className="cursor-pointer" asChild>
+                    <div
+                      onClick={() => {
+                        setOpenMobile(false);
+                        setTimeout(() => setShowLogoutModal(true), 400);
+                      }}
+                    >
+                      <LogOut />
+                      <span>Sair</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarFooter>
+      </Sidebar>
+      <ModalFormLogout
+        modalOpen={showLogoutModal}
+        setModalOpen={setShowLogoutModal}
+      />
+    </>
+  );
 }

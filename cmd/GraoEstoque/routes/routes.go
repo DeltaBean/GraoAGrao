@@ -188,5 +188,22 @@ func InitRoutes(router *gin.Engine) {
 			stockOutGroup.PATCH("/finalize/:id", handler.FinalizeStockOutByID)
 			stockOutGroup.DELETE("/:id", handler.DeleteStockOut)
 		}
+
+		// StockWaste endpoints
+		stockWasteGroup := stockGroup.Group("/waste")
+		{
+			stockWasteGroup.GET("", handler.ListStockWaste)
+			stockWasteGroup.GET("/:id", handler.GetStockWasteByID)
+			stockWasteGroup.POST("",
+				middleware.BindAndValidateMiddleware[dtoRequest.CreateStockWasteRequest](),
+				handler.CreateStockWaste,
+			)
+			stockWasteGroup.PUT("",
+				middleware.BindAndValidateMiddleware[dtoRequest.UpdateStockWasteRequest](),
+				handler.UpdateStockWaste,
+			)
+			stockWasteGroup.PATCH("/finalize/:id", handler.FinalizeStockWasteByID)
+			stockWasteGroup.DELETE("/:id", handler.DeleteStockWaste)
+		}
 	}
 }
