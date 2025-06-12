@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, GalleryVerticalEnd } from "lucide-react"
+import { useState } from "react"
+import { Check, ChevronDown, GalleryVerticalEnd } from "lucide-react"
 
 import {
     DropdownMenu,
@@ -25,11 +26,12 @@ export function StoreSwitcher({
     onStoreChange: (store: StoreModel) => void
 }) {
     const { stores, selectedStore, setSelectedStore } = useStoreContext();
+    const [menuOpen, setMenuOpen] = useState(false);
 
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <DropdownMenu onOpenChange={setMenuOpen}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
@@ -40,13 +42,16 @@ export function StoreSwitcher({
                             </div>
                             <div className="flex flex-col gap-0.5 leading-none">
                                 <span className="font-semibold">Loja</span>
-                                <span className="">{selectedStore ? selectedStore.name : "Selecione uma loja"}</span>
+                                <span>{selectedStore ? selectedStore.name : "Selecione uma loja"}</span>
                             </div>
-                            <ChevronsUpDown className="ml-auto" />
+                            <ChevronDown
+                                className={`ml-auto transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`}
+                            />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-[var(--radix-dropdown-menu-trigger-width)]"
+                        className="w-[var(--radix-dropdown-menu-trigger-width)] bg-[var(--muted)] text-[var(--foreground)]
+"
                         align="start"
                     >
                         {stores.map((st) => (
