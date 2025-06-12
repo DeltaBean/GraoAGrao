@@ -96,32 +96,34 @@ export function AppSidebar() {
           />
         </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-3">
-              {items.map((item) => {
-                const pathname = usePathname()
-                const isActive = (item.url.split("/")[1] === pathname.split("/")[1])
-                 || (item.url === "/" && pathname === "/");
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-3">
+                {items.map((item) => {
+                  const pathname = usePathname()
+                  const isActive = (item.url.split("/")[1] === pathname.split("/")[1])
+                    || (item.url === "/" && pathname === "/");
 
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      className={cn(
-                        "cursor-pointer",
-                        isActive && "bg-[var(--accent-4)] hover:bg-[var(--accent-4)]"
-                      )}
-                      asChild
-                      onClick={() => router.push(item.url)}
-                    >
-                      <a>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        className={cn(
+                          "cursor-pointer",
+                          isActive && "bg-[var(--accent-4)] hover:bg-[var(--accent-4)]"
+                        )}
+                        asChild
+                        onClick={() => router.push(item.url)}
+                      >
+                        <a>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                }
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
