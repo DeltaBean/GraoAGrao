@@ -5,6 +5,7 @@ import (
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/request"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/response"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/dto/util"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 )
 
@@ -43,5 +44,7 @@ func ToStockWasteResponse(m *model.StockWaste) response.StockWasteResponse {
 		ReasonText:     m.ReasonText,
 		ReasonImageURL: m.ReasonImageURL,
 		CreatedAt:      m.CreatedAt,
+		FinalizedAt:    util.SafeTime(m.FinalizedAt),
+		Status:         m.Status,
 	}
 }
