@@ -1,41 +1,30 @@
-import { LogOut } from "lucide-react";
 import { logout } from "@/util/util";
 import { useRouter } from "next/navigation";
-import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { Button, Flex, AlertDialog } from "@radix-ui/themes";
+import React from "react";
 
-export function ModalFormLogout() {
+type ModalFormLogoutProps = {
+  modalOpen: boolean;
+  setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export function ModalFormLogout({ modalOpen, setModalOpen }: ModalFormLogoutProps) {
   const router = useRouter();
-  if (!router) return null;
 
   return (
-    <AlertDialog.Root>
-      <AlertDialog.Trigger>
-        <SidebarMenuButton className="cursor-pointer" asChild>
-          <div>
-            <LogOut />
-            <span>Sair</span>
-          </div>
-        </SidebarMenuButton>
-      </AlertDialog.Trigger>
-
-      <AlertDialog.Content style={{ zIndex:50 }}>
+    <AlertDialog.Root open={modalOpen} onOpenChange={setModalOpen}>
+      <AlertDialog.Content>
         <AlertDialog.Title>Deseja finalizar a sessão?</AlertDialog.Title>
-
         <AlertDialog.Description>
           Você será desconectado e redirecionado para a tela de login.
         </AlertDialog.Description>
-
         <Flex justify="end" gap="3" mt="4">
           <AlertDialog.Cancel>
-            <Button color="gray" style={{cursor: "pointer"}}>
-              Cancelar
-            </Button>
+            <Button color="gray">Cancelar</Button>
           </AlertDialog.Cancel>
-
           <AlertDialog.Action>
             <Button
-              color="red" style={{cursor: "pointer"}}
+              color="red"
               onClick={() => {
                 logout();
                 router.push("/login");
