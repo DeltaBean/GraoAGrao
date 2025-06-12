@@ -227,7 +227,7 @@ func DeleteStockOut(c *gin.Context) {
 // @Success      204  "Stock-out finalized successfully"
 // @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid stock-out ID"
 // @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
-// @Router       /stock/out/finalize/{id} [post]
+// @Router       /stock/out/finalize/{id} [patch]
 func FinalizeStockOutByID(c *gin.Context) {
 	logger.Log.Info("FinalizeStockOutByID")
 
