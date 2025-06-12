@@ -137,7 +137,7 @@ export function AppSidebar() {
                     <div
                       onClick={() => {
                         setOpenMobile(false);
-                        setTimeout(() => setShowLogoutModal(true), 150);
+                        setTimeout(() => setShowLogoutModal(true), 400);
                       }}
                     >
                       <LogOut />
