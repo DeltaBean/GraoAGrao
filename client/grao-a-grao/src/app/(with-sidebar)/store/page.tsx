@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { useStoreContext } from "@/context/StoreContext";
 import { useState } from "react";
 import { DataTable } from "../../../components/ui/data-table";
-import { columns } from "./data-table/columns";
+import { getColumns } from "./data-table/columns";
 
 export default function StorePage() {
   const {
@@ -71,7 +71,7 @@ export default function StorePage() {
         <Skeleton loading={loading} className="h-2/5">
           <Container>
             <DataTable
-              columns={columns}
+              columns={getColumns(openEdit, handleDelete)}
               data={stores}
               handleCreate={openCreate}
               title="Loja"
