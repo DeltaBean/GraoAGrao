@@ -35,7 +35,7 @@ export function StoreSwitcher({
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
                         >
                             <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent">
                                 <GalleryVerticalEnd className="size-4" />
@@ -45,7 +45,7 @@ export function StoreSwitcher({
                                 <span>{selectedStore ? selectedStore.name : "Selecione uma loja"}</span>
                             </div>
                             <ChevronDown
-                                className={`ml-auto transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`}
+                                className={`ml-auto transition-transform duration-500 ${menuOpen ? "rotate-180" : ""}`}
                             />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
@@ -59,6 +59,7 @@ export function StoreSwitcher({
                                 key={st.id}
                                 onSelect={() => setSelectedStore(st)}
                                 onClick={() => onStoreChange(st)}
+                                className="cursor-pointer"
                             >
                                 {st.name}
                                 {st === selectedStore && <Check className="ml-auto" />}
