@@ -20,7 +20,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Box, Button, Card, DropdownMenu, Flex, Heading, IconButton, Slider, Tooltip } from "@radix-ui/themes"
+import { Box, Button, Card, DropdownMenu, Flex, Heading, IconButton, Slider, Text, Tooltip } from "@radix-ui/themes"
 import RowResize from "../Icons/RowResize"
 import { cn } from "@/lib/utils"
 
@@ -122,7 +122,6 @@ export function DataTable<TData, TValue>({
                     </Flex>
                     <Flex direction={"row"} gap="3" justify="start" align="center" p="3" className="bg-gradient-to-b from-[var(--accent-4)] to-[var(--accent-3)] border-b border-[var(--accent-4)]">
                         <DropdownMenu.Root>
-                            <Tooltip content="Redimensionar linhas">
                                 <DropdownMenu.Trigger>
                                     <IconButton
                                         size="2"
@@ -131,8 +130,50 @@ export function DataTable<TData, TValue>({
                                         <RowResize className="w-5 h-5 text-foreground cursor-pointer" />
                                     </IconButton>
                                 </DropdownMenu.Trigger>
-                            </Tooltip>
-                            <DropdownMenu.Content variant="soft" className="w-40">
+                            <DropdownMenu.Content size="1" variant="soft" className="w-40">
+                                <DropdownMenu.RadioGroup
+                                    value={
+                                        rowHeightScale === 0.8
+                                            ? "compact"
+                                            : rowHeightScale === 1.0
+                                                ? "default"
+                                                : rowHeightScale === 1.2
+                                                    ? "spacious"
+                                                    : undefined
+                                    }
+                                >
+                                    <DropdownMenu.RadioItem
+                                        value="default"
+                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            setRowHeightScale(1.0);
+                                        }}
+                                    >
+                                        <Text size="1">Padrão</Text>
+                                    </DropdownMenu.RadioItem>
+                                    <DropdownMenu.RadioItem
+                                        value="compact"
+                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            setRowHeightScale(0.8);
+                                        }}
+                                    >
+                                        <Text size="1">Compacto</Text>
+                                    </DropdownMenu.RadioItem>
+                                    <DropdownMenu.RadioItem
+                                        value="spacious"
+                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            setRowHeightScale(1.2);
+                                        }}
+                                    >
+                                        <Text size="1">Espaçoso</Text>
+                                    </DropdownMenu.RadioItem>
+                                </DropdownMenu.RadioGroup>
+                                <DropdownMenu.Separator />
                                 <DropdownMenu.Item className="hover:bg-inherit! focus:bg-inherit!">
                                     <Flex direction="column" gap="2" className="w-full mt-3">
                                         <Slider
@@ -142,11 +183,13 @@ export function DataTable<TData, TValue>({
                                             step={5}
                                             onValueChange={([value]) => setRowHeightScale(value / 100)}
                                         />
-                                        <span className="text-xs text-muted-foreground text-center">
-                                            Altura: {rowHeightScale.toFixed(2)}x
-                                        </span>
                                     </Flex>
                                 </DropdownMenu.Item>
+                                <DropdownMenu.Label>
+                                    <Flex justify={"center"}>
+                                        <Text weight="light" size="1" align="center">{rowHeightScale.toFixed(2)}x</Text>
+                                    </Flex>
+                                </DropdownMenu.Label>
                             </DropdownMenu.Content>
                         </DropdownMenu.Root>
                     </Flex>
