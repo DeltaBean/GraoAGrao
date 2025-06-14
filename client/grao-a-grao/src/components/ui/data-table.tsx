@@ -28,8 +28,8 @@ interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
     title: string
-    createButtonToolTip: string
-    handleCreate: () => void
+    createButtonToolTip?: string
+    handleCreate?: () => void
 }
 
 export function DataTable<TData, TValue>({
@@ -122,14 +122,14 @@ export function DataTable<TData, TValue>({
                     </Flex>
                     <Flex direction={"row"} gap="3" justify="start" align="center" p="3" className="bg-gradient-to-b from-[var(--accent-4)] to-[var(--accent-3)] border-b border-[var(--accent-4)]">
                         <DropdownMenu.Root>
-                                <DropdownMenu.Trigger>
-                                    <IconButton
-                                        size="2"
-                                        variant="ghost"
-                                    >
-                                        <RowResize className="w-5 h-5 text-foreground cursor-pointer" />
-                                    </IconButton>
-                                </DropdownMenu.Trigger>
+                            <DropdownMenu.Trigger>
+                                <IconButton
+                                    size="2"
+                                    variant="ghost"
+                                >
+                                    <RowResize className="w-5 h-5 text-foreground cursor-pointer" />
+                                </IconButton>
+                            </DropdownMenu.Trigger>
                             <DropdownMenu.Content size="1" variant="soft" className="w-40">
                                 <DropdownMenu.RadioGroup
                                     value={
@@ -143,16 +143,6 @@ export function DataTable<TData, TValue>({
                                     }
                                 >
                                     <DropdownMenu.RadioItem
-                                        value="default"
-                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
-                                        onSelect={(e) => {
-                                            e.preventDefault();
-                                            setRowHeightScale(1.0);
-                                        }}
-                                    >
-                                        <Text size="1">Padrão</Text>
-                                    </DropdownMenu.RadioItem>
-                                    <DropdownMenu.RadioItem
                                         value="compact"
                                         className={cn("hover:bg-inherit! focus:bg-inherit!")}
                                         onSelect={(e) => {
@@ -161,6 +151,16 @@ export function DataTable<TData, TValue>({
                                         }}
                                     >
                                         <Text size="1">Compacto</Text>
+                                    </DropdownMenu.RadioItem>
+                                    <DropdownMenu.RadioItem
+                                        value="default"
+                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            setRowHeightScale(1.0);
+                                        }}
+                                    >
+                                        <Text size="1">Padrão</Text>
                                     </DropdownMenu.RadioItem>
                                     <DropdownMenu.RadioItem
                                         value="spacious"

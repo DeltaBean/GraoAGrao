@@ -1,7 +1,7 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Card, Flex } from "@radix-ui/themes";
+import { Card, Container, Flex, Skeleton } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { normalizeStockResponse, StockModel, StockResponse } from "@/types/stock";
@@ -10,6 +10,8 @@ import * as stock_api from "@/api/stock_api";
 import StockTable from "@/components/StockTable";
 
 import { getSelectedStore } from "@/util/util";
+import { DataTable } from "@/components/ui/data-table";
+import { getColumns } from "./data-table/columns";
 
 export default function HomePage() {
   const storeId = getSelectedStore()?.id
@@ -40,15 +42,15 @@ export default function HomePage() {
     }
   }
   return (
-    <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen w-full">
+    <Flex direction={"column"} align={"center"} className="min-h-screen w-full">
       <Header />
-      <Card
-        id="main-flex"
-        className="flex-1 w-14/16 my-3 sm:w-9/10 sm:my-12 flex-col"
-        style={{ display: "flex" }}
-      >
-        <StockTable stock={stock}></StockTable>
-      </Card>
+      <Flex className="flex-1 my-3 w-full sm:my-8 flex-col">
+        <Skeleton loading={false} className="h-2/5">
+          <Container>
+            <DataTable columns={getColumns()} data={stock} title="Estoque"></DataTable>
+          </Container>
+        </Skeleton>
+      </Flex>
     </Flex>
   );
 }
