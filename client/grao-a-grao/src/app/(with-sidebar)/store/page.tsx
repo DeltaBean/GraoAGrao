@@ -67,7 +67,7 @@ export default function StorePage() {
   return (
     <Flex direction="column" align="center" className="min-h-screen w-full">
       <Header />
-      <Flex className="flex-1 my-3 w-full sm:my-12 flex-col">
+      <Flex className="flex-1 my-3 w-full sm:my-8 flex-col">
         <Skeleton loading={loading} className="h-2/5">
           <Container>
             <DataTable

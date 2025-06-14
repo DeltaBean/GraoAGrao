@@ -2,7 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { StoreModel } from "@/types/store";
 import { formatDateTime } from "@/util/util";
 import { ArrowUpDown, TrashIcon } from "lucide-react";
-import { AlertDialog, Button, Flex, IconButton, Tooltip } from "@radix-ui/themes";
+import { AlertDialog, Button, Flex, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { PencilSquareIcon } from "@heroicons/react/16/solid";
 
 /*
@@ -18,8 +18,10 @@ export const getColumns = (openEdit: (store: StoreModel) => void, handleDelete: 
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Nome
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <Text className="text-foreground">
+                        Nome
+                    </Text>
+                    <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
                 </Button>
             )
         },
@@ -32,8 +34,10 @@ export const getColumns = (openEdit: (store: StoreModel) => void, handleDelete: 
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Criada Em
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <Text className="text-foreground">
+                        Criada Em
+                    </Text>
+                    <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
                 </Button>
             )
         },
