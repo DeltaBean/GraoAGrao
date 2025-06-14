@@ -7,11 +7,9 @@ import { useEffect, useState } from "react";
 import { normalizeStockResponse, StockModel, StockResponse } from "@/types/stock";
 import * as stock_api from "@/api/stock_api";
 
-import StockTable from "@/components/StockTable";
-
 import { getSelectedStore } from "@/util/util";
 import { DataTable } from "@/components/ui/data-table";
-import { getColumns } from "./data-table/columns";
+import { getColumns } from "./(data-table)/columns";
 
 export default function HomePage() {
   const storeId = getSelectedStore()?.id

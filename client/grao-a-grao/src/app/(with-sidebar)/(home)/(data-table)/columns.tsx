@@ -1,5 +1,5 @@
 import { StockModel } from "@/types/stock";
-import { Badge, Button, Text } from "@radix-ui/themes";
+import { Badge, Button, Flex, Text } from "@radix-ui/themes";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 
@@ -72,23 +72,27 @@ export const getColumns = (): ColumnDef<StockModel>[] => [
         sortingFn: "basic",
         header: ({ column }) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    <Text className="text-foreground" align={"right"}>
-                        Quantidade
-                    </Text>
-                    <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
-                </Button>
+                <Flex justify={"end"} align={"end"}>
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    >
+                        <Text className="text-foreground">
+                            Quantidade
+                        </Text>
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
+                    </Button>
+                </Flex>
             )
         },
         cell: ({ row }) => {
             const current_stock = row.getValue("current_stock");
             return (
-                <Text align={"right"}>
-                    {String(current_stock)}
-                </Text>
+                <Flex justify={"end"} align={"end"}>
+                    <Text className="font-mono">
+                        {String(current_stock)}
+                    </Text>
+                </Flex>
             );
         },
     },

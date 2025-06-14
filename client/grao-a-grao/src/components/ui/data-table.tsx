@@ -8,8 +8,10 @@ import {
     getCoreRowModel,
     getPaginationRowModel,
     getSortedRowModel,
+    getFilteredRowModel,
     useReactTable,
     PaginationState,
+    ColumnFiltersState,
 } from "@tanstack/react-table"
 
 import {
@@ -22,7 +24,7 @@ import {
 } from "@/components/ui/table"
 import { Box, Button, Card, DropdownMenu, Flex, Heading, IconButton, Slider, Text, Tooltip } from "@radix-ui/themes"
 import RowResize from "../Icons/RowResize"
-import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -30,6 +32,7 @@ interface DataTableProps<TData, TValue> {
     title: string
     createButtonToolTip?: string
     handleCreate?: () => void
+    renderToolbar?: (table: ReturnType<typeof useReactTable<TData>>) => React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
@@ -38,11 +41,16 @@ export function DataTable<TData, TValue>({
     title,
     createButtonToolTip,
     handleCreate,
+    renderToolbar,
 }: DataTableProps<TData, TValue>) {
 
     const [rowHeightScale, setRowHeightScale] = React.useState(1.0);
 
     const [sorting, setSorting] = React.useState<SortingState>([])
+
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+        []
+    )
 
     // Pagination state
     const [pagination, setPagination] = React.useState<PaginationState>({
@@ -93,9 +101,12 @@ export function DataTable<TData, TValue>({
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         onPaginationChange: setPagination,
+        onColumnFiltersChange: setColumnFilters,
+        getFilteredRowModel: getFilteredRowModel(),
         state: {
             sorting,
             pagination,
+            columnFilters
         }
     })
 
@@ -114,13 +125,18 @@ export function DataTable<TData, TValue>({
                         <Heading size={{ sm: "7" }} weight="bold">
                             {title}
                         </Heading>
-                        <Tooltip content={createButtonToolTip}>
-                            <Button size="3" onClick={handleCreate}>
-                                Criar
-                            </Button>
-                        </Tooltip>
+                        {handleCreate && createButtonToolTip &&
+                            (
+                                <Tooltip content={createButtonToolTip}>
+                                    <Button size="3" onClick={handleCreate}>
+                                        Criar
+                                    </Button>
+                                </Tooltip>
+                            )
+                        }
                     </Flex>
                     <Flex direction={"row"} gap="3" justify="start" align="center" p="3" className="bg-gradient-to-b from-[var(--accent-4)] to-[var(--accent-3)] border-b border-[var(--accent-4)]">
+                        {renderToolbar?.(table)}
                         <DropdownMenu.Root>
                             <DropdownMenu.Trigger>
                                 <IconButton
@@ -144,7 +160,6 @@ export function DataTable<TData, TValue>({
                                 >
                                     <DropdownMenu.RadioItem
                                         value="compact"
-                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
                                         onSelect={(e) => {
                                             e.preventDefault();
                                             setRowHeightScale(0.8);
@@ -154,7 +169,6 @@ export function DataTable<TData, TValue>({
                                     </DropdownMenu.RadioItem>
                                     <DropdownMenu.RadioItem
                                         value="default"
-                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
                                         onSelect={(e) => {
                                             e.preventDefault();
                                             setRowHeightScale(1.0);
@@ -164,7 +178,6 @@ export function DataTable<TData, TValue>({
                                     </DropdownMenu.RadioItem>
                                     <DropdownMenu.RadioItem
                                         value="spacious"
-                                        className={cn("hover:bg-inherit! focus:bg-inherit!")}
                                         onSelect={(e) => {
                                             e.preventDefault();
                                             setRowHeightScale(1.2);

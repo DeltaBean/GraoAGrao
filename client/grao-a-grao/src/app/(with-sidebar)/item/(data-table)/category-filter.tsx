@@ -1,0 +1,67 @@
+"use client"
+
+import { useState } from "react"
+import {
+    Popover,
+    Button,
+    Flex,
+    Text,
+    Checkbox,
+    Badge,
+    IconButton
+} from "@radix-ui/themes"
+import { Table } from "@tanstack/react-table"
+import { ItemModel } from "@/types/item"
+import { CategoryModel } from "@/types/category"
+import { XMarkIcon } from "@heroicons/react/16/solid"
+
+interface CategoryFilterProps {
+    table: Table<ItemModel>
+    options: CategoryModel[]
+}
+
+export function CategoryFilter({ table, options }: CategoryFilterProps) {
+    const column = table.getColumn("item-category")
+    const selected = (column?.getFilterValue() as string[]) ?? []
+
+    const toggle = (id: string) => {
+        const updated = selected.includes(id)
+            ? selected.filter((v) => v !== id)
+            : [...selected, id]
+        column?.setFilterValue(updated)
+    }
+
+    const clearAll = () => column?.setFilterValue([])
+
+    return (
+        <Flex direction="row" gap="2">
+            <Popover.Root>
+                <Popover.Trigger>
+                    <Flex align={"center"}>
+                        <Button variant="soft" size="2">
+                            Categorias {selected.length > 0 ? `(${selected.length})` : ""}
+                        </Button>
+                    </Flex>
+                </Popover.Trigger>
+                <Popover.Content>
+                    <Flex direction="column" gap="2" p="2">
+                        <Text size="2" weight="bold">Filtrar por Categoria</Text>
+                        {options.map((cat) => (
+                            <Flex key={cat.id} gap="2" align="center">
+                                <Checkbox
+                                    checked={selected.includes(cat.description)}
+                                    onCheckedChange={() => toggle(cat.description)}
+                                    id={cat.description}
+                                />
+                                <label htmlFor={cat.description}>{cat.description}</label>
+                            </Flex>
+                        ))}
+                        <Button variant="ghost" size="1" onClick={clearAll}>
+                            Limpar
+                        </Button>
+                    </Flex>
+                </Popover.Content>
+            </Popover.Root>
+        </Flex>
+    )
+}

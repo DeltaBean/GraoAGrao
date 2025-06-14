@@ -13,14 +13,14 @@ import {
   AlertDialog,
   Container,
 } from "@radix-ui/themes";
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import ModalFormStore from "@/components/Form/Modal/ModalFormStore";
 import { useStoreForm } from "@/hooks/useStoreForm";
 import { toast } from "sonner";
 import { useStoreContext } from "@/context/StoreContext";
 import { useState } from "react";
 import { DataTable } from "../../../components/ui/data-table";
-import { getColumns } from "./data-table/columns";
+import { getColumns } from "./(data-table)/columns";
+import { StoreToolbar } from "./(data-table)/toolbar";
 
 export default function StorePage() {
   const {
@@ -76,6 +76,7 @@ export default function StorePage() {
               handleCreate={openCreate}
               title="Loja"
               createButtonToolTip="Criar nova loja"
+              renderToolbar={(table) => <StoreToolbar table={table} />}
             />
           </Container>
         </Skeleton>
