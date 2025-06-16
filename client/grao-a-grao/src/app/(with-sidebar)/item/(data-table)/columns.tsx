@@ -54,7 +54,7 @@ export const getColumns = (
             cell: ({ row }) => {
                 const category = row.getValue("item-category");
                 return (
-                    <Badge color="iris" size="1" variant="surface">
+                    <Badge size="1" variant="surface">
                         {String(category)}
                     </Badge>
                 );
@@ -84,7 +84,7 @@ export const getColumns = (
             cell: ({ row }) => {
                 const unit = row.getValue("item-unit-of-measure") as string;
                 return (
-                    <Badge color="purple" size="1" variant="surface">
+                    <Badge size="1" variant="surface">
                         {unit}
                     </Badge>
                 );
