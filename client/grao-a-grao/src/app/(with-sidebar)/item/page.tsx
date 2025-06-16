@@ -26,6 +26,10 @@ import { ItemToolbar } from "./(data-table)/toolbar";
 export default function ItemPage() {
   const storeId = getSelectedStore()?.id
 
+  const [filterValue, setFilterValue] = useState("");
+  const [selectedField, setSelectedField] = useState("item-description");
+
+
   // Items list and loading state.
   const [items, setItems] = useState<ItemModel[]>([]);
   const [categories, setCategories] = useState<CategoryModel[]>([]);
@@ -232,12 +236,23 @@ export default function ItemPage() {
         <Skeleton loading={loading} className="h-2/5">
           <Container>
             <DataTable
-              columns={getColumns(openEdit, handleDelete)}
+              columns={getColumns(openEdit, handleDelete, filterValue, selectedField)}
               data={items}
               handleCreate={openCreate}
               title="Item de Estoque"
               createButtonToolTip="Criar novo item"
-              renderToolbar={(table) => <ItemToolbar table={table} categories={categories} units={unitsOfMeasure} />}
+              renderToolbar={(table) => (
+                <ItemToolbar
+                  table={table}
+                  categories={categories}
+                  units={unitsOfMeasure}
+                  selectedField={selectedField}
+                  onSelectedFieldChange={setSelectedField}
+                  filterValue={filterValue}
+                  onFilterValueChange={setFilterValue}
+                />
+              )
+              }
             />
           </Container>
         </Skeleton>

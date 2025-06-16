@@ -4,56 +4,68 @@ import { formatDateTime } from "@/util/util";
 import { ArrowUpDown, TrashIcon } from "lucide-react";
 import { AlertDialog, Button, Flex, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { PencilSquareIcon } from "@heroicons/react/16/solid";
+import { highlightMatch } from "@/util/util_comp";
 
 /*
     Columns are where you define the core of what your table will look like. 
     They define the data that will be displayed, how it will be formatted, sorted and filtered.
 */
-export const getColumns = (openEdit: (store: StoreModel) => void, handleDelete: (id: number) => Promise<void>): ColumnDef<StoreModel>[] => [
-    {
-        accessorKey: "name",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    <Text className="text-foreground">
-                        Nome
-                    </Text>
-                    <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
-                </Button>
-            )
+export const getColumns = (
+    openEdit: (store: StoreModel) => void,
+    handleDelete: (id: number) => Promise<void>,
+    filterValue: string,
+    selectedField: string
+): ColumnDef<StoreModel>[] => [
+        {
+            accessorKey: "name",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    >
+                        <Text className="text-foreground">
+                            Nome
+                        </Text>
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
+                    </Button>
+                )
+            },
+            cell: ({ row }) => {
+                const value = row.getValue("name") as string;
+                return selectedField === "name"
+                    ? highlightMatch(value, filterValue)
+                    : value;
+            },
         },
-    },
-    {
-        accessorKey: "created_at",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    <Text className="text-foreground">
-                        Criada Em
-                    </Text>
-                    <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
-                </Button>
-            )
+        {
+            accessorKey: "created_at",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    >
+                        <Text className="text-foreground">
+                            Criada Em
+                        </Text>
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
+                    </Button>
+                )
+            },
+            cell: ({ row }) => {
+                return formatDateTime(row.getValue("created_at"));
+            },
         },
-        cell: ({ row }) => {
-            return formatDateTime(row.getValue("created_at"));
+        {
+            id: "actions",
+            header: () => <div className="text-center">Ações</div>,
+            cell: ({ row }) => {
+                const store = row.original;
+                return <ColumnActions store={store} openEdit={openEdit} handleDelete={handleDelete} />;
+            },
         },
-    },
-    {
-        id: "actions",
-        header: () => <div className="text-center">Ações</div>,
-        cell: ({ row }) => {
-            const store = row.original;
-            return <ColumnActions store={store} openEdit={openEdit} handleDelete={handleDelete} />;
-        },
-    },
-];
+    ];
 
 function ColumnActions({
     store,

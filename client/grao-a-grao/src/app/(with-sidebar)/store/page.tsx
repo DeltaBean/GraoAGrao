@@ -33,6 +33,9 @@ export default function StorePage() {
   const { isOpen, mode, current, openCreate, openEdit, close } =
     useStoreForm();
 
+  const [filterValue, setFilterValue] = useState("");
+  const [selectedField, setSelectedField] = useState("name");
+
   const [loading,] = useState(false);
 
   async function handleCreate(data: { name: string }) {
@@ -71,12 +74,20 @@ export default function StorePage() {
         <Skeleton loading={loading} className="h-2/5">
           <Container>
             <DataTable
-              columns={getColumns(openEdit, handleDelete)}
+              columns={getColumns(openEdit, handleDelete, filterValue, selectedField)}
               data={stores}
               handleCreate={openCreate}
               title="Loja"
               createButtonToolTip="Criar nova loja"
-              renderToolbar={(table) => <StoreToolbar table={table} />}
+              renderToolbar={(table) => (
+                <StoreToolbar
+                  table={table}
+                  selectedField={selectedField}
+                  onSelectedFieldChange={setSelectedField}
+                  filterValue={filterValue}
+                  onFilterValueChange={setFilterValue}
+                />
+              )}
             />
           </Container>
         </Skeleton>

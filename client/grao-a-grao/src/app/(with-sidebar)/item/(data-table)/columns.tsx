@@ -3,10 +3,13 @@ import { PencilSquareIcon } from "@heroicons/react/16/solid";
 import { AlertDialog, Badge, Button, Flex, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, TrashIcon } from "lucide-react";
+import { highlightMatch } from "@/util/util_comp";
 
 export const getColumns = (
     openEdit: (store: ItemModel) => void,
     handleDelete: (id: number) => Promise<void>,
+    filterValue: string,
+    selectedField: string
 ): ColumnDef<ItemModel>[] => [
         {
             accessorFn: (row) => row.description,
@@ -23,6 +26,12 @@ export const getColumns = (
                         <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
                     </Button>
                 )
+            },
+            cell: ({ row }) => {
+                const value = row.getValue("item-description") as string;
+                return selectedField === "item-description"
+                    ? highlightMatch(value, filterValue)
+                    : value;
             },
         },
         {
@@ -86,6 +95,15 @@ export const getColumns = (
                         <ArrowUpDown className="ml-2 h-4 w-4 text-foreground" />
                     </Button>
                 )
+            },
+            cell: ({ row }) => {
+                const value = row.getValue("item-ean") as string;
+                const highlightedValue = selectedField === "item-ean" ? highlightMatch(value, filterValue) : value;
+                return (
+                    <Text className="font-mono">
+                        {highlightedValue}
+                    </Text>
+                );
             },
         },
         {

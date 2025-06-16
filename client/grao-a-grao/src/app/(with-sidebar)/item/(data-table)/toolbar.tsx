@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Table } from "@tanstack/react-table"
 import { Flex, Select, TextField } from "@radix-ui/themes"
 import { MagnifyingGlassIcon } from "@heroicons/react/16/solid"
@@ -14,10 +13,21 @@ interface ItemToolbarProps {
   table: Table<ItemModel>
   categories: CategoryModel[]
   units: UnitOfMeasureModel[]
+  selectedField: string
+  onSelectedFieldChange: (field: string) => void
+  filterValue: string
+  onFilterValueChange: (val: string) => void
 }
 
-export function ItemToolbar({ table, categories, units }: ItemToolbarProps) {
-  const [selectedField, setSelectedField] = useState("item-ean")
+export function ItemToolbar({
+  table,
+  categories,
+  units,
+  selectedField,
+  onSelectedFieldChange,
+  filterValue,
+  onFilterValueChange
+}: ItemToolbarProps) {
   const column = table.getColumn(selectedField)
 
   return (
@@ -26,7 +36,7 @@ export function ItemToolbar({ table, categories, units }: ItemToolbarProps) {
         value={selectedField}
         onValueChange={(value) => {
           table.getColumn(selectedField)?.setFilterValue(undefined)
-          setSelectedField(value)
+          onSelectedFieldChange(value)
         }}
       >
         <Select.Trigger className="min-w-[140px]" />
@@ -39,14 +49,16 @@ export function ItemToolbar({ table, categories, units }: ItemToolbarProps) {
       <TextField.Root
         placeholder={`Buscar por ${selectedField === "item-ean" ? "EAN13" : "Descrição"}`}
         className="max-w-sm"
-        value={(column?.getFilterValue() as string) ?? ""}
-        onChange={(e) => column?.setFilterValue(e.target.value)}
+        value={filterValue}
+        onChange={(e) => {
+          onFilterValueChange(e.target.value);
+          column?.setFilterValue(e.target.value);
+        }}
       >
         <TextField.Slot>
           <MagnifyingGlassIcon height="16" width="16" />
         </TextField.Slot>
       </TextField.Root>
-
       <CategoryFilter table={table} options={categories} />
       <UnitOfMeasureFilter table={table} options={units} />
     </Flex>
