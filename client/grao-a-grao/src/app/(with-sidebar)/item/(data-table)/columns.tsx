@@ -37,6 +37,11 @@ export const getColumns = (
         {
             accessorFn: (row) => row.category?.description ?? "—",
             id: "item-category",
+            filterFn: (row, columnId, filterValue) => {
+                if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+                const cellValue = row.getValue(columnId);
+                return filterValue.includes(cellValue);
+            },
             header: ({ column }) => (
                 <Button
                     variant="ghost"
@@ -58,6 +63,11 @@ export const getColumns = (
         {
             accessorFn: (row) => row.unit_of_measure?.description ?? "—",
             id: "item-unit-of-measure",
+            filterFn: (row, columnId, filterValue) => {
+                if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+                const cellValue = row.getValue(columnId);
+                return filterValue.includes(cellValue);
+            },
             header: ({ column }) => {
                 return (
                     <Button

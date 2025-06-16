@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { getSelectedStore } from "@/util/util";
 import { DataTable } from "@/components/ui/data-table";
 import { getColumns } from "./(data-table)/columns";
-import { Input } from "@/components/ui/input";
 import { ItemToolbar } from "./(data-table)/toolbar";
 
 export default function ItemPage() {
