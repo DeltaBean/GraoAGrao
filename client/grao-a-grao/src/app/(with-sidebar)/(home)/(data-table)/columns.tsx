@@ -90,6 +90,11 @@ export const getColumns = (
         {
             accessorKey: "current_stock",
             sortingFn: "basic",
+            filterFn: (row, columnId, filterValue) => {
+                if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+                const cellValue = Number(row.getValue(columnId));
+                return cellValue >= filterValue[0] && cellValue <= filterValue[1];
+            },
             header: ({ column }) => {
                 return (
                     <Flex justify={"end"} align={"end"}>

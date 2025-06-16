@@ -12,6 +12,7 @@ import {
     useReactTable,
     PaginationState,
     ColumnFiltersState,
+    getFacetedMinMaxValues,
 } from "@tanstack/react-table"
 
 import {
@@ -103,6 +104,7 @@ export function DataTable<TData, TValue>({
         onPaginationChange: setPagination,
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
+        getFacetedMinMaxValues: getFacetedMinMaxValues(),
         state: {
             sorting,
             pagination,

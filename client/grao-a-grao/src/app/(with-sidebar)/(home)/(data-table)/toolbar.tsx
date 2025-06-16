@@ -8,6 +8,7 @@ import { CategoryFilter } from "./category-filter"
 import { UnitOfMeasureFilter } from "./unit-of-measure-filter"
 import { UnitOfMeasureModel } from "@/types/unit_of_measure"
 import { StockModel } from "@/types/stock"
+import { QuantityFilter } from "./quantity-filter"
 
 interface StockToolbarProps {
   table: Table<StockModel>
@@ -60,6 +61,7 @@ export function StockToolbar({
       </TextField.Root>
       <CategoryFilter table={table} options={categories} />
       <UnitOfMeasureFilter table={table} options={units} />
+      <QuantityFilter table={table} />
     </Flex>
   )
 }

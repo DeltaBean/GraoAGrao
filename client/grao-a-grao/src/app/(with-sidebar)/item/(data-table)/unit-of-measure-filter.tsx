@@ -13,6 +13,7 @@ import {
 import { Table } from "@tanstack/react-table"
 import { ItemModel } from "@/types/item"
 import { UnitOfMeasureModel } from "@/types/unit_of_measure"
+import { ChevronDown } from "lucide-react"
 
 interface UnitFilterProps {
   table: Table<ItemModel>
@@ -20,6 +21,8 @@ interface UnitFilterProps {
 }
 
 export function UnitOfMeasureFilter({ table, options }: UnitFilterProps) {
+  const [isPopOverOpen, setIsPopOverOpen] = useState(false);
+  
   const column = table.getColumn("item-unit-of-measure")
   const selected = (column?.getFilterValue() as string[]) ?? []
 
@@ -34,11 +37,16 @@ export function UnitOfMeasureFilter({ table, options }: UnitFilterProps) {
 
   return (
     <Flex direction="row" gap="2">
-      <Popover.Root>
+      <Popover.Root onOpenChange={setIsPopOverOpen} open={isPopOverOpen}>
         <Popover.Trigger>
           <Flex align="center">
             <Button variant="soft" size="2">
-              Unidades {selected.length > 0 ? `(${selected.length})` : ""}
+              Unidades {selected.length > 0 ? `(${selected.length})` : ""} 
+              <ChevronDown 
+              width={16} 
+              height={16} 
+              className={`ml-auto transition-transform duration-200 ${isPopOverOpen ? "rotate-180" : ""}`}
+              />
             </Button>
           </Flex>
         </Popover.Trigger>

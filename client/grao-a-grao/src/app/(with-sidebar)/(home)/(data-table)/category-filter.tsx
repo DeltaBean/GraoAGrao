@@ -10,6 +10,8 @@ import {
 import { Table } from "@tanstack/react-table"
 import { CategoryModel } from "@/types/category"
 import { StockModel } from "@/types/stock"
+import { ChevronDown } from "lucide-react"
+import { useState } from "react"
 
 interface CategoryFilterProps {
     table: Table<StockModel>
@@ -19,7 +21,8 @@ interface CategoryFilterProps {
 export function CategoryFilter({ table, options }: CategoryFilterProps) {
     const column = table.getColumn("item-category")
     const selected = (column?.getFilterValue() as string[]) ?? []
-
+    const [isPopOverOpen, setIsPopOverOpen] = useState(false);
+    
     const toggle = (id: string) => {
         const updated = selected.includes(id)
             ? selected.filter((v) => v !== id)
@@ -31,11 +34,16 @@ export function CategoryFilter({ table, options }: CategoryFilterProps) {
 
     return (
         <Flex direction="row" gap="2">
-            <Popover.Root>
+            <Popover.Root onOpenChange={setIsPopOverOpen} open={isPopOverOpen}>
                 <Popover.Trigger>
                     <Flex align={"center"}>
                         <Button variant="soft" size="2">
                             Categorias {selected.length > 0 ? `(${selected.length})` : ""}
+                            <ChevronDown
+                                width={16}
+                                height={16}
+                                className={`ml-auto transition-transform duration-200 ${isPopOverOpen ? "rotate-180" : ""}`}
+                            />
                         </Button>
                     </Flex>
                 </Popover.Trigger>
