@@ -1,7 +1,7 @@
 "use client";
 
 import Header from "@/components/Header";
-import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton, Tooltip } from "@radix-ui/themes";
+import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton, Tooltip, Container } from "@radix-ui/themes";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import * as units_api from "@/api/units_api";
@@ -13,13 +13,18 @@ import { ErrorCodes, ForeignKeyDeleteReferencedErrorResponse, GenericPostgreSQLE
 import { ItemModel } from "@/types/item";
 import { toast } from "sonner";
 import { getSelectedStore } from "@/util/util";
+import { DataTable } from "@/components/ui/data-table";
+import { getColumns } from "./(data-table)/columns";
+import { UnitOfMeasureToolbar } from "./(data-table)/toolbar";
 
 
 export default function UnitPage() {
     const storeId = getSelectedStore()?.id
-    
+
     const [unitsOfMeasure, setUnitsOfMeasure] = useState<UnitOfMeasureModel[]>([]);
     const [loading, setLoading] = useState(false);
+    const [filterValue, setFilterValue] = useState("");
+    const [selectedField, setSelectedField] = useState("description");
 
     type ErrorModalState =
         | { type: "delete-referenced"; data: ForeignKeyDeleteReferencedErrorResponse<ItemModel>; unit: UnitOfMeasureModel }
@@ -42,18 +47,16 @@ export default function UnitPage() {
 
     // Handlers for open/close modal.
     const handleCloseModal = () => setIsModalOpen(false);
-    const handleOpenModal = (type: "edit" | "create") => {
+    const openEdit = () => {
+        setIsModalEdit(true);
+        setIsModalCreate(false);
+        setIsModalOpen(true);
+    };
 
-        if (type === "edit") {
-            setIsModalEdit(true);
-            setIsModalCreate(false);
-        }
-        else if (type === "create") {
-            setIsModalEdit(false);
-            setIsModalCreate(true);
-        }
-
-        setIsModalOpen(true)
+    const openCreate = () => {
+        setIsModalEdit(false);
+        setIsModalCreate(true);
+        setIsModalOpen(true);
     };
 
     // Fetch items when the component mounts.
@@ -150,110 +153,28 @@ export default function UnitPage() {
         <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen w-full">
             <Header />
 
-            <Card
-                id="main-flex"
-                className="flex-1 my-3 w-14/16 sm:w-9/10 sm:my-12 flex-col"
-                style={{ display: "flex" }}
-            >
-
-                <Flex
-                    className="w-full bg-[var(--accent-4)]" p={"3"}
-                    style={{ borderTopLeftRadius: "var(--radius-3)", borderTopRightRadius: "var(--radius-3)" }}
-                    justify={"between"}
-                    align={"center"}
-                >
-
-                    <Heading size={{ sm: "8" }} weight={"bold"}>Unidade de Medida</Heading>
-                    <Tooltip content="Criar nova unidade de medida">
-                        <Button size="3" onClick={() => handleOpenModal("create")}>Criar</Button>
-                    </Tooltip>
-                </Flex>
-
-                <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
-                    <Table.Root>
-
-                        <Table.Header>
-                            <Table.Row align={"center"}>
-                                <Table.ColumnHeaderCell>Descrição</Table.ColumnHeaderCell>
-                                <Table.ColumnHeaderCell>Ações</Table.ColumnHeaderCell>
-                            </Table.Row>
-                        </Table.Header>
-
-                        <Table.Body>
-
-                            {loading ? (null) : (
-                                unitsOfMeasure.map((unit) => (
-                                    <Table.Row key={unit.id} align={"center"}>
-                                        <Table.RowHeaderCell>{unit.description}</Table.RowHeaderCell>
-                                        <Table.Cell>
-                                            <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
-                                                <Tooltip content="Editar unidade de medida">
-                                                    <IconButton
-                                                        size={"1"}
-                                                        about="Edit"
-                                                        variant="soft"
-                                                        onClick={
-                                                            (ev) => {
-                                                                ev.stopPropagation();
-                                                                setEditUnitOfMeasure(unit);
-                                                                handleOpenModal("edit");
-                                                            }
-                                                        }>
-                                                        <PencilSquareIcon height="16" width="16" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <AlertDialog.Root>
-                                                    <Tooltip content="Excluir unidade de medida">
-                                                        <AlertDialog.Trigger>
-                                                            <IconButton
-                                                                size={"1"}
-                                                                about="Delete"
-                                                                variant="soft"
-                                                                color="red">
-                                                                <TrashIcon height="16" width="16" />
-                                                            </IconButton>
-                                                        </AlertDialog.Trigger>
-                                                    </Tooltip>
-                                                    <AlertDialog.Content maxWidth="450px">
-                                                        <AlertDialog.Title>Deletar {unit.description}</AlertDialog.Title>
-                                                        <AlertDialog.Description size="2">
-                                                            Tem certeza? Esta unidade de medida será deletada permanentemente.
-                                                        </AlertDialog.Description>
-
-                                                        <Flex gap="3" mt="4" justify="end">
-                                                            <AlertDialog.Cancel>
-                                                                <Button variant="soft" color="gray">
-                                                                    Cancelar
-                                                                </Button>
-                                                            </AlertDialog.Cancel>
-                                                            <AlertDialog.Action>
-                                                                <Button
-                                                                    variant="solid"
-                                                                    color="red"
-                                                                    onClick={
-                                                                        (ev) => {
-                                                                            ev.stopPropagation();
-                                                                            handleDelete(unit.id ?? 0);
-                                                                        }
-                                                                    }>
-                                                                    Deletar
-                                                                </Button>
-                                                            </AlertDialog.Action>
-                                                        </Flex>
-                                                    </AlertDialog.Content>
-                                                </AlertDialog.Root>
-
-                                            </Flex>
-                                        </Table.Cell>
-                                    </Table.Row>
-                                ))
+            <Flex className="flex-1 my-3 w-full sm:my-8 flex-col">
+                <Skeleton loading={loading} className="h-2/5">
+                    <Container>
+                        <DataTable
+                            columns={getColumns(openEdit, handleDelete, filterValue, selectedField)}
+                            data={unitsOfMeasure}
+                            handleCreate={openCreate}
+                            title="Unidade de Medida"
+                            createButtonToolTip="Criar nova unidade de medida"
+                            renderToolbar={(table) => (
+                                <UnitOfMeasureToolbar
+                                    table={table}
+                                    selectedField={selectedField}
+                                    onSelectedFieldChange={setSelectedField}
+                                    filterValue={filterValue}
+                                    onFilterValueChange={setFilterValue}
+                                />
                             )}
-
-                        </Table.Body>
-                    </Table.Root>
+                        />
+                    </Container>
                 </Skeleton>
-            </Card>
-
+            </Flex>
             {isModalOpen && (
                 <ModalFormUnitOfMeasure
                     mode={isModalEdit ? "edit" : "create"}

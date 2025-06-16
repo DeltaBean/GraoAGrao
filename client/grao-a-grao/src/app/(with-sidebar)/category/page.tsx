@@ -170,8 +170,8 @@ export default function CategoryPage() {
                             columns={getColumns(openEdit, handleDelete, filterValue, selectedField)}
                             data={categories}
                             handleCreate={openCreate}
-                            title="Loja"
-                            createButtonToolTip="Criar nova loja"
+                            title="Categoria"
+                            createButtonToolTip="Criar nova categoria"
                             renderToolbar={(table) => (
                                 <CategoryToolbar
                                     table={table}
