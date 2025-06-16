@@ -47,7 +47,8 @@ export default function UnitPage() {
 
     // Handlers for open/close modal.
     const handleCloseModal = () => setIsModalOpen(false);
-    const openEdit = () => {
+    const openEdit = (unit: UnitOfMeasureModel) => {
+        setEditUnitOfMeasure(unit);
         setIsModalEdit(true);
         setIsModalCreate(false);
         setIsModalOpen(true);

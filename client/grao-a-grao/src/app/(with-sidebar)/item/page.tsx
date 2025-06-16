@@ -66,7 +66,8 @@ export default function ItemPage() {
 
   // Handlers for open/close modal.
   const handleCloseModal = () => setIsModalOpen(false);
-  const openEdit = () => {
+  const openEdit = (item: ItemModel) => {
+    setEditItem(item);
     setIsModalEdit(true);
     setIsModalCreate(false);
     setIsModalOpen(true);

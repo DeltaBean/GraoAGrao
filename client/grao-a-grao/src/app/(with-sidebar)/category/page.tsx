@@ -48,8 +48,12 @@ export default function CategoryPage() {
 
     // Handlers for open/close modal.
     const handleCloseModal = () => setIsModalOpen(false);
-    const openEdit = () => {
-        setIsModalEdit(true);
+
+    // openEdit now takes the category you clicked on,
+    // stores it in state, then opens in "edit" mode.
+    const openEdit = (category: CategoryModel) => {
+        setEditCategory(category);      
+        setIsModalEdit(true);         
         setIsModalCreate(false);
         setIsModalOpen(true);
     };
