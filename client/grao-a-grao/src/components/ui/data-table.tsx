@@ -106,6 +106,7 @@ export function DataTable<TData, TValue>({
         getFilteredRowModel: getFilteredRowModel(),
         getFacetedMinMaxValues: getFacetedMinMaxValues(),
         state: {
+            columnVisibility: createInitialVisibility(columns),
             sorting,
             pagination,
             columnFilters
@@ -278,4 +279,16 @@ export function DataTable<TData, TValue>({
             </Flex>
         </Card >
     )
+}
+
+// If a column has no header or cell, it is considered hidden by default
+// This is used to create the initial visibility state for the table
+function createInitialVisibility<T>(columns: ColumnDef<T, any>[]): Record<string, boolean> {
+    const visibility: Record<string, boolean> = {};
+    for (const col of columns) {
+        if (col.id && col.cell === undefined && col.header === undefined) {
+            visibility[col.id] = false;
+        }
+    }
+    return visibility;
 }

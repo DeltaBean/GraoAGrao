@@ -3,7 +3,6 @@
 
 import { Flex, AlertDialog, Table, Skeleton, Card, Heading, Button, IconButton, Badge, Tooltip, Container } from "@radix-ui/themes";
 import Header from "@/components/Header";
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import * as items_api from "@/api/items_api";
 import * as categories_api from "@/api/categories_api";
