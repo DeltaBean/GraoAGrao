@@ -57,6 +57,15 @@ body {
 .radix-themes {
 	--default-font-family: var(--font-roboto);
   --default-letter-spacing: 0.03em;
+  --cursor-button: pointer;
+  --cursor-checkbox: default;
+  --cursor-disabled: not-allowed;
+  --cursor-link: pointer;
+  --cursor-menu-item: default;
+  --cursor-radio: default;
+  --cursor-slider-thumb: default;
+  --cursor-slider-thumb-active: default;
+  --cursor-switch: default;
 }
 
 :root {
@@ -136,3 +145,5 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+

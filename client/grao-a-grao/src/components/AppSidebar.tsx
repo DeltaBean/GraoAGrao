@@ -24,6 +24,8 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useState } from "react";
 import { ModalFormLogout } from "@/components/Form/Modal/ModalLogoutConfirmation";
 
+import { ThemeSwitcher } from "./ThemeSwitcher";
+
 // Menu items.
 const items = [
   {
@@ -110,7 +112,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         className={cn(
                           "cursor-pointer",
-                          isActive && "bg-[var(--accent-4)] hover:bg-[var(--accent-4)]"
+                          isActive && "bg-[var(--accent-4)] hover:bg-[var(--accent-4)] transition-colors duration-800 ease-in-out"
                         )}
                         asChild
                         onClick={() => router.push(item.url)}
@@ -133,6 +135,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
+                  <ThemeSwitcher/>
                   <SidebarMenuButton className="cursor-pointer" asChild>
                     <div
                       onClick={() => {
