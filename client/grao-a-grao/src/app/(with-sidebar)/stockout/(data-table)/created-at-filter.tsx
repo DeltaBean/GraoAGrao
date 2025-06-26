@@ -2,11 +2,11 @@
 
 import { useEffect } from "react"
 import { Table } from "@tanstack/react-table"
-import { StockInModel } from "@/types/stock_in"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
+import { StockOutModel } from "@/types/stock_out"
 
 interface DateFilterProps {
-  table: Table<StockInModel>
+  table: Table<StockOutModel>
 }
 
 export function DateFilter({ table }: DateFilterProps) {
