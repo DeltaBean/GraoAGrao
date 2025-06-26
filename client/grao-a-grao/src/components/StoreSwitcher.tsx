@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import { StoreModel } from "@/types/store";
 import { useStoreContext } from "@/context/StoreContext";
+import { Text, Flex } from "@radix-ui/themes";
 
 export function StoreSwitcher({
   onStoreChange,
@@ -37,15 +38,15 @@ export function StoreSwitcher({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-accent">
+              <Flex justify="center" align="center" direction="row" className="aspect-square size-8 rounded-(--radius-3) bg-sidebar-accent">
                 <GalleryVerticalEnd className="size-4" />
-              </div>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold">Loja</span>
-                <span>
+              </Flex>
+              <Flex direction="column" className="leading-none">
+                <Text weight="medium">Loja</Text>
+                <Text>
                   {selectedStore ? selectedStore.name : "Selecione uma loja"}
-                </span>
-              </div>
+                </Text>
+              </Flex>
               <ChevronDown
                 className={`ml-auto transition-transform duration-500 ${
                   menuOpen ? "rotate-180" : ""
