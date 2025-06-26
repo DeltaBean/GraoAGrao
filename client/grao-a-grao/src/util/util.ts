@@ -60,11 +60,14 @@ export function getUserName() {
   return localStorage.getItem("userName")
 }
 
-export function formatDateTime(dateStr: string | undefined): string {
+export function formatDateTime(
+  dateStr: string | undefined,
+  locale: string = typeof navigator !== 'undefined' ? navigator.language : 'en-US'
+): string {
   try {
     const date = new Date(dateStr ?? new Date());
 
-    return date.toLocaleString(undefined, {
+    return date.toLocaleString(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
