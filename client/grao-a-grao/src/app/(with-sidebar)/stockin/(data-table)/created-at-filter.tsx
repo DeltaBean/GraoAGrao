@@ -11,6 +11,7 @@ import {
 import { Table } from "@tanstack/react-table"
 import { ChevronDown } from "lucide-react"
 import { StockInModel } from "@/types/stock_in"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
 
 interface DateFilterProps {
   table: Table<StockInModel>
@@ -37,43 +38,16 @@ export function DateFilter({ table }: DateFilterProps) {
   }
 
   return (
-    <Popover.Root onOpenChange={setIsOpen} open={isOpen}>
-      <Popover.Trigger>
-        <Button variant="soft" size="2">
-          Criada Em
-          <ChevronDown
-            width={16}
-            height={16}
-            className={`ml-2 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-          />
-        </Button>
-      </Popover.Trigger>
-      <Popover.Content>
-        <Flex direction="column" gap="3" p="2" width="auto">
-          <Text size="2" weight="bold">Filtrar por Data</Text>
-          <Flex direction="column" gap="2">
-            <label>
-              <Text size="1">De:</Text>
-              <TextField.Root
-                type="datetime-local"
-                value={value.from}
-                onChange={(e) => handleChange("from", e.target.value)}
-              />
-            </label>
-            <label>
-              <Text size="1">Até:</Text>
-              <TextField.Root
-                type="datetime-local"
-                value={value.to}
-                onChange={(e) => handleChange("to", e.target.value)}
-              />
-            </label>
-          </Flex>
-          <Button variant="ghost" size="1" onClick={clearAll}>
-            Limpar
-          </Button>
-        </Flex>
-      </Popover.Content>
-    </Popover.Root>
+
+        <DateRangePicker
+          onUpdate={(values) => console.log(values)}
+          initialDateFrom="2023-01-01"
+          initialDateTo="2023-12-31"
+          align="start"
+          locale={typeof navigator !== 'undefined' ? navigator.language : 'en-US'}
+          showCompare={false}
+        />
+
+
   )
 }
