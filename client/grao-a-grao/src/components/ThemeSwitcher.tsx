@@ -4,6 +4,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { SidebarMenuButton } from '@/components/ui/sidebar';
+import { Box, Text } from '@radix-ui/themes';
 
 export function ThemeSwitcher() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -21,7 +22,7 @@ export function ThemeSwitcher() {
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label="Alternar tema"
     >
-      <div className="relative w-4 h-4">
+      <Box className="relative w-4 h-4">
         <Sun
           className={`
             absolute top-0 left-0 w-4 h-4
@@ -38,9 +39,9 @@ export function ThemeSwitcher() {
           `}
           strokeWidth={2}
         />
-      </div>
+      </Box>
 
-      <span>Tema</span>
+      <Text>Tema</Text>
     </SidebarMenuButton>
   );
 }
