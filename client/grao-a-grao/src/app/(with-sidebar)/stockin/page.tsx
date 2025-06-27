@@ -1,15 +1,13 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Badge, Button, Card, Container, Flex, Heading, IconButton, Skeleton, Table, Tooltip } from "@radix-ui/themes";
+import { Container, Flex, Skeleton } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { normalizeStockInResponse, StockInModel, StockInResponse } from "@/types/stock_in";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { CheckCircleIcon, EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import * as stock_in_api from "@/api/stock_in_api";
-import { formatDateTime, getSelectedStore } from "@/util/util";
+import { getSelectedStore } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
 import { ErrorCodes, StockInTotalQuantityNotMatchingResponse } from "@/errors/api_error";
 import ModalGenericError from "@/components/Error/ModalGenericError";

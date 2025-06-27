@@ -6,14 +6,13 @@ import {
     Flex,
     Text,
     Slider,
-    Heading,
     Separator,
     TextField,
     Box,
 } from "@radix-ui/themes"
 import { Table } from "@tanstack/react-table"
 import { StockModel } from "@/types/stock"
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { ChevronDown } from "lucide-react"
 
 interface QuantityFilterProps {

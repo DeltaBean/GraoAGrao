@@ -1,14 +1,12 @@
 "use client";
 
-import { Badge, Button, Card, Container, Flex, Heading, IconButton, Skeleton, Table, Tooltip } from "@radix-ui/themes";
+import { Container, Flex, Skeleton } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { normalizeStockOutResponse, StockOutModel, StockOutResponse } from "@/types/stock_out";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { CheckCircleIcon, EyeIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import * as stock_out_api from "@/api/stock_out_api";
-import { formatDateTime, getSelectedStore } from "@/util/util";
+import { getSelectedStore } from "@/util/util";
 import { useLoading } from "@/hooks/useLoading";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { ErrorCodes, StockOutTotalQuantityNotMatchingResponse } from "@/errors/api_error";

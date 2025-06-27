@@ -103,7 +103,6 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu className="gap-3">
                 {items.map((item) => {
-                  const pathname = usePathname()
                   const isActive = (item.url.split("/")[1] === pathname.split("/")[1])
                     || (item.url === "/" && pathname === "/");
 

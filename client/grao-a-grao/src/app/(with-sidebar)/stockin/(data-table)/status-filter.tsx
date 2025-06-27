@@ -6,7 +6,6 @@ import {
     Button,
     Flex,
     Text,
-    Checkbox,
     RadioGroup,
 } from "@radix-ui/themes"
 import { Table } from "@tanstack/react-table"
