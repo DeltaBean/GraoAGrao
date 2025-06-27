@@ -1,6 +1,6 @@
 "use client";
 
-import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton, Tooltip } from "@radix-ui/themes";
+import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton, Tooltip, Container } from "@radix-ui/themes";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 
@@ -14,12 +14,17 @@ import ModalGenericError from "@/components/Error/ModalGenericError";
 import ModalDeleteReferencedErrorItem from "@/components/Error/Delete/Category/ModalDeleteReferencedErrorItem";
 import { toast } from "sonner";
 import { getSelectedStore } from "@/util/util";
+import { DataTable } from "@/components/ui/data-table";
+import { getColumns } from "./(data-table)/columns";
+import { CategoryToolbar } from "./(data-table)/toolbar";
 
 export default function CategoryPage() {
 
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [loading, setLoading] = useState(false);
     const storeId = getSelectedStore()?.id
+    const [filterValue, setFilterValue] = useState("");
+    const [selectedField, setSelectedField] = useState("description");
 
     const [, setError] = useState<string | null>(null);
     type ErrorModalState =
@@ -43,18 +48,20 @@ export default function CategoryPage() {
 
     // Handlers for open/close modal.
     const handleCloseModal = () => setIsModalOpen(false);
-    const handleOpenModal = (type: "edit" | "create") => {
 
-        if (type === "edit") {
-            setIsModalEdit(true);
-            setIsModalCreate(false);
-        }
-        else if (type === "create") {
-            setIsModalEdit(false);
-            setIsModalCreate(true);
-        }
+    // openEdit now takes the category you clicked on,
+    // stores it in state, then opens in "edit" mode.
+    const openEdit = (category: CategoryModel) => {
+        setEditCategory(category);      
+        setIsModalEdit(true);         
+        setIsModalCreate(false);
+        setIsModalOpen(true);
+    };
 
-        setIsModalOpen(true)
+    const openCreate = () => {
+        setIsModalEdit(false);
+        setIsModalCreate(true);
+        setIsModalOpen(true);
     };
 
     // Fetch items when the component mounts.
@@ -160,110 +167,28 @@ export default function CategoryPage() {
     return (
         <Flex direction={"column"} justify={"start"} align={"center"} className="min-h-screen w-full">
             <Header />
-            <Card
-                id="main-flex"
-                className="flex-1 my-3 w-14/16 sm:w-9/10 sm:my-12 flex-col"
-                style={{ display: "flex" }}
-            >
-
-                <Flex
-                    className="w-full bg-[var(--accent-4)]" p={"3"}
-                    style={{ borderTopLeftRadius: "var(--radius-3)", borderTopRightRadius: "var(--radius-3)" }}
-                    justify={"between"}
-                    align={"center"}
-                >
-
-                    <Heading size={{ sm: "8" }} weight={"bold"}>Categoria</Heading>
-                    <Tooltip content="Criar nova categoria">
-                        <Button size="3" onClick={() => handleOpenModal("create")}>Criar</Button>
-                    </Tooltip>
-                </Flex>
-
-                <Skeleton loading={loading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
-                    <Table.Root>
-
-                        <Table.Header>
-                            <Table.Row align={"center"}>
-                                <Table.ColumnHeaderCell>Descrição</Table.ColumnHeaderCell>
-                                <Table.ColumnHeaderCell>Ações</Table.ColumnHeaderCell>
-                            </Table.Row>
-                        </Table.Header>
-
-                        <Table.Body>
-
-                            {loading ? (null) : (
-                                categories.map((category) => (
-                                    <Table.Row key={category.id} align={"center"}>
-                                        <Table.RowHeaderCell>{category.description}</Table.RowHeaderCell>
-                                        <Table.Cell>
-                                            <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
-                                                <Tooltip content="Editar categoria">
-                                                    <IconButton
-                                                        size={"1"}
-                                                        about="Edit"
-                                                        variant="soft"
-                                                        onClick={
-                                                            (ev) => {
-                                                                ev.stopPropagation();
-                                                                setEditCategory(category);
-                                                                handleOpenModal("edit");
-                                                            }
-                                                        }>
-                                                        <PencilSquareIcon height="16" width="16" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <AlertDialog.Root>
-                                                    <Tooltip content="Excluir categoria">
-                                                        <AlertDialog.Trigger>
-                                                            <IconButton
-                                                                size={"1"}
-                                                                about="Delete"
-                                                                variant="soft"
-                                                                color="red">
-                                                                <TrashIcon height="16" width="16" />
-                                                            </IconButton>
-                                                        </AlertDialog.Trigger>
-                                                    </Tooltip>
-                                                    <AlertDialog.Content maxWidth="450px">
-                                                        <AlertDialog.Title>Deletar {category.description}</AlertDialog.Title>
-                                                        <AlertDialog.Description size="2">
-                                                            Tem certeza? Esta categoria será deletada permanentemente
-                                                        </AlertDialog.Description>
-
-                                                        <Flex gap="3" mt="4" justify="end">
-                                                            <AlertDialog.Cancel>
-                                                                <Button variant="soft" color="gray">
-                                                                    Cancelar
-                                                                </Button>
-                                                            </AlertDialog.Cancel>
-                                                            <AlertDialog.Action>
-                                                                <Button
-                                                                    variant="solid"
-                                                                    color="red"
-                                                                    onClick={
-                                                                        (ev) => {
-                                                                            ev.stopPropagation();
-                                                                            if (category.id)
-                                                                                handleDelete(category.id);
-                                                                        }
-                                                                    }>
-                                                                    Deletar
-                                                                </Button>
-                                                            </AlertDialog.Action>
-                                                        </Flex>
-                                                    </AlertDialog.Content>
-                                                </AlertDialog.Root>
-
-                                            </Flex>
-                                        </Table.Cell>
-                                    </Table.Row>
-                                ))
+            <Flex className="flex-1 my-3 w-full sm:my-8 flex-col">
+                <Skeleton loading={loading} className="h-2/5">
+                    <Container>
+                        <DataTable
+                            columns={getColumns(openEdit, handleDelete, filterValue, selectedField)}
+                            data={categories}
+                            handleCreate={openCreate}
+                            title="Categoria"
+                            createButtonToolTip="Criar nova categoria"
+                            renderToolbar={(table) => (
+                                <CategoryToolbar
+                                    table={table}
+                                    selectedField={selectedField}
+                                    onSelectedFieldChange={setSelectedField}
+                                    filterValue={filterValue}
+                                    onFilterValueChange={setFilterValue}
+                                />
                             )}
-
-                        </Table.Body>
-                    </Table.Root>
+                        />
+                    </Container>
                 </Skeleton>
-            </Card>
+            </Flex>
             {isModalOpen && (
                 <ModalFormCategory
                     mode={isModalCreate ? "create" : "edit"}

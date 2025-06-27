@@ -1,7 +1,7 @@
 // "use client" ensures we can have interactive elements (like hover dropdown) in Next.js 13 app router.
 "use client";
 
-import { Badge, Button, Card, Flex, Heading, IconButton, Skeleton, Table, Tooltip } from "@radix-ui/themes";
+import { Badge, Button, Card, Container, Flex, Heading, IconButton, Skeleton, Table, Tooltip } from "@radix-ui/themes";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { normalizeStockInResponse, StockInModel, StockInResponse } from "@/types/stock_in";
@@ -14,6 +14,9 @@ import { useLoading } from "@/hooks/useLoading";
 import { ErrorCodes, StockInTotalQuantityNotMatchingResponse } from "@/errors/api_error";
 import ModalGenericError from "@/components/Error/ModalGenericError";
 import { toast } from "sonner";
+import { DataTable } from "@/components/ui/data-table";
+import { getColumns } from "./(data-table)/columns";
+import { StockInToolbar } from "./(data-table)/toolbar";
 
 export default function StockInPage() {
   const router = useRouter();
@@ -65,6 +68,18 @@ export default function StockInPage() {
 
   const handleStockInTotalQuantityNotMatchingError = (err: StockInTotalQuantityNotMatchingResponse) => {
     setErrorModal({ type: "finalize-total-quantity-wrong", data: err });
+  }
+
+  const handleCreate = () => {
+    router.push("/stockin/create");
+  }
+
+  const handleEdit = (stockInId: number) => {
+    router.push(`/stockin/edit?id=${stockInId}`)
+  }
+  
+  const handleView = (stockInId: number) => {
+    router.push(`/stockin/view?id=${stockInId}`)
   }
 
   const handleFinalize = async (stockInId: number) => {
@@ -131,142 +146,19 @@ export default function StockInPage() {
   return (
     <Flex direction={"column"} className="min-h-screen w-full">
       <Header />
-      <Flex
-        id="main-flex"
-        className="flex-1 w-full"
-        direction={"column"}
-        justify={"center"}
-        align={"center"}
-      >
-        <Card
-          id="main-flex"
-          className="flex-1 my-3 w-14/16 sm:w-9/10 sm:my-12 flex-col"
-          style={{ display: "flex" }}
-        >
-
-          <Flex
-            className="w-full bg-[var(--accent-4)]" p={"3"}
-            style={{ borderTopLeftRadius: "var(--radius-3)", borderTopRightRadius: "var(--radius-3)" }}
-            justify={"between"}
-            align={"center"}
-          >
-
-            <Heading size={{ sm: "8" }} weight={"bold"}>Entrada de Estoque</Heading>
-            <Tooltip content="Criar nova entrada de estoque">
-              <Button size="3"> <Link href="/stockin/create">Criar</Link></Button>
-            </Tooltip>
-          </Flex>
-
-          <Skeleton loading={loadingData.isLoading} className="h-2/5 flex-1" style={{ borderTopLeftRadius: "0", borderTopRightRadius: "0" }}>
-            <Table.Root>
-
-              <Table.Header>
-
-                <Table.Row align={"center"}>
-                  <Table.ColumnHeaderCell>Data de Entrada</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Ações</Table.ColumnHeaderCell>
-                </Table.Row>
-              </Table.Header>
-
-              <Table.Body>
-
-                {loadingData.isLoading ? (null) : (
-                  stockIn.map((si) => (
-                    <Table.Row key={si.id} align={"center"}>
-                      <Table.RowHeaderCell>{formatDateTime(si.created_at)}</Table.RowHeaderCell>
-                      <Table.Cell>
-                        {
-                          si.status == "draft" ?
-                            (
-                              <Tooltip content="Ainda não finalizada, permite edição">
-                                <Badge color="amber" variant="surface">Rascunho</Badge>
-                              </Tooltip>
-                            )
-                            : si.status == "finalized" ?
-                              (
-                                <Tooltip
-                                  content={
-                                    <>
-                                      Confirmada e integrada ao estoque, não permite edição.
-                                      <br />
-                                      Finalizada em: {formatDateTime(si.finalized_at)}
-                                    </>
-                                  }
-                                >
-                                  <Badge variant="surface">Finalizada</Badge>
-                                </Tooltip>
-                              )
-                              : ""
-                        }
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Flex direction={"row"} justify={"start"} align={"center"} gap={"2"}>
-                          <Tooltip content={si.status == "draft" ? "Editar entrada de estoque" : "Finalizada, edição não permitida."}>
-                            <IconButton
-                              disabled={si.status === "finalized"}
-                              size={"1"}
-                              about="Edit"
-                              variant="soft"
-                              onClick={
-                                (ev) => {
-                                  ev.stopPropagation();
-                                  router.push(`/stockin/edit?id=${si.id}`)
-                                }
-                              }>
-                              <PencilSquareIcon height="16" width="16" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip content={si.status == "draft" ? "Finalizar entrada de estoque. Após finalizada será integrada ao estoque e não poderá mais ser editada." : "Já finalizada."}>
-                            <IconButton
-                              disabled={si.status === "finalized"}
-                              size={"1"}
-                              about="Finalize"
-                              variant="soft"
-                              onClick={() => { handleFinalize(si.id ?? 0); }}>
-                              <CheckCircleIcon height="16" width="16" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip content={si.status == "draft" ? "Deletar entrada de estoque." : "Finalizada, deleção não permitida."}>
-                            <IconButton
-                              disabled={si.status === "finalized"}
-                              color="red"
-                              size={"1"}
-                              about="Finalize"
-                              variant="soft"
-                              onClick={() => { handleDelete(si.id ?? 0); }}>
-                              <TrashIcon height="16" width="16" />
-                            </IconButton>
-                          </Tooltip>
-                          {si.status == "finalized" ?
-                            (
-                              <Tooltip content="Visualizar entrada de estoque.">
-                                <IconButton
-                                  size={"1"}
-                                  about="Visualize"
-                                  variant="soft"
-                                  onClick={
-                                    (ev) => {
-                                      ev.stopPropagation();
-                                      router.push(`/stockin/view?id=${si.id}`)
-                                    }
-                                  }>
-                                  <EyeIcon height="16" width="16" />
-                                </IconButton>
-                              </Tooltip>
-                            )
-                            : ""
-                          }
-                        </Flex>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))
-                )}
-
-              </Table.Body>
-            </Table.Root>
-          </Skeleton>
-        </Card>
+      <Flex className="flex-1 my-3 w-full sm:my-8 flex-col">
+        <Skeleton loading={loadingData.isLoading} className="h-2/5">
+          <Container>
+            <DataTable
+              columns={getColumns(handleDelete, handleEdit, handleFinalize, handleView)}
+              data={stockIn}
+              handleCreate={handleCreate}
+              title="Entrada de Estoque"
+              createButtonToolTip="Criar nova entrada de estoque"
+              renderToolbar={(table) => (<StockInToolbar table={table}/>)}
+            />
+          </Container>
+        </Skeleton>
       </Flex>
       {errorModal.type === "finalize-total-quantity-wrong" && (
         <ModalGenericError

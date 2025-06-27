@@ -66,7 +66,7 @@ export function StoreSwitcher({
                   onSelect={() => setSelectedStore(st)}
                   onClick={() => onStoreChange(st)}
                   className={`cursor-pointer ${
-                    isSelected ? "bg-sidebar text-[var(--foreground)]" : "hover:bg-sidebar hover:text-foreground "
+                    isSelected ? "bg-(--accent-4) text-[var(--foreground)]" : "hover:bg-sidebar hover:text-foreground "
                   }`}
                 >
                   {st.name}

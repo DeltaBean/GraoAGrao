@@ -33,18 +33,20 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  
+
   const isDev = process.env.NODE_ENV === "development";
-  
+
   return (
     <html lang="pt-BR">
       <body className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute={"class"}>
           <Theme appearance="inherit" accentColor="lime" grayColor="olive" radius="large" panelBackground="solid">
 
-          {isDev && <ThemePanel />}
+            {isDev && <ThemePanel />}
 
-          <RootProviders>{children}</RootProviders>
+            <RootProviders>
+              {children}
+            </RootProviders>
 
           </Theme>
         </ThemeProvider>
