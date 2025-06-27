@@ -8,3 +8,7 @@ type GoogleUserNotFoundErrorResponse struct {
 	InternalCode errorCodes.ErrorCode `json:"internal_code"`
 	Details      string               `json:"details"`
 }
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}

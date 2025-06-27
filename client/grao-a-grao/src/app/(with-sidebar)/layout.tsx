@@ -1,7 +1,5 @@
 "use client"
 
-import "@radix-ui/themes/styles.css";
-import "@/styles/globals.css";
 import { AppSidebar } from "@/components/AppSidebar";
 import MainProviders from "@/providers/MainProviders";
 

@@ -17,16 +17,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CreateStockOut handles the creation of a StockOut record with its items.
+// CreateStockOut godoc
+// @Summary      Create a new stock-out
+// @Description  Creates a new stock-out entry with associated items
+// @Security     BearerAuth
+// @Tags         Stock Out
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header  string                         true  "Store ID"
+// @Param        data        body    dtoRequest.CreateStockOutRequest  true  "Stock-out creation payload"
+// @Success      201  {object}  dtoResponse.StockOutResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid input or store ID"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stock/out [post]
 func CreateStockOut(c *gin.Context) {
 	logger.Log.Info("CreateStockOut")
 
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -36,9 +49,9 @@ func CreateStockOut(c *gin.Context) {
 	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
 		if err == util.ErrNoStoreID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "store id not found"})
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "invalid store id"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -57,21 +70,34 @@ func CreateStockOut(c *gin.Context) {
 	err = stock_out_repository.SaveStockOut(conn, mcor, user.ID, storeID)
 	if err != nil {
 		logger.Log.Errorf("Failed to save stock out: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save stock out"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Failed to save stock out"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, dtoMapper.ToStockOutResponse(mcor))
 }
 
-// GetStockOutByID retrieves a StockOut by its ID and includes the items.
+// GetStockOutByID godoc
+// @Summary      Get stock-out by ID
+// @Description  Retrieves a stock-out entry and its items by ID
+// @Security     BearerAuth
+// @Tags         Stock Out
+// @Accept       json
+// @Produce      json
+// @Param        id          path    int     true  "Stock-out ID"
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      200  {object}  dtoResponse.StockOutResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid stock-out ID"
+// @Failure      404  {object}  dtoResponse.ErrorResponse "Stock-out not found"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stock/out/{id} [get]
 func GetStockOutByID(c *gin.Context) {
 	logger.Log.Info("GetStockOutByID")
 
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stock_out ID"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Invalid stock_out ID"})
 		return
 	}
 
@@ -83,23 +109,35 @@ func GetStockOutByID(c *gin.Context) {
 	stockOut, err := stock_out_repository.GetStockOutByID(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to retrieve stock out: %v", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "StockOut not found"})
+		c.JSON(http.StatusNotFound, dtoResponse.ErrorResponse{Error: "StockOut not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, dtoMapper.ToStockOutResponse(stockOut))
 }
 
-// ListAllStockOut retrieves all StockOut entries for the authenticated user.
+// ListAllStockOut godoc
+// @Summary      List all stock-out entries
+// @Description  Retrieves all stock-out entries for the authenticated user and store
+// @Security     BearerAuth
+// @Tags         Stock Out
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      200  {array}   dtoResponse.StockOutResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid or missing store ID"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stock/out [get]
 func ListAllStockOut(c *gin.Context) {
 	logger.Log.Info("ListAllStockOut")
 
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -109,9 +147,9 @@ func ListAllStockOut(c *gin.Context) {
 	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
 		if err == util.ErrNoStoreID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "store id not found"})
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "invalid store id"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -126,7 +164,7 @@ func ListAllStockOut(c *gin.Context) {
 	outs, err := stock_out_repository.ListAllStockOut(conn, user.ID, storeID)
 	if err != nil {
 		logger.Log.Errorf("Error listing stock out: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve stock out list"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Failed to retrieve stock out list"})
 		return
 	}
 
@@ -138,7 +176,19 @@ func ListAllStockOut(c *gin.Context) {
 	c.JSON(http.StatusOK, rep)
 }
 
-// DeleteStockOut deletes a stock-out by ID.
+// DeleteStockOut godoc
+// @Summary      Delete stock-out by ID
+// @Description  Deletes a stock-out entry by its ID
+// @Security     BearerAuth
+// @Tags         Stock Out
+// @Accept       json
+// @Produce      json
+// @Param        id          path    int     true  "Stock-out ID"
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      204  "Stock-out deleted successfully"
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid stock-out ID"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stock/out/{id} [delete]
 func DeleteStockOut(c *gin.Context) {
 	logger.Log.Info("DeleteStockOut")
 
@@ -146,7 +196,7 @@ func DeleteStockOut(c *gin.Context) {
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		logger.Log.Errorf("Invalid stock_out ID: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stock_out ID"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Invalid stock_out ID"})
 		return
 	}
 
@@ -158,14 +208,26 @@ func DeleteStockOut(c *gin.Context) {
 	err = stock_out_repository.DeleteStockOut(conn, id)
 	if err != nil {
 		logger.Log.Errorf("Failed to delete stock out: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete stock out"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Failed to delete stock out"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "StockOut deleted successfully"})
+	c.Status(http.StatusNoContent)
 }
 
-// FinalizeStockOutByID sets the status of the given stock-out to 'finalized'.
+// FinalizeStockOutByID godoc
+// @Summary      Finalize stock-out by ID
+// @Description  Finalizes a stock-out entry, marking it as completed to integrate it to stock
+// @Security     BearerAuth
+// @Tags         Stock Out
+// @Accept       json
+// @Produce      json
+// @Param        id          path    int     true  "Stock-out ID"
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      204  "Stock-out finalized successfully"
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid stock-out ID"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stock/out/finalize/{id} [patch]
 func FinalizeStockOutByID(c *gin.Context) {
 	logger.Log.Info("FinalizeStockOutByID")
 
@@ -173,7 +235,7 @@ func FinalizeStockOutByID(c *gin.Context) {
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		logger.Log.Errorf("Invalid stock_out ID: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stock_out ID"})
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "Invalid stock_out ID"})
 		return
 	}
 
@@ -192,7 +254,19 @@ func FinalizeStockOutByID(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// UpdateStockOut updates a stock-out and returns the updated record.
+// UpdateStockOut godoc
+// @Summary      Update a stock-out
+// @Description  Updates a stock-out entry and its items
+// @Security     BearerAuth
+// @Tags         Stock Out
+// @Accept       json
+// @Produce      json
+// @Param        X-Store-ID  header  string                          true  "Store ID"
+// @Param        data        body    dtoRequest.UpdateStockOutRequest  true  "Stock-out update payload"
+// @Success      200  {object}  dtoResponse.StockOutResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid input"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stock/out [put]
 func UpdateStockOut(c *gin.Context) {
 	logger.Log.Info("UpdateStockOut")
 
@@ -208,7 +282,7 @@ func UpdateStockOut(c *gin.Context) {
 	err := stock_out_repository.UpdateStockOut(conn, stockOutModel)
 	if err != nil {
 		logger.Log.Error("Error updating stock out: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 

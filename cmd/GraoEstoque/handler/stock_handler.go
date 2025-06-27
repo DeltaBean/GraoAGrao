@@ -13,15 +13,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetStock godoc
+// @Summary      Get stock
+// @Description  Retrieves the current stock for all items in the store for the authenticated user
+// @Security     BearerAuth
+// @Tags         Stock
+// @Produce      json
+// @Param        X-Store-ID  header    string  true  "Store ID"
+// @Success      200  {array}  dtoResponse.StockResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid or missing store ID"
+// @Failure      401  {object}  dtoResponse.ErrorResponse "Unauthorized"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /stock [get]
 func GetStock(c *gin.Context) {
 	logger.Log.Info("GetStock")
 
 	user, err := util.GetUserFromContext(c)
 	if err != nil {
 		if err == util.ErrNoUser {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, dtoResponse.ErrorResponse{Error: "unauthorized"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+			c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "failed to get user"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -31,9 +43,9 @@ func GetStock(c *gin.Context) {
 	storeID, err := util.GetStoreIDFromContext(c)
 	if err != nil {
 		if err == util.ErrNoStoreID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "store id not found"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "store id not found"})
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid store id"})
+			c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "invalid store id"})
 		}
 		logger.Log.Error(err)
 		c.Abort()
@@ -48,7 +60,7 @@ func GetStock(c *gin.Context) {
 	stock, err := stock_repository.GetStock(conn, user.ID, storeID)
 	if err != nil {
 		logger.Log.Error("Error fetching stock: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
 		return
 	}
 

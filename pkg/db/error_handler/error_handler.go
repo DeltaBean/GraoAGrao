@@ -76,7 +76,7 @@ func HandleDBErrorWithReferencingFetcher(c *gin.Context, err error, id uint, fet
 			dbConn, exists := c.Get("dbConn")
 			if !exists {
 				logger.Log.Error("Database connection not found in context")
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+				c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "Internal server error"})
 				return
 			}
 			conn := dbConn.(*pgxpool.Conn)
@@ -140,7 +140,7 @@ func HandleDBErrorWithReferencingFetcher(c *gin.Context, err error, id uint, fet
 	}
 
 	logger.Log.Error("Error isnt a Postgresql error. Verify if HandleDBErrorWithContext is being called in a correct context.")
-	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+	c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "Internal server error"})
 }
 
 func HandleDBError(c *gin.Context, err error, id int) {
@@ -175,5 +175,5 @@ func HandleDBError(c *gin.Context, err error, id int) {
 	}
 
 	logger.Log.Error("Error isnt a Postgresql error. Verify if HandleDBErrorWithContext is being called in a correct context.")
-	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+	c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "Internal server error"})
 }

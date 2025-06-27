@@ -41,6 +41,13 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --blur-xs: 2px;
+  --blur-sm: 4px;
+  --blur-md: 6px;
+  --blur-lg: 8px;
+  --blur-xl: 12px;
+  --blur-2xl: 16px;
+  --blur-3xl: 24px;
 }
 
 body {
@@ -50,6 +57,15 @@ body {
 .radix-themes {
 	--default-font-family: var(--font-roboto);
   --default-letter-spacing: 0.03em;
+  --cursor-button: pointer;
+  --cursor-checkbox: default;
+  --cursor-disabled: not-allowed;
+  --cursor-link: pointer;
+  --cursor-menu-item: default;
+  --cursor-radio: default;
+  --cursor-slider-thumb: default;
+  --cursor-slider-thumb-active: default;
+  --cursor-switch: default;
 }
 
 :root {
@@ -129,3 +145,5 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+

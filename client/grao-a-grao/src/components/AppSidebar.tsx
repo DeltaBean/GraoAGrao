@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
 import { ArrowDownFromLine, ArrowUpFromLine, Blocks, Box, Home, LogOut, Ruler, Store, Tag } from "lucide-react"
-
+import { cn } from "@/lib/utils"
 import {
   Sidebar,
   SidebarContent,
@@ -12,15 +12,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { StoreSwitcher } from "./StoreSwitcher"
-import { StoreModel } from "@/types/store"
-import { createEmptyStore } from "@/util/factory/store"
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { StoreSwitcher } from "./StoreSwitcher";
+import { StoreModel } from "@/types/store";
+import { createEmptyStore } from "@/util/factory/store";
 
-import { logout } from "@/util/util"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { toast } from "sonner"
-import { useStoreContext } from "@/context/StoreContext"
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { useStoreContext } from "@/context/StoreContext";
+import { useState } from "react";
+import { ModalFormLogout } from "@/components/Form/Modal/ModalLogoutConfirmation";
+
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 // Menu items.
 const items = [
@@ -64,15 +68,18 @@ const items = [
     url: "/stockout",
     icon: ArrowDownFromLine,
   },
-]
+];
 
 export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentUrl = pathname + (searchParams.toString() ? `?${searchParams}` : '');
+  const currentUrl =
+    pathname + (searchParams.toString() ? `?${searchParams}` : "");
 
   const { stores, selectedStore, setSelectedStore } = useStoreContext();
+  const { setOpenMobile } = useSidebar();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleStoreChange = (store: StoreModel) => {
     setSelectedStore(store);
@@ -81,54 +88,74 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <StoreSwitcher
-          stores={stores}
-          defaultStore={selectedStore ?? createEmptyStore()}
-          onStoreChange={handleStoreChange}
-        />
-      </SidebarHeader>
+    <>
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="cursor-pointer">
+          <StoreSwitcher
+            stores={stores}
+            defaultStore={selectedStore ?? createEmptyStore()}
+            onStoreChange={handleStoreChange}
+          />
+        </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-3">
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild onClick={() => router.push(item.url)}>
-                    <a>
-                      <item.icon />
-                      <span className="cursor-default">{item.title}</span>
-                    </a>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-3">
+                {items.map((item) => {
+                  const isActive = (item.url.split("/")[1] === pathname.split("/")[1])
+                    || (item.url === "/" && pathname === "/");
+
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        className={cn(
+                          "cursor-pointer",
+                          isActive && "bg-[var(--accent-4)] hover:bg-[var(--accent-4)] transition-colors duration-800 ease-in-out"
+                        )}
+                        asChild
+                        onClick={() => router.push(item.url)}
+                      >
+                        <a>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                }
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <ThemeSwitcher/>
+                  <SidebarMenuButton className="cursor-pointer" asChild>
+                    <div
+                      onClick={() => {
+                        setOpenMobile(false);
+                        setTimeout(() => setShowLogoutModal(true), 400);
+                      }}
+                    >
+                      <LogOut />
+                      <span>Sair</span>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild onClick={() => {
-                  logout();
-                  router.push("/login");
-                }}>
-                  <div>
-                    <LogOut />
-                    <span>Sair</span>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarFooter>
-
-    </Sidebar>
-  )
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarFooter>
+      </Sidebar>
+      <ModalFormLogout
+        modalOpen={showLogoutModal}
+        setModalOpen={setShowLogoutModal}
+      />
+    </>
+  );
 }
