@@ -1,7 +1,6 @@
 "use client";
 
-import { Flex, Card, Heading, Button, Table, AlertDialog, Skeleton, IconButton, Tooltip, Container } from "@radix-ui/themes";
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/16/solid";
+import { Flex, Skeleton, Container } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 
 import * as categories_api from "@/api/categories_api";

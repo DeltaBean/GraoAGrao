@@ -6,9 +6,7 @@ import {
   Button,
   Flex,
   Text,
-  Checkbox,
-  Badge,
-  IconButton
+  Checkbox
 } from "@radix-ui/themes"
 import { Table } from "@tanstack/react-table"
 import { ItemModel } from "@/types/item"

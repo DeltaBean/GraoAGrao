@@ -1,9 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { formatDateTime } from "@/util/util";
 import { ArrowUpDown, TrashIcon } from "lucide-react";
-import { AlertDialog, Badge, Button, Flex, IconButton, Text, Tooltip } from "@radix-ui/themes";
+import { Badge, Button, Flex, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { CheckCircleIcon, EyeIcon, PencilSquareIcon } from "@heroicons/react/16/solid";
-import { highlightMatch } from "@/util/util_comp";
 import { StockInModel } from "@/types/stock_in";
 
 /*

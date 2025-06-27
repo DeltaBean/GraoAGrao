@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/table"
 import { Box, Button, Card, DropdownMenu, Flex, Heading, IconButton, Slider, Text, Tooltip } from "@radix-ui/themes"
 import RowResize from "../Icons/RowResize"
-import { Input } from "@/components/ui/input"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -283,6 +282,7 @@ export function DataTable<TData, TValue>({
 
 // If a column has no header or cell, it is considered hidden by default
 // This is used to create the initial visibility state for the table
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createInitialVisibility<T>(columns: ColumnDef<T, any>[]): Record<string, boolean> {
     const visibility: Record<string, boolean> = {};
     for (const col of columns) {

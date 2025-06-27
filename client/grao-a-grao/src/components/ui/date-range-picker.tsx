@@ -248,6 +248,7 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
       setSelectedPreset(undefined)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const resetValues = (): void => {
       setRange({
         from:
