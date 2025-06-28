@@ -132,5 +132,6 @@ export function clearSelectedStore(): void {
 }
 
 export function isValidTwoDecimalNumber(value: string): boolean {
-  return /^(\d+)?(\.\d{0,2})?$/.test(value);
+  const sanitized = value.replace(/\./g, "").replace(",", ".");
+  return /^(\d+)?(\.\d{0,2})?$/.test(sanitized);
 }
