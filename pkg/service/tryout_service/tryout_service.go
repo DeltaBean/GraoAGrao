@@ -47,7 +47,7 @@ func PublishTryOutEnvironmentJob(user *model.User) (model.TryOutJob, error) {
 
 		Organization: model.Organization{
 			Name:      user.GivenName,
-			Domain:    user.GivenName,
+			Domain:    fmt.Sprintf("%s-%s", user.GivenName, uuid),
 			DBSchema:  fmt.Sprintf("%s-%s", user.GivenName, uuid),
 			Key:       fmt.Sprintf("%s-%s", user.GivenName, uuid),
 			ExpiresAt: &expirationT,
