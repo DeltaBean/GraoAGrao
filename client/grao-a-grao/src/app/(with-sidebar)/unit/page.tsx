@@ -100,7 +100,7 @@ export default function UnitPage() {
         try {
 
             const unitOfMeasureRequest: UnitOfMeasureRequest = toUnitOfMeasureRequest(toUpdateUnit);
-            const unitOfMeasureResponse: UnitOfMeasureResponse = await units_api.createUnit(unitOfMeasureRequest);
+            const unitOfMeasureResponse: UnitOfMeasureResponse = await units_api.updateUnit(unitOfMeasureRequest);
             const updated: UnitOfMeasureModel = normalizeUnitOfMeasureResponse(unitOfMeasureResponse);
 
             setUnitsOfMeasure((prev) => prev.map(unit => unit.id === updated.id ? updated : unit));
