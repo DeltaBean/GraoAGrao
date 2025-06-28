@@ -22,9 +22,9 @@ type InternalStockInItem = StockInItemModel & {
 };
 
 export function useStockInForm(initial?: StockInModel) {
-  const [stockIn, setStockIn] = useState<Omit<StockInModel, "items"> & { items: InternalStockInItem[] }>(
-    initial ?? createEmptyStockIn()
-  );
+  const [stockIn, setStockIn] = useState<
+    Omit<StockInModel, "items"> & { items: InternalStockInItem[] }
+  >(initial ?? createEmptyStockIn());
 
   useEffect(() => {
     if (initial) {
@@ -63,9 +63,9 @@ export function useStockInForm(initial?: StockInModel) {
       items: prev.items.map((item, i) =>
         i === itemIndex
           ? {
-            ...item,
-            packagings: [...item.packagings, createEmptyStockInPackaging()],
-          }
+              ...item,
+              packagings: [...item.packagings, createEmptyStockInPackaging()],
+            }
           : item
       ),
     }));
@@ -78,9 +78,11 @@ export function useStockInForm(initial?: StockInModel) {
       items: prev.items.map((item, i) =>
         i === itemIndex
           ? {
-            ...item,
-            packagings: item.packagings.filter((_, j) => j !== packagingIndex),
-          }
+              ...item,
+              packagings: item.packagings.filter(
+                (_, j) => j !== packagingIndex
+              ),
+            }
           : item
       ),
     }));
@@ -89,22 +91,22 @@ export function useStockInForm(initial?: StockInModel) {
   // Update a simple field on an item (buy_price or total_quantity)
   function updateItemSimpleField(
     index: number,
-    field: keyof Pick<StockInItemModel, "buy_price" | "total_quantity" | "item">,
+    field: keyof Pick<
+      StockInItemModel,
+      "buy_price" | "total_quantity" | "item"
+    >,
     value: any
   ) {
     setStockIn((prev) => {
-
       if (field === "item" && !value.is_fractionable)
         prev.items[index].packagings = [];
 
       return {
         ...prev,
         items: prev.items.map((item, i) =>
-          i === index
-            ? { ...item, [field]: value }
-            : item
+          i === index ? { ...item, [field]: value } : item
         ),
-      }
+      };
     });
   }
 
@@ -142,24 +144,21 @@ export function useStockInForm(initial?: StockInModel) {
       items: prev.items.map((item, i) =>
         i === itemIndex
           ? {
-            ...item,
-            packagings: item.packagings.map((pkg, j) =>
-              j === packagingIndex
-                ? { ...pkg, [field]: value }
-                : pkg
-            ),
-          }
+              ...item,
+              packagings: item.packagings.map((pkg, j) =>
+                j === packagingIndex ? { ...pkg, [field]: value } : pkg
+              ),
+            }
           : item
       ),
     }));
   }
 
   function updateBuyPriceInputField(index: number, inputValue: string) {
+  if (!isValidTwoDecimalNumber(inputValue)) return; // block invalid input
 
-    if (!isValidTwoDecimalNumber(inputValue)) return; // block invalid input
-    
     setStockIn((prev) => {
-      const floatValue = parseFloat(inputValue);
+      const floatValue = parseFloat(inputValue.replace(/\./g, "").replace(",", "."));
       const newItems = [...prev.items];
 
       newItems[index] = {
