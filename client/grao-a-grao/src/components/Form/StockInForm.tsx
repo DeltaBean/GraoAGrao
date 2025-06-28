@@ -27,7 +27,7 @@ import {
   IconButton,
   Callout,
 } from "@radix-ui/themes";
-import { formatDateTimeLocal } from "@/util/util";
+import { formatDateTimeLocal, formatReversedCurrencyInput } from "@/util/util";
 import React, { useEffect, useState } from "react";
 import { Card } from "../ui/card";
 
@@ -309,17 +309,15 @@ export default function StockInForm({
                           type="text"
                           placeholder="R$ 0,00"
                           inputMode="numeric"
-                          value={item._buy_price_input ?? ""}
+                          value={
+                            item._buy_price_input
+                              ? `R$ ${item._buy_price_input}`
+                              : ""
+                          }
                           onChange={(e) => {
-                            const raw = e.target.value.replace(/\D/g, ""); 
-                            const padded = raw.padStart(3, "0"); 
-                            const cents = padded.slice(-2);
-                            const units = padded.slice(0, -2);
-                            const masked =
-                              Number(units).toLocaleString("pt-BR") +
-                              "," +
-                              cents;
-
+                            const masked = formatReversedCurrencyInput(
+                              e.target.value
+                            );
                             updateBuyPriceInputField(index, masked);
                           }}
                         />

@@ -135,3 +135,11 @@ export function isValidTwoDecimalNumber(value: string): boolean {
   const sanitized = value.replace(/\./g, "").replace(",", ".");
   return /^(\d+)?(\.\d{0,2})?$/.test(sanitized);
 }
+
+export function formatReversedCurrencyInput(input: string): string {
+  const raw = input.replace(/\D/g, ""); 
+  const padded = raw.padStart(3, "0");  
+  const cents = padded.slice(-2);
+  const units = padded.slice(0, -2);
+  return Number(units).toLocaleString("pt-BR") + "," + cents;
+}
