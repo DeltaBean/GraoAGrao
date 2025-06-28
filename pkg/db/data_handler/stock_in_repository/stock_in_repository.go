@@ -84,10 +84,10 @@ func ListAllStockIn(conn *pgxpool.Conn, ownerID, storeID uint) ([]*model.StockIn
 	query := `
 		SELECT stock_in_id, created_by, created_at, updated_at, status, finalized_at
 		FROM tb_stock_in
-		WHERE created_by = $1 AND store_id = $2
+		WHERE store_id = $1
 		ORDER BY created_at DESC
 	`
-	rows, err := conn.Query(context.Background(), query, ownerID, storeID)
+	rows, err := conn.Query(context.Background(), query, storeID)
 	if err != nil {
 		logger.Log.Errorf("Error querying stock_in list: %v", err)
 		return nil, err

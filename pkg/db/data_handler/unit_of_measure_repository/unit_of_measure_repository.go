@@ -40,12 +40,11 @@ func ListUnitsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, limit uint
 	query := `
 		SELECT unit_id, unit_description, created_by, created_at, updated_at
 		FROM tb_unit_of_measure
-		WHERE created_by = $1 AND store_id = $2
+		WHERE store_id = $1
 		ORDER BY created_at DESC
-		OFFSET $3 LIMIT $4`
+		OFFSET $2 LIMIT $3`
 
 	rows, err := conn.Query(context.Background(), query,
-		ownerID,
 		storeID,
 		offset,
 		limit,
