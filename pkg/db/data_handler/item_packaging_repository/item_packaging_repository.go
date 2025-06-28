@@ -20,8 +20,8 @@ func SaveItemPackaging(conn *pgxpool.Conn, packaging *model.ItemPackaging) error
 
 	query := `
 		WITH inserted AS (
-			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, created_by, store_id)
-			VALUES ($1, $2, $3, $4, $5)
+			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, created_by, store_id, ean8, label_pdf_url, label_preview_url)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			RETURNING item_packaging_id, item_packaging_description, item_id, created_by, quantity, created_at, updated_at
 		)
 		SELECT
@@ -48,6 +48,9 @@ func SaveItemPackaging(conn *pgxpool.Conn, packaging *model.ItemPackaging) error
 		packaging.Quantity,
 		packaging.CreatedBy.ID,
 		packaging.Store.ID,
+		packaging.EAN8,
+		packaging.LabelPDFURL,
+		packaging.LabelPreviewURL,
 	).Scan(
 		&packaging.ID,
 		&packaging.Description,
@@ -77,10 +80,11 @@ func ListItemPackagingsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, l
 
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
-		       i.item_id, i.item_description,
-		       sp.created_by, sp.created_at, sp.updated_at,
-			   cat.category_id, cat.category_description,
-			   uom.unit_id, uom.unit_description, i.is_fractionable
+			sp.ean8, sp.label_pdf_url, sp.label_preview_url,
+		    i.item_id, i.item_description,
+		    sp.created_by, sp.created_at, sp.updated_at,
+			cat.category_id, cat.category_description,
+			uom.unit_id, uom.unit_description, i.is_fractionable
 		FROM tb_item_packaging sp
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
@@ -107,6 +111,9 @@ func ListItemPackagingsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, l
 			&p.ID,
 			&p.Description,
 			&p.Quantity,
+			&p.EAN8,
+			&p.LabelPDFURL,
+			&p.LabelPreviewURL,
 			&p.Item.ID,
 			&p.Item.Description,
 			&p.CreatedBy.ID,
@@ -133,10 +140,11 @@ func GetItemPackagingByID(conn *pgxpool.Conn, id uint) (*model.ItemPackaging, er
 
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
-		       i.item_id, i.item_description,
-		       sp.created_by, sp.created_at, sp.updated_at,
-			   cat.category_id, cat.category_description,
-			   uom.unit_id, uom.unit_description, i.is_fractionable
+			sp.ean8, sp.label_pdf_url, sp.label_preview_url,       
+			i.item_id, i.item_description,
+		    sp.created_by, sp.created_at, sp.updated_at,
+			cat.category_id, cat.category_description,
+			uom.unit_id, uom.unit_description, i.is_fractionable
 		FROM tb_item_packaging sp
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
@@ -148,6 +156,9 @@ func GetItemPackagingByID(conn *pgxpool.Conn, id uint) (*model.ItemPackaging, er
 		&p.ID,
 		&p.Description,
 		&p.Quantity,
+		&p.EAN8,
+		&p.LabelPDFURL,
+		&p.LabelPreviewURL,
 		&p.Item.ID,
 		&p.Item.Description,
 		&p.CreatedBy.ID,
