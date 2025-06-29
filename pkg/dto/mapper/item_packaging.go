@@ -27,9 +27,12 @@ func UpdateItemPackagingToModel(r *request.UpdateItemPackagingRequest) *model.It
 
 func ToItemPackagingResponse(m *model.ItemPackaging) response.ItemPackagingResponse {
 	return response.ItemPackagingResponse{
-		ID:          m.ID,
-		Description: m.Description,
-		Quantity:    m.Quantity,
+		ID:              m.ID,
+		Description:     m.Description,
+		Quantity:        m.Quantity,
+		EAN8:            m.EAN8,
+		LabelPDFURL:     m.LabelPDFURL,
+		LabelPreviewURL: m.LabelPreviewURL,
 		Item: response.ItemResponse{ID: m.Item.ID,
 			Description: m.Item.Description,
 			UnitOfMeasure: response.UnitOfMeasureResponse{
