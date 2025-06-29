@@ -20,7 +20,7 @@ func SaveItemPackaging(conn *pgxpool.Conn, packaging *model.ItemPackaging) error
 
 	query := `
 		WITH inserted AS (
-			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, created_by, store_id, ean8, label_pdf_url, label_preview_url)
+			INSERT INTO tb_item_packaging (item_id, item_packaging_description, quantity, created_by, store_id, ean_8, label_pdf_url, label_preview_url)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			RETURNING item_packaging_id, item_packaging_description, item_id, created_by, quantity, created_at, updated_at
 		)
@@ -80,7 +80,7 @@ func ListItemPackagingsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, l
 
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
-			sp.ean8, sp.label_pdf_url, sp.label_preview_url,
+			sp.ean_8, sp.label_pdf_url, sp.label_preview_url,
 		    i.item_id, i.item_description,
 		    sp.created_by, sp.created_at, sp.updated_at,
 			cat.category_id, cat.category_description,
@@ -140,7 +140,7 @@ func GetItemPackagingByID(conn *pgxpool.Conn, id uint) (*model.ItemPackaging, er
 
 	query := `
 		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
-			sp.ean8, sp.label_pdf_url, sp.label_preview_url,       
+			sp.ean_8, sp.label_pdf_url, sp.label_preview_url,       
 			i.item_id, i.item_description,
 		    sp.created_by, sp.created_at, sp.updated_at,
 			cat.category_id, cat.category_description,

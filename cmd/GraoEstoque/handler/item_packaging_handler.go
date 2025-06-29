@@ -12,6 +12,7 @@ import (
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/item_packaging_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/service/item_packaging_service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -64,7 +65,8 @@ func CreateItemPackaging(c *gin.Context) {
 	}
 
 	modelPackaging := mapper.CreateItemPackagingToModel(req, user.ID, storeID)
-	if err := item_packaging_repository.SaveItemPackaging(conn, modelPackaging); err != nil {
+	err = item_packaging_service.CreateItemPackaging(conn, modelPackaging, storeID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error saving packaging"})
 		return
 	}
