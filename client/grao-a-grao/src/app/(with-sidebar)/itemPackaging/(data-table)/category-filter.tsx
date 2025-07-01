@@ -12,6 +12,7 @@ import { Table } from "@tanstack/react-table"
 import { CategoryModel } from "@/types/category"
 import { ChevronDown } from "lucide-react"
 import { ItemPackagingModel } from "@/types/item_packaging"
+import { motion } from "framer-motion"
 
 interface CategoryFilterProps {
     table: Table<ItemPackagingModel>
@@ -43,12 +44,20 @@ export function CategoryFilter({ table, options }: CategoryFilterProps) {
                             <ChevronDown
                                 width={16}
                                 height={16}
-                                className={`ml-auto transition-transform duration-200 ${isPopOverOpen ? "rotate-180" : ""}`}
+                                className={`ml-auto transition-transform duration-500 ${isPopOverOpen ? "rotate-180" : ""}`}
                             />
                         </Button>
                     </Flex>
                 </Popover.Trigger>
                 <Popover.Content>
+                     <motion.div
+  className="overflow-hidden"
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -10 }}
+  transition={{ duration: 0.4 }}
+>
+
                     <Flex direction="column" gap="2" p="2">
                         <Text size="2" weight="bold">Filtrar por Categoria</Text>
                         {options.map((cat) => (
@@ -57,7 +66,7 @@ export function CategoryFilter({ table, options }: CategoryFilterProps) {
                                     checked={selected.includes(cat.description)}
                                     onCheckedChange={() => toggle(cat.description)}
                                     id={cat.description}
-                                />
+                                    />
                                 <label htmlFor={cat.description}>{cat.description}</label>
                             </Flex>
                         ))}
@@ -65,6 +74,7 @@ export function CategoryFilter({ table, options }: CategoryFilterProps) {
                             Limpar
                         </Button>
                     </Flex>
+                        </motion.div>
                 </Popover.Content>
             </Popover.Root>
         </Flex>

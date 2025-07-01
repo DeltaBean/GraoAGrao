@@ -12,6 +12,7 @@ import { Table } from "@tanstack/react-table"
 import { UnitOfMeasureModel } from "@/types/unit_of_measure"
 import { ChevronDown } from "lucide-react"
 import { ItemPackagingModel } from "@/types/item_packaging"
+import { motion } from "framer-motion"
 
 interface UnitFilterProps {
   table: Table<ItemPackagingModel>
@@ -43,12 +44,20 @@ export function UnitOfMeasureFilter({ table, options }: UnitFilterProps) {
               <ChevronDown 
               width={16} 
               height={16} 
-              className={`ml-auto transition-transform duration-200 ${isPopOverOpen ? "rotate-180" : ""}`}
+              className={`ml-auto transition-transform duration-500 ${isPopOverOpen ? "rotate-180" : ""}`}
               />
             </Button>
           </Flex>
         </Popover.Trigger>
         <Popover.Content>
+                     <motion.div
+  className="overflow-hidden"
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -10 }}
+  transition={{ duration: 0.4 }}
+>
+
           <Flex direction="column" gap="2" p="2">
             <Text size="2" weight="bold">Filtrar por Unidade</Text>
             {options.map((unit) => (
@@ -57,7 +66,7 @@ export function UnitOfMeasureFilter({ table, options }: UnitFilterProps) {
                   checked={selected.includes(unit.description)}
                   onCheckedChange={() => toggle(unit.description)}
                   id={unit.description}
-                />
+                  />
                 <label htmlFor={unit.description}>{unit.description}</label>
               </Flex>
             ))}
@@ -65,6 +74,7 @@ export function UnitOfMeasureFilter({ table, options }: UnitFilterProps) {
               Limpar
             </Button>
           </Flex>
+            </motion.div>
         </Popover.Content>
       </Popover.Root>
     </Flex>

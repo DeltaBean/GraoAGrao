@@ -12,6 +12,7 @@ import { Table } from "@tanstack/react-table"
 import { ItemModel } from "@/types/item"
 import { CategoryModel } from "@/types/category"
 import { ChevronDown } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface CategoryFilterProps {
     table: Table<ItemModel>
@@ -43,12 +44,19 @@ export function CategoryFilter({ table, options }: CategoryFilterProps) {
                             <ChevronDown
                                 width={16}
                                 height={16}
-                                className={`ml-auto transition-transform duration-200 ${isPopOverOpen ? "rotate-180" : ""}`}
+                                className={`ml-auto transition-transform duration-500 ${isPopOverOpen ? "rotate-180" : ""}`}
                             />
                         </Button>
                     </Flex>
                 </Popover.Trigger>
                 <Popover.Content>
+                     <motion.div
+  className="overflow-hidden"
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -10 }}
+  transition={{ duration: 0.4 }}
+>
                     <Flex direction="column" gap="2" p="2">
                         <Text size="2" weight="bold">Filtrar por Categoria</Text>
                         {options.map((cat) => (
@@ -65,6 +73,7 @@ export function CategoryFilter({ table, options }: CategoryFilterProps) {
                             Limpar
                         </Button>
                     </Flex>
+                    </motion.div>
                 </Popover.Content>
             </Popover.Root>
         </Flex>
