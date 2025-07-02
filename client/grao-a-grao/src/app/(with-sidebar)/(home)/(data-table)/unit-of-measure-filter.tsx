@@ -12,6 +12,7 @@ import { UnitOfMeasureModel } from "@/types/unit_of_measure"
 import { StockModel } from "@/types/stock"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
+import { motion } from "framer-motion"
 
 interface UnitFilterProps {
   table: Table<StockModel>
@@ -43,12 +44,19 @@ export function UnitOfMeasureFilter({ table, options }: UnitFilterProps) {
               <ChevronDown
                 width={16}
                 height={16}
-                className={`ml-auto transition-transform duration-200 ${isPopOverOpen ? "rotate-180" : ""}`}
+                className={`ml-auto transition-transform duration-500 ${isPopOverOpen ? "rotate-180" : ""}`}
               />
             </Button>
           </Flex>
         </Popover.Trigger>
         <Popover.Content>
+                               <motion.div
+  className="overflow-hidden"
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -10 }}
+  transition={{ duration: 0.4 }}
+>
           <Flex direction="column" gap="2" p="2">
             <Text size="2" weight="bold">Filtrar por Unidade</Text>
             {options.map((unit) => (
@@ -65,6 +73,7 @@ export function UnitOfMeasureFilter({ table, options }: UnitFilterProps) {
               Limpar
             </Button>
           </Flex>
+          </motion.div>
         </Popover.Content>
       </Popover.Root>
     </Flex>

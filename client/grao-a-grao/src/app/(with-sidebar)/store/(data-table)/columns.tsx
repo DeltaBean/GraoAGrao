@@ -5,6 +5,7 @@ import { ArrowUpDown, TrashIcon } from "lucide-react";
 import { AlertDialog, Button, Flex, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { PencilSquareIcon } from "@heroicons/react/16/solid";
 import { highlightMatch } from "@/util/util_comp";
+import { motion } from "framer-motion";
 
 /*
     Columns are where you define the core of what your table will look like. 
@@ -95,7 +96,20 @@ function ColumnActions({
                         </IconButton>
                     </AlertDialog.Trigger>
                 </Tooltip>
-                <AlertDialog.Content maxWidth="350px">
+                <AlertDialog.Content
+                      style={{
+                                 overflow: "hidden",
+                                 maxHeight: "90vh", 
+                                 width: "100%",
+                                 maxWidth: "480px",
+                               }}
+                             >
+                               <motion.div
+                                 initial={{ opacity: 0, x: 100 }}
+                                 animate={{ opacity: 1, x: 0 }}
+                                 transition={{ duration: 0.4, ease: "easeOut" }}
+                               >
+
                     <AlertDialog.Title>Deletar {store.name}?</AlertDialog.Title>
                     <AlertDialog.Description size="2">
                         Tem certeza? Esta loja será deletada permanentemente.
@@ -111,11 +125,12 @@ function ColumnActions({
                                 variant="solid"
                                 color="red"
                                 onClick={() => handleDelete(store.id)}
-                            >
+                                >
                                 Deletar
                             </Button>
                         </AlertDialog.Action>
                     </Flex>
+</motion.div>
                 </AlertDialog.Content>
             </AlertDialog.Root>
         </Flex>
