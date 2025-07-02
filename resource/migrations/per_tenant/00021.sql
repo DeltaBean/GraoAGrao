@@ -1,19 +1,45 @@
 -- +goose Up
 -- Step 1: Rename quantity to total_quantity in tb_stock_out_item
-ALTER TABLE tb_stock_out_item
-RENAME COLUMN quantity TO total_quantity;
+-- Rename column 'quantity' to 'total_quantity' in tb_stock_out_item if it exists
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'tb_stock_out_item'
+      AND column_name = 'quantity'
+      AND table_schema = current_schema()
+  ) THEN
+    ALTER TABLE tb_stock_out_item
+    RENAME COLUMN quantity TO total_quantity;
+  END IF;
+END
+$$;
+
 
 -- Step 2: Create tb_stock_out_packaging table
-CREATE TABLE tb_stock_out_packaging (
-    stock_out_packaging_id SERIAL PRIMARY KEY,
-    stock_out_item_id INT NOT NULL REFERENCES tb_stock_out_item(stock_out_item_id) ON DELETE CASCADE,
-    item_packaging_id INT NOT NULL REFERENCES tb_item_packaging(item_packaging_id),
-    quantity INT NOT NULL CHECK (quantity > 0),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_name = 'tb_stock_out_packaging'
+      AND table_schema = current_schema()
+  ) THEN
+    CREATE TABLE tb_stock_out_packaging (
+        stock_out_packaging_id SERIAL PRIMARY KEY,
+        stock_out_item_id INT NOT NULL REFERENCES tb_stock_out_item(stock_out_item_id) ON DELETE CASCADE,
+        item_packaging_id INT NOT NULL REFERENCES tb_item_packaging(item_packaging_id),
+        quantity INT NOT NULL CHECK (quantity > 0),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  END IF;
+END
+$$;
 
 -- Add update timestamp trigger
+DROP TRIGGER IF EXISTS trg_set_updated_at_stock_out_packaging ON tb_stock_out_packaging;
 CREATE TRIGGER trg_set_updated_at_stock_out_packaging
 BEFORE UPDATE ON tb_stock_out_packaging
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -33,12 +59,39 @@ BEGIN
   END IF;
 END
 $$;
-ALTER TABLE tb_stock_out
-ADD COLUMN status stock_out_status DEFAULT 'draft'::stock_out_status NOT NULL,
-ADD COLUMN finalized_at TIMESTAMPTZ NULL;
+
+DO $$
+BEGIN
+  -- Check if 'status' column exists, if not, add it
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'tb_stock_out'
+      AND column_name = 'status'
+      AND table_schema = current_schema()
+  ) THEN
+    ALTER TABLE tb_stock_out
+    ADD COLUMN status stock_out_status DEFAULT 'draft'::stock_out_status NOT NULL;
+  END IF;
+
+  -- Check if 'finalized_at' column exists, if not, add it
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'tb_stock_out'
+      AND column_name = 'finalized_at'
+      AND table_schema = current_schema()
+  ) THEN
+    ALTER TABLE tb_stock_out
+    ADD COLUMN finalized_at TIMESTAMPTZ NULL;
+  END IF;
+END
+$$;
+
 COMMENT ON COLUMN tb_stock_out.status IS 'Stock-out status: ''draft'' allows editing; ''finalized'' triggers packaging consistency validation.';
 
 -- Step 4: Trigger to set finalized_at on status change
+DROP TRIGGER IF EXISTS trg_set_finalized_at_stock_out ON tb_stock_out;
 CREATE TRIGGER trg_set_finalized_at_stock_out
 BEFORE UPDATE ON tb_stock_out
 FOR EACH ROW
@@ -92,6 +145,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Step 6: Create validation trigger on tb_stock_out
+DROP TRIGGER IF EXISTS trg_validate_stock_out_on_finalize ON tb_stock_out;
 CREATE TRIGGER trg_validate_stock_out_on_finalize
 BEFORE UPDATE ON tb_stock_out
 FOR EACH ROW
@@ -122,7 +176,6 @@ $$ LANGUAGE plpgsql;
 
 -- Step 8: Create trigger for stock_out finalization
 DROP TRIGGER IF EXISTS trg_update_stock_on_out_finalization ON tb_stock_out;
-
 CREATE TRIGGER trg_update_stock_on_out_finalization
 AFTER UPDATE ON tb_stock_out
 FOR EACH ROW
