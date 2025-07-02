@@ -40,11 +40,10 @@ func ListStoresPaginated(conn *pgxpool.Conn, createdBy uint, offset, limit uint6
 	query := `
 		SELECT store_id, store_name, created_by, created_at, updated_at
 		FROM tb_store
-		WHERE created_by = $1
 		ORDER BY created_at DESC
-		OFFSET $2 LIMIT $3`
+		OFFSET $1 LIMIT $2`
 
-	rows, err := conn.Query(context.Background(), query, createdBy, offset, limit)
+	rows, err := conn.Query(context.Background(), query, offset, limit)
 	if err != nil {
 		return nil, err
 	}

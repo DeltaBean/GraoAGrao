@@ -1,6 +1,20 @@
 -- +goose Up
-ALTER TABLE tb_stock
-ADD CONSTRAINT unique_item_id UNIQUE (item_id);
+-- Add UNIQUE constraint 'unique_item_id' to 'item_id' column in tb_stock if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.table_constraints tc
+    WHERE tc.constraint_type = 'UNIQUE'
+      AND tc.table_name = 'tb_stock'
+      AND tc.constraint_name = 'unique_item_id'
+      AND tc.table_schema = current_schema()
+  ) THEN
+    ALTER TABLE tb_stock
+    ADD CONSTRAINT unique_item_id UNIQUE (item_id);
+  END IF;
+END
+$$;
 
 CREATE OR REPLACE FUNCTION fn_update_stock_on_stock_in_finalization()
 RETURNS TRIGGER AS $$

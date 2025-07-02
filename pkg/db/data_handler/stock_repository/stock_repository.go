@@ -16,11 +16,11 @@ func GetStock(conn *pgxpool.Conn, OwnerID, StoreID uint) ([]model.Stock, error) 
 		ean13, category_description, category_id, unit_id, unit_description,
 		stock_updated_at
 		FROM vw_stock_summary
-		WHERE created_by = $1 AND store_id = $2
+		WHERE store_id = $1
 		ORDER BY item_description;
 	`
 
-	rows, err := conn.Query(context.Background(), query, OwnerID, StoreID)
+	rows, err := conn.Query(context.Background(), query, StoreID)
 	if err != nil {
 		logger.Log.Errorf("Error querying items: %v", err)
 		return nil, err
@@ -77,10 +77,10 @@ func GetStockByCategory(conn *pgxpool.Conn, OwnerID uint, CategoryID int) ([]mod
 		FROM tb_item_stock ist
 		JOIN tb_item it ON ist.item_id = it.item_id
 		JOIN tb_category cat ON it.category_id = cat.category_id
-		WHERE ist.created_by = $1 AND cat.category_id = $2
+		WHERE cat.category_id = $1
 	`
 
-	rows, err := conn.Query(context.Background(), query, OwnerID, CategoryID)
+	rows, err := conn.Query(context.Background(), query, CategoryID)
 	if err != nil {
 		logger.Log.Errorf("Error querying items: %v", err)
 		return nil, err

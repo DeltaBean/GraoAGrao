@@ -149,9 +149,9 @@ func ListCategories(conn *pgxpool.Conn, OwnerID, StoreID uint) ([]*model.Categor
 		       c.created_at, c.updated_at
 		FROM tb_category c
 		JOIN tb_user u ON c.created_by = u.user_id
-		WHERE c.created_by = $1 AND c.store_id = $2`
+		WHERE c.store_id = $1`
 
-	rows, err := conn.Query(context.Background(), query, OwnerID, StoreID)
+	rows, err := conn.Query(context.Background(), query, StoreID)
 	if err != nil {
 		logger.Log.Errorf("Error fetching categories: %v", err)
 		return nil, err

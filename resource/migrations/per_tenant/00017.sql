@@ -16,9 +16,23 @@ $$;
 
 
 -- Step 2: Add status column to tb_stock_in
-ALTER TABLE tb_stock_in
-ADD COLUMN status stock_in_status NOT NULL DEFAULT 'draft';
+-- Add 'status' column to tb_stock_in if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'tb_stock_in'
+      AND column_name = 'status'
+      AND table_schema = current_schema()
+  ) THEN
+    ALTER TABLE tb_stock_in
+    ADD COLUMN status stock_in_status NOT NULL DEFAULT 'draft';
+  END IF;
+END
+$$;
 
+-- Add comment on 'status' column if it hasn't been added yet
 COMMENT ON COLUMN tb_stock_in.status IS
   'Stock-in status: ''draft'' allows editing; ''finalized'' triggers packaging consistency validation.';
 

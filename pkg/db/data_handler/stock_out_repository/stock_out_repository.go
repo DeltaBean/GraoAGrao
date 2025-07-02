@@ -86,10 +86,10 @@ func ListAllStockOut(conn *pgxpool.Conn, ownerID, storeID uint) ([]*model.StockO
 	query := `
 		SELECT stock_out_id, created_by, created_at, updated_at, status, finalized_at
 		FROM tb_stock_out
-		WHERE created_by = $1 AND store_id = $2
+		WHERE store_id = $1
 		ORDER BY created_at DESC
 	`
-	rows, err := conn.Query(context.Background(), query, ownerID, storeID)
+	rows, err := conn.Query(context.Background(), query, storeID)
 	if err != nil {
 		logger.Log.Errorf("Error querying stock_out list: %v", err)
 		return nil, err

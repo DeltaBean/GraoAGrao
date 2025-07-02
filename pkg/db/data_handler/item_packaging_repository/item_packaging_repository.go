@@ -89,12 +89,11 @@ func ListItemPackagingsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, l
 		JOIN tb_item i ON sp.item_id = i.item_id
 		JOIN tb_category cat ON i.category_id = cat.category_id
 		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
-		WHERE sp.created_by = $1 AND sp.store_id = $2
+		WHERE sp.store_id = $1
 		ORDER BY sp.created_at DESC
-		OFFSET $3 LIMIT $4`
+		OFFSET $2 LIMIT $3`
 
 	rows, err := conn.Query(context.Background(), query,
-		ownerID,
 		storeID,
 		offset,
 		limit,

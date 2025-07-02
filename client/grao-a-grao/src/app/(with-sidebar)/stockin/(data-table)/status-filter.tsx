@@ -11,6 +11,7 @@ import {
 import { Table } from "@tanstack/react-table"
 import { ChevronDown } from "lucide-react"
 import { StockInModel } from "@/types/stock_in"
+import { motion } from "framer-motion"
 
 interface StatusFilterProps {
     table: Table<StockInModel>
@@ -38,12 +39,20 @@ export function StatusFilter({ table }: StatusFilterProps) {
                             <ChevronDown
                                 width={16}
                                 height={16}
-                                className={`ml-auto transition-transform duration-200 ${isPopOverOpen ? "rotate-180" : ""}`}
+                                className={`ml-auto transition-transform duration-500 ${isPopOverOpen ? "rotate-180" : ""}`}
                             />
                         </Button>
                     </Flex>
                 </Popover.Trigger>
                 <Popover.Content>
+                     <motion.div
+  className="overflow-hidden"
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -10 }}
+  transition={{ duration: 0.4 }}
+>
+
                     <Flex direction="column" gap="4" p="2">
                         <Text size="2" weight="bold">Filtrar por Status</Text>
                         <RadioGroup.Root value={selected} onValueChange={handleChange} name="status">
@@ -56,6 +65,7 @@ export function StatusFilter({ table }: StatusFilterProps) {
                             Limpar
                         </Button>
                     </Flex>
+  </motion.div>
                 </Popover.Content>
             </Popover.Root>
         </Flex>

@@ -79,7 +79,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_update_stock_on_out_finalization ON tb_stock_out;
-
 CREATE TRIGGER trg_update_stock_on_out_finalization
 AFTER UPDATE ON tb_stock_out
 FOR EACH ROW

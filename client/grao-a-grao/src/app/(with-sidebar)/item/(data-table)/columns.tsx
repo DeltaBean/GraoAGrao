@@ -4,6 +4,7 @@ import { AlertDialog, Badge, Button, Flex, IconButton, Text, Tooltip } from "@ra
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, TrashIcon } from "lucide-react";
 import { highlightMatch } from "@/util/util_comp";
+import { motion } from "framer-motion";
 
 export const getColumns = (
     openEdit: (store: ItemModel) => void,
@@ -120,8 +121,8 @@ export const getColumns = (
             id: "actions",
             header: () => <div className="text-center">Ações</div>,
             cell: ({ row }) => {
-                const store = row.original;
-                return <ColumnActions item={store} openEdit={openEdit} handleDelete={handleDelete} />;
+                const item = row.original;
+                return <ColumnActions item={item} openEdit={openEdit} handleDelete={handleDelete} />;
             },
         },
     ];
@@ -132,7 +133,7 @@ function ColumnActions({
     handleDelete,
 }: {
     item: ItemModel;
-    openEdit: (store: ItemModel) => void;
+    openEdit: (item: ItemModel) => void;
     handleDelete: (id: number) => Promise<void>;
 }) {
     return (
@@ -154,7 +155,20 @@ function ColumnActions({
                         </IconButton>
                     </AlertDialog.Trigger>
                 </Tooltip>
-                <AlertDialog.Content maxWidth="350px">
+                <AlertDialog.Content
+                     style={{
+                                 overflow: "hidden",
+                                 maxHeight: "90vh", 
+                                 width: "100%",
+                                 maxWidth: "480px",
+                               }}
+                             >
+                               <motion.div
+                                 initial={{ opacity: 0, x: 100 }}
+                                 animate={{ opacity: 1, x: 0 }}
+                                 transition={{ duration: 0.4, ease: "easeOut" }}
+                               >
+
                     <AlertDialog.Title>Deletar {item.description}?</AlertDialog.Title>
                     <AlertDialog.Description size="2">
                         Tem certeza? Este item será deletada permanentemente.
@@ -175,6 +189,7 @@ function ColumnActions({
                             </Button>
                         </AlertDialog.Action>
                     </Flex>
+                    </motion.div>
                 </AlertDialog.Content>
             </AlertDialog.Root>
         </Flex>
