@@ -4,7 +4,7 @@ DROP VIEW IF EXISTS vw_stock_summary;
 CREATE OR REPLACE VIEW vw_stock_summary AS
 SELECT
   s.stock_id,
-  s.owner_id,
+  s.created_by,
   u.username           AS owner_username,
   u.email              AS owner_email,
   i.item_id,
@@ -25,4 +25,4 @@ LEFT JOIN tb_category AS c
 JOIN tb_unit_of_measure AS uom
   ON uom.unit_id = i.unit_id
 JOIN public.tb_user AS u
-  ON u.user_id = s.owner_id;
+  ON u.user_id = s.created_by;

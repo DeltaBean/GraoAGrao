@@ -1,12 +1,36 @@
 -- +goose Up
-CREATE TABLE IF NOT EXISTS tb_stock_in (
-    stock_in_id SERIAL PRIMARY KEY,
-    owner_id INTEGER NOT NULL REFERENCES public.tb_user(user_id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
 
-CREATE TRIGGER set_updated_at
-BEFORE UPDATE ON tb_stock_in
-FOR EACH ROW
-EXECUTE FUNCTION update_updated_at_column();
+-- Create table tb_stock_in if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT FROM information_schema.tables 
+    WHERE table_name = 'tb_stock_in'
+      AND table_schema = current_schema()
+  ) THEN
+    CREATE TABLE tb_stock_in (
+        stock_in_id SERIAL PRIMARY KEY,
+        owner_id INTEGER NOT NULL REFERENCES public.tb_user(user_id),
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  END IF;
+END
+$$;
+
+-- Create trigger 'set_updated_at' on tb_stock_in if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'set_updated_at'
+      AND tgrelid = 'tb_stock_in'::regclass
+  ) THEN
+    CREATE TRIGGER set_updated_at
+    BEFORE UPDATE ON tb_stock_in
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END
+$$;
