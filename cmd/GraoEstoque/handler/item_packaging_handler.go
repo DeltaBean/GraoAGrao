@@ -246,3 +246,41 @@ func DeleteItemPackaging(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+// GetItemPackagingLabelPreviewByID godoc
+// @Summary      Get item packaging label preview
+// @Description  Gets a item packaging url label preview by ID
+// @Security     BearerAuth
+// @Tags         Item Packaging
+// @Accept       json
+// @Produce      json
+// @Param        id          path    int     true  "Item packaging ID"
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      200  {object}  response.LabelPreviewResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid ID"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/packaging/stockLabel/preview/{id} [get]
+func GetItemPackagingLabelPreviewByID(c *gin.Context) {
+	logger.Log.Info("GetItemPackagingLabelPreviewByID")
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid ID"})
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	url, err := item_packaging_service.GetLabelPreviewByID(conn, uint(id))
+	if err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error fetching label preview"})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.LabelPreviewResponse{URL: url})
+}

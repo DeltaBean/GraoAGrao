@@ -9,3 +9,7 @@ type ItemPackagingResponse struct {
 	LabelPDFURL     string       `json:"label_pdf_url"`
 	LabelPreviewURL string       `json:"label_preview_url"`
 }
+
+type LabelPreviewResponse struct {
+	URL string `json:"url"`
+}

@@ -75,3 +75,21 @@ func CreateItemPackaging(conn *pgxpool.Conn, packaging *model.ItemPackaging, sto
 	// 8) Save on repo and return any error
 	return item_packaging_repository.SaveItemPackaging(conn, packaging)
 }
+
+func GetLabelPreviewByID(conn *pgxpool.Conn, id uint) (string, error) {
+	logger.Log.Infof("GetLabelPreviewByID: %d", id)
+
+	url, err := item_packaging_repository.GetLabelPreviewByID(conn, uint(id))
+	if err != nil {
+		logger.Log.Error(err)
+		return "", err
+	}
+
+	presigned, err := util.PresignPublicR2URL(url)
+	if err != nil {
+		logger.Log.Error(err)
+		return "", err
+	}
+
+	return presigned, nil
+}

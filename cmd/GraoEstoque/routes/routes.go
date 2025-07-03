@@ -139,6 +139,11 @@ func InitRoutes(router *gin.Engine) {
 				middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemPackagingRequest](),
 				handler.UpdateItemPackaging,
 			)
+
+			stockLabelGroup := itemPackagingGroup.Group("/stockLabel")
+			{
+				stockLabelGroup.GET("/preview/:id", handler.GetItemPackagingLabelPreviewByID)
+			}
 		}
 	}
 

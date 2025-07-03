@@ -1,6 +1,7 @@
 package util
 
 import (
+	"strings"
 	"time"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
@@ -103,4 +104,21 @@ func GeneratePresignedURL(fileName string) (string, error) {
 	}
 
 	return urlStr, nil
+}
+
+func PresignPublicR2URL(publicURL string) (string, error) {
+	accountID := os.Getenv("R2_ACCOUNT_ID")
+	bucket := os.Getenv("R2_BUCKET_NAME")
+
+	// Expected format: https://<accountID>.r2.cloudflarestorage.com/<bucket>/<key>
+	prefix := fmt.Sprintf("https://%s.r2.cloudflarestorage.com/%s/", accountID, bucket)
+	if !strings.HasPrefix(publicURL, prefix) {
+		return "", fmt.Errorf("URL does not match expected R2 base: %s", publicURL)
+	}
+
+	// Extract the key by trimming the prefix
+	key := strings.TrimPrefix(publicURL, prefix)
+
+	// Generate presigned URL
+	return GeneratePresignedURL(key)
 }

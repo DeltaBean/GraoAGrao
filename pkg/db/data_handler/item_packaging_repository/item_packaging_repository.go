@@ -261,3 +261,24 @@ func DeleteItemPackaging(conn *pgxpool.Conn, id uint) error {
 	}
 	return nil
 }
+
+func GetLabelPreviewByID(conn *pgxpool.Conn, id uint) (string, error) {
+	logger.Log.Infof("GetLabelPreviewByID: %d", id)
+
+	query := `
+		SELECT ip.label_preview_url
+		FROM tb_item_packaging ip
+		WHERE ip.item_packaging_id = $1
+	`
+
+	row := conn.QueryRow(context.Background(), query, id)
+
+	var url string
+	err := row.Scan(&url)
+	if err != nil {
+		logger.Log.Error(err)
+		return "", err
+	}
+
+	return url, nil
+}
