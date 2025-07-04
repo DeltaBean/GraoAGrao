@@ -303,3 +303,50 @@ func GetLabelPDFURLByID(conn *pgxpool.Conn, id uint) (string, error) {
 
 	return url, nil
 }
+
+func GetItemPackagingByEAN8(conn *pgxpool.Conn, ean8 string) (*model.ItemPackaging, error) {
+	logger.Log.Infof("GetItemPackagingByEAN8: %s", ean8)
+
+	query := `
+		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
+			sp.ean_8, sp.label_pdf_url, sp.label_preview_url,
+			i.item_id, i.item_description,
+			sp.created_by, sp.created_at, sp.updated_at,
+			cat.category_id, cat.category_description,
+			uom.unit_id, uom.unit_description, i.is_fractionable
+		FROM tb_item_packaging sp
+		JOIN tb_item i ON sp.item_id = i.item_id
+		JOIN tb_category cat ON i.category_id = cat.category_id
+		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
+		WHERE sp.ean_8 = $1
+	`
+
+	var p model.ItemPackaging
+	err := conn.QueryRow(context.Background(), query, ean8).Scan(
+		&p.ID,
+		&p.Description,
+		&p.Quantity,
+		&p.EAN8,
+		&p.LabelPDFURL,
+		&p.LabelPreviewURL,
+		&p.Item.ID,
+		&p.Item.Description,
+		&p.CreatedBy.ID,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.Item.Category.ID,
+		&p.Item.Category.Description,
+		&p.Item.UnitOfMeasure.ID,
+		&p.Item.UnitOfMeasure.Description,
+		&p.Item.IsFractionable,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		logger.Log.Errorf("Error retrieving item packaging by EAN8: %v", err)
+		return nil, err
+	}
+
+	return &p, nil
+}

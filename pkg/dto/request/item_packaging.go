@@ -27,7 +27,7 @@ func (r *UpdateItemPackagingRequest) Validate() error {
 
 type LabelBatchRequest struct {
 	ItemPackagingID uint `json:"item_packaging_id" validate:"required"`
-	Quantity        uint `json:"quantity" validate:"required"`
+	Quantity        uint `json:"quantity" validate:"required,gt=0"`
 }
 
 // Validate runs Go-Playground on the struct tags.

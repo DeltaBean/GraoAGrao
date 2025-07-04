@@ -322,3 +322,44 @@ func GetItemPackagingLabelPDFBatch(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/pdf", pdfData)
 }
+
+// GetItemPackagingByEAN8 godoc
+// @Summary      Get item packaging by EAN 8 code
+// @Description  Retrieves a specific item packaging configuration by EAN 8 code
+// @Security     BearerAuth
+// @Tags         Item Packaging
+// @Accept       json
+// @Produce      json
+// @Param        ean8        path    int     true  "Item packaging EAN 8"
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      200  {object}  response.ItemPackagingResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid ean8 code"
+// @Failure      404  {object}  response.ErrorResponse "Packaging not found"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/packaging/scan/{ean8} [get]
+func GetItemPackagingByEAN8(c *gin.Context) {
+	logger.Log.Info("GetItemPackagingByEAN8")
+
+	ean8 := c.Param("ean8")
+	if ean8 == "" || len(ean8) != 8 {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid ean8 code"})
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	packaging, err := item_packaging_repository.GetItemPackagingByEAN8(conn, ean8)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error retrieving packaging"})
+		return
+	}
+	if packaging == nil {
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Packaging not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, mapper.ToItemPackagingResponse(packaging))
+}
