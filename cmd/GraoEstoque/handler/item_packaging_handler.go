@@ -341,7 +341,7 @@ func GetItemPackagingByEAN8(c *gin.Context) {
 	logger.Log.Info("GetItemPackagingByEAN8")
 
 	ean8 := c.Param("ean8")
-	if ean8 == "" || len(ean8) != 8 {
+	if len(ean8) != 8 {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid ean8 code"})
 		return
 	}

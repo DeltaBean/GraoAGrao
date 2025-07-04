@@ -78,6 +78,8 @@ func InitRoutes(router *gin.Engine) {
 	{
 		itemGroup.GET("", handler.GetItems)
 		itemGroup.GET("/:id", handler.GetItemByID)
+		itemGroup.GET("/scan/:ean13", handler.GetItemByEAN13)
+
 		itemGroup.DELETE("/:id", handler.DeleteItem)
 
 		itemGroup.POST("",

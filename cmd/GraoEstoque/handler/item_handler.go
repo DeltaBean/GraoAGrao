@@ -272,3 +272,42 @@ func DeleteItem(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+// GetItemByEAN13 godoc
+// @Summary      Get an item by EAN13
+// @Description  Retrieves a single item by its EAN13 code
+// @Security     BearerAuth
+// @Tags         Item
+// @Produce      json
+// @Param        ean13        path      string  true  "Item EAN13"
+// @Param        X-Store-ID  header    string  true  "Store ID"
+// @Success      200  {object}  dtoResponse.ItemResponse
+// @Failure      400  {object}  dtoResponse.ErrorResponse "Invalid EAN13"
+// @Failure      404  {object}  dtoResponse.ErrorResponse "Item not found"
+// @Failure      500  {object}  dtoResponse.ErrorResponse "Internal server error"
+// @Router       /items/scan/{ean13} [get]
+func GetItemByEAN13(c *gin.Context) {
+	logger.Log.Info("GetItemByEAN13")
+	ean13 := c.Param("ean13")
+	if len(ean13) != 13 {
+		c.JSON(http.StatusBadRequest, dtoResponse.ErrorResponse{Error: "EAN13 should be 13 characters"})
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	item, err := item_repository.GetItemByEAN13(conn, ean13)
+	if err != nil {
+		logger.Log.Error("Error fetching item by EAN13: ", err)
+		c.JSON(http.StatusInternalServerError, dtoResponse.ErrorResponse{Error: "Internal Server Error"})
+		return
+	} else if item == nil {
+		c.JSON(http.StatusNotFound, dtoResponse.ErrorResponse{Error: "Item not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, mapper.ToItemResponse(item))
+}
