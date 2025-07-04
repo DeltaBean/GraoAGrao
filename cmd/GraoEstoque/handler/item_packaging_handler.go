@@ -12,6 +12,7 @@ import (
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/item_packaging_repository"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/service/item_packaging_service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -64,7 +65,8 @@ func CreateItemPackaging(c *gin.Context) {
 	}
 
 	modelPackaging := mapper.CreateItemPackagingToModel(req, user.ID, storeID)
-	if err := item_packaging_repository.SaveItemPackaging(conn, modelPackaging); err != nil {
+	err = item_packaging_service.CreateItemPackaging(conn, modelPackaging, storeID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error saving packaging"})
 		return
 	}
@@ -243,4 +245,121 @@ func DeleteItemPackaging(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// GetItemPackagingLabelPreviewByID godoc
+// @Summary      Get item packaging label preview
+// @Description  Gets a item packaging url label preview by ID
+// @Security     BearerAuth
+// @Tags         Item Packaging
+// @Accept       json
+// @Produce      json
+// @Param        id          path    int     true  "Item packaging ID"
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      200  {object}  response.LabelPreviewResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid ID"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/packaging/stockLabel/preview/{id} [get]
+func GetItemPackagingLabelPreviewByID(c *gin.Context) {
+	logger.Log.Info("GetItemPackagingLabelPreviewByID")
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid ID"})
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	url, err := item_packaging_service.GetLabelPreviewByID(conn, uint(id))
+	if err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error fetching label preview"})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.LabelPreviewResponse{URL: url})
+}
+
+// GetItemPackagingLabelPDFBatch godoc
+// @Summary      Generate a batch PDF of item packaging labels
+// @Description  Receives a list of item packaging IDs and quantities to print labels in bulk
+// @Security     BearerAuth
+// @Tags         Item Packaging
+// @Accept       json
+// @Produce      application/pdf
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Param        data        body    []request.LabelBatchRequest  true  "List of packaging IDs and quantities"
+// @Success      200  {file}  application/pdf
+// @Failure      400  {object}  response.ErrorResponse "Invalid input"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/packaging/stockLabel/batch [post]
+func GetItemPackagingLabelPDFBatch(c *gin.Context) {
+	logger.Log.Info("GetItemPackagingLabelPDFBatch")
+
+	var batchReq []request.LabelBatchRequest
+	if err := c.ShouldBindJSON(&batchReq); err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid request body"})
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	pdfData, err := item_packaging_service.GenerateBatchLabelPDF(conn, batchReq)
+	if err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Failed to generate labels"})
+		return
+	}
+
+	c.Data(http.StatusOK, "application/pdf", pdfData)
+}
+
+// GetItemPackagingByEAN8 godoc
+// @Summary      Get item packaging by EAN 8 code
+// @Description  Retrieves a specific item packaging configuration by EAN 8 code
+// @Security     BearerAuth
+// @Tags         Item Packaging
+// @Accept       json
+// @Produce      json
+// @Param        ean8        path    int     true  "Item packaging EAN 8"
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Success      200  {object}  response.ItemPackagingResponse
+// @Failure      400  {object}  response.ErrorResponse "Invalid ean8 code"
+// @Failure      404  {object}  response.ErrorResponse "Packaging not found"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/packaging/scan/{ean8} [get]
+func GetItemPackagingByEAN8(c *gin.Context) {
+	logger.Log.Info("GetItemPackagingByEAN8")
+
+	ean8 := c.Param("ean8")
+	if len(ean8) != 8 {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid ean8 code"})
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	packaging, err := item_packaging_repository.GetItemPackagingByEAN8(conn, ean8)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Error retrieving packaging"})
+		return
+	}
+	if packaging == nil {
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Packaging not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, mapper.ToItemPackagingResponse(packaging))
 }

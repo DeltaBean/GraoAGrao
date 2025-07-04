@@ -259,3 +259,49 @@ func GetReferencingItemPackagings(conn *pgxpool.Conn, id uint) (any, error) {
 
 	return result, nil
 }
+
+func GetItemByEAN13(conn *pgxpool.Conn, ean13 string) (*model.Item, error) {
+	logger.Log.Info("GetItemByEAN13")
+
+	query := `
+		SELECT i.item_id, i.item_description, i.ean13, 
+			c.category_description, c.category_id,
+			unt.unit_description, unt.unit_id,
+			usr.user_id, i.created_at, i.updated_at, i.is_fractionable
+		FROM tb_item i
+		JOIN tb_user usr ON i.created_by = usr.user_id
+		JOIN tb_category c ON i.category_id = c.category_id
+		JOIN tb_unit_of_measure unt ON i.unit_id = unt.unit_id
+		WHERE i.ean13 = $1
+	`
+
+	item := &model.Item{}
+	owner := model.User{}
+
+	err := conn.QueryRow(context.Background(), query, ean13).Scan(
+		&item.ID,
+		&item.Description,
+		&item.EAN13,
+		&item.Category.Description,
+		&item.Category.ID,
+		&item.UnitOfMeasure.Description,
+		&item.UnitOfMeasure.ID,
+		&owner.ID,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+		&item.IsFractionable,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			logger.Log.Infof("No item found with EAN13: %s", ean13)
+			return nil, nil
+		}
+		logger.Log.Errorf("Error fetching item by EAN13: %v", err)
+		return nil, err
+	}
+
+	item.CreatedBy = owner
+	logger.Log.Info("Item successfully retrieved by EAN13")
+	return item, nil
+}

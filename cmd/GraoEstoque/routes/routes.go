@@ -78,6 +78,8 @@ func InitRoutes(router *gin.Engine) {
 	{
 		itemGroup.GET("", handler.GetItems)
 		itemGroup.GET("/:id", handler.GetItemByID)
+		itemGroup.GET("/scan/:ean13", handler.GetItemByEAN13)
+
 		itemGroup.DELETE("/:id", handler.DeleteItem)
 
 		itemGroup.POST("",
@@ -129,6 +131,7 @@ func InitRoutes(router *gin.Engine) {
 		{
 			itemPackagingGroup.GET("", handler.ListItemPackagings)
 			itemPackagingGroup.GET("/:id", handler.GetItemPackagingByID)
+			itemPackagingGroup.GET("/scan/:ean8", handler.GetItemPackagingByEAN8)
 			itemPackagingGroup.DELETE("/:id", handler.DeleteItemPackaging)
 
 			itemPackagingGroup.POST("",
@@ -139,6 +142,12 @@ func InitRoutes(router *gin.Engine) {
 				middleware.BindAndValidateMiddleware[dtoRequest.UpdateItemPackagingRequest](),
 				handler.UpdateItemPackaging,
 			)
+
+			stockLabelGroup := itemPackagingGroup.Group("/stockLabel")
+			{
+				stockLabelGroup.GET("/preview/:id", handler.GetItemPackagingLabelPreviewByID)
+				stockLabelGroup.POST("/batch", handler.GetItemPackagingLabelPDFBatch)
+			}
 		}
 	}
 
