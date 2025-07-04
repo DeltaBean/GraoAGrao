@@ -6,15 +6,20 @@ import (
 	"image"
 	"image/draw"
 	"image/png"
+	"os"
+	"path/filepath"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/ean"
 	"github.com/gen2brain/go-fitz"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
+
 	"github.com/phpdave11/gofpdf"
 
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
+	pdfcpuModel "github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
 func GenerateLabelPDF(packaging *model.ItemPackaging, store *model.Store) ([]byte, error) {
@@ -169,4 +174,56 @@ func GenerateLabelPreviewPNG(pdfData []byte) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// AppendPDFMultipleTimes merges `srcPDF` into a final PDF `count` times.
+// It uses temporary files to work around the lack of in-memory merge support in pdfcpu.
+// Returns the merged PDF as a byte slice ([]byte).
+func AppendPDFMultipleTimes(srcPDF []byte, count int) ([]byte, error) {
+	// Create a temporary directory to hold intermediate PDF files.
+	tmpDir, err := os.MkdirTemp("", "pdfmerge")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+	// Ensure the temp directory is cleaned up after execution.
+	defer os.RemoveAll(tmpDir)
+
+	// Slice to store the file paths of individual temporary copies of the PDF.
+	var inputPaths []string
+
+	// Write `count` copies of the input PDF to disk as separate temp files.
+	for i := 0; i < count; i++ {
+		tmpFile, err := os.CreateTemp(tmpDir, fmt.Sprintf("label_%d_*.pdf", i))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create temporary input file: %w", err)
+		}
+
+		// Write the PDF content to the temporary file.
+		if _, err := tmpFile.Write(srcPDF); err != nil {
+			return nil, fmt.Errorf("failed to write to temporary PDF file: %w", err)
+		}
+		// Close the file to flush the write to disk.
+		tmpFile.Close()
+
+		// Add the path to the list for merging.
+		inputPaths = append(inputPaths, tmpFile.Name())
+	}
+
+	// Define the output path for the merged PDF.
+	outputPath := filepath.Join(tmpDir, "merged.pdf")
+
+	// Use pdfcpu to merge the input files into a single output PDF.
+	err = api.MergeCreateFile(inputPaths, outputPath, false, pdfcpuModel.NewDefaultConfiguration())
+	if err != nil {
+		return nil, fmt.Errorf("failed to merge PDFs: %w", err)
+	}
+
+	// Read the merged PDF from disk into memory.
+	mergedData, err := os.ReadFile(outputPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read merged PDF output: %w", err)
+	}
+
+	// Return the merged PDF as a byte slice.
+	return mergedData, nil
 }

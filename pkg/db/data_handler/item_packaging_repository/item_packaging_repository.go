@@ -282,3 +282,24 @@ func GetLabelPreviewByID(conn *pgxpool.Conn, id uint) (string, error) {
 
 	return url, nil
 }
+
+func GetLabelPDFURLByID(conn *pgxpool.Conn, id uint) (string, error) {
+	logger.Log.Infof("GetLabelPDFURLByID: %d", id)
+
+	query := `
+		SELECT ip.label_pdf_url
+		FROM tb_item_packaging ip
+		WHERE ip.item_packaging_id = $1
+	`
+
+	row := conn.QueryRow(context.Background(), query, id)
+
+	var url string
+	err := row.Scan(&url)
+	if err != nil {
+		logger.Log.Error(err)
+		return "", err
+	}
+
+	return url, nil
+}

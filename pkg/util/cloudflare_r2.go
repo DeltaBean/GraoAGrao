@@ -1,6 +1,8 @@
 package util
 
 import (
+	"io"
+	"net/url"
 	"strings"
 	"time"
 
@@ -121,4 +123,59 @@ func PresignPublicR2URL(publicURL string) (string, error) {
 
 	// Generate presigned URL
 	return GeneratePresignedURL(key)
+}
+
+func DownloadPrivateR2ObjectByURL(objectURL string) ([]byte, error) {
+	accountID := os.Getenv("R2_ACCOUNT_ID")
+	bucket := os.Getenv("R2_BUCKET_NAME")
+	region := "auto"
+
+	// Parse the full URL to extract the object key
+	parsedURL, err := url.Parse(objectURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL: %w", err)
+	}
+
+	// Validate domain and extract key
+	expectedHost := fmt.Sprintf("%s.r2.cloudflarestorage.com", accountID)
+	if parsedURL.Host != expectedHost {
+		return nil, fmt.Errorf("unexpected R2 host: %s", parsedURL.Host)
+	}
+
+	// Path will be in the form /<bucket>/<key>
+	parts := strings.SplitN(strings.TrimPrefix(parsedURL.Path, "/"), "/", 2)
+	if len(parts) != 2 || parts[0] != bucket {
+		return nil, fmt.Errorf("unexpected bucket or key in path: %s", parsedURL.Path)
+	}
+	key := parts[1]
+
+	// Create a session and S3 client
+	sess, err := session.NewSession(&aws.Config{
+		Region:           aws.String(region),
+		Endpoint:         aws.String(fmt.Sprintf("https://%s", parsedURL.Host)),
+		Credentials:      credentials.NewStaticCredentials(os.Getenv("R2_ACCESS_KEY_ID"), os.Getenv("R2_SECRET_ACCESS_KEY"), ""),
+		S3ForcePathStyle: aws.Bool(true),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create session: %w", err)
+	}
+
+	svc := s3.New(sess)
+
+	// Download the object directly
+	obj, err := svc.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object: %w", err)
+	}
+	defer obj.Body.Close()
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, obj.Body); err != nil {
+		return nil, fmt.Errorf("failed to read object body: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }

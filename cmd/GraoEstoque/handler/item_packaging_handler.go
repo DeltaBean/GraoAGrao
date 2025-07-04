@@ -284,3 +284,41 @@ func GetItemPackagingLabelPreviewByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.LabelPreviewResponse{URL: url})
 }
+
+// GetItemPackagingLabelPDFBatch godoc
+// @Summary      Generate a batch PDF of item packaging labels
+// @Description  Receives a list of item packaging IDs and quantities to print labels in bulk
+// @Security     BearerAuth
+// @Tags         Item Packaging
+// @Accept       json
+// @Produce      application/pdf
+// @Param        X-Store-ID  header  string  true  "Store ID"
+// @Param        data        body    []request.LabelBatchRequest  true  "List of packaging IDs and quantities"
+// @Success      200  {file}  application/pdf
+// @Failure      400  {object}  response.ErrorResponse "Invalid input"
+// @Failure      500  {object}  response.ErrorResponse "Internal server error"
+// @Router       /items/packaging/stockLabel/batch [post]
+func GetItemPackagingLabelPDFBatch(c *gin.Context) {
+	logger.Log.Info("GetItemPackagingLabelPDFBatch")
+
+	var batchReq []request.LabelBatchRequest
+	if err := c.ShouldBindJSON(&batchReq); err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Invalid request body"})
+		return
+	}
+
+	conn := util.GetDBConnFromContext(c)
+	if conn == nil {
+		return
+	}
+
+	pdfData, err := item_packaging_service.GenerateBatchLabelPDF(conn, batchReq)
+	if err != nil {
+		logger.Log.Error(err)
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Failed to generate labels"})
+		return
+	}
+
+	c.Data(http.StatusOK, "application/pdf", pdfData)
+}

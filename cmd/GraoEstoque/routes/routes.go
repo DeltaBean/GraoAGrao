@@ -143,6 +143,7 @@ func InitRoutes(router *gin.Engine) {
 			stockLabelGroup := itemPackagingGroup.Group("/stockLabel")
 			{
 				stockLabelGroup.GET("/preview/:id", handler.GetItemPackagingLabelPreviewByID)
+				stockLabelGroup.POST("/batch", handler.GetItemPackagingLabelPDFBatch)
 			}
 		}
 	}
