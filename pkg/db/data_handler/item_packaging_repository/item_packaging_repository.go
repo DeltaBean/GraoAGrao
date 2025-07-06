@@ -133,6 +133,56 @@ func ListItemPackagingsPaginated(conn *pgxpool.Conn, ownerID, storeID, offset, l
 	return results, nil
 }
 
+func ListAllItemPackagingsWithTransaction(tx pgx.Tx) ([]model.ItemPackaging, error) {
+	query := `
+		SELECT sp.item_packaging_id, sp.item_packaging_description, sp.quantity,
+			sp.ean_8, sp.label_pdf_url, sp.label_preview_url,
+		    i.item_id, i.item_description,
+		    sp.created_by, sp.created_at, sp.updated_at,
+			cat.category_id, cat.category_description,
+			uom.unit_id, uom.unit_description, i.is_fractionable
+		FROM tb_item_packaging sp
+		JOIN tb_item i ON sp.item_id = i.item_id
+		JOIN tb_category cat ON i.category_id = cat.category_id
+		JOIN tb_unit_of_measure uom ON i.unit_id = uom.unit_id
+		ORDER BY sp.created_at DESC`
+
+	rows, err := tx.Query(context.Background(), query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying item_packaging: %w", err)
+	}
+	defer rows.Close()
+
+	var results []model.ItemPackaging
+	for rows.Next() {
+		var p model.ItemPackaging
+		err := rows.Scan(
+			&p.ID,
+			&p.Description,
+			&p.Quantity,
+			&p.EAN8,
+			&p.LabelPDFURL,
+			&p.LabelPreviewURL,
+			&p.Item.ID,
+			&p.Item.Description,
+			&p.CreatedBy.ID,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+			&p.Item.Category.ID,
+			&p.Item.Category.Description,
+			&p.Item.UnitOfMeasure.ID,
+			&p.Item.UnitOfMeasure.Description,
+			&p.Item.IsFractionable,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning item_packaging: %w", err)
+		}
+		results = append(results, p)
+	}
+
+	return results, nil
+}
+
 // GetItemPackagingByID retrieves a single packaging by ID
 func GetItemPackagingByID(conn *pgxpool.Conn, id uint) (*model.ItemPackaging, error) {
 	logger.Log.Infof("GetItemPackagingByID: %d", id)

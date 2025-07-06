@@ -9,9 +9,12 @@ import (
 	"time"
 
 	_ "github.com/IlfGauhnith/GraoAGrao/pkg/config"
+	_ "github.com/IlfGauhnith/GraoAGrao/pkg/db/migrations/per_tenant"
+
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/migration_log_repository"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/db/data_handler/organization_repository"
+	"github.com/IlfGauhnith/GraoAGrao/pkg/db/migrations/register"
 	logger "github.com/IlfGauhnith/GraoAGrao/pkg/logger"
 	"github.com/IlfGauhnith/GraoAGrao/pkg/model"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -37,7 +40,7 @@ func main() {
 	}
 
 	// Getting script paths
-	scripts, err := getOrderedSQLFiles(migrationPath)
+	scripts, err := getOrderedMigrationFiles(migrationPath)
 	if err != nil {
 		logger.Log.Errorf("Error fetching scripts paths: %v", err)
 		os.Exit(1)
@@ -67,23 +70,49 @@ func main() {
 
 }
 
-func getOrderedSQLFiles(migrationPath string) ([]string, error) {
+func getOrderedMigrationFiles(migrationPath string) ([]string, error) {
 	entries, err := os.ReadDir(migrationPath)
 	if err != nil {
 		return nil, err
 	}
 
-	var sqlFiles []string
+	// Map: script name (e.g. 00023.sql, 00029.go) -> full path or "" if .go
+	scriptMap := map[string]string{}
+
+	// 1. Collect all .sql files from disk
 	for _, entry := range entries {
 		if !entry.IsDir() && filepath.Ext(entry.Name()) == ".sql" {
-			sqlFiles = append(sqlFiles, filepath.Join(migrationPath, entry.Name()))
+			scriptMap[entry.Name()] = filepath.Join(migrationPath, entry.Name())
 		}
 	}
 
-	// Sort ascending
-	sort.Strings(sqlFiles)
+	// 2. Collect all registered .go scripts
+	for name := range register.Migrations {
+		if _, exists := scriptMap[name]; exists {
+			return nil, fmt.Errorf("duplicate migration name: %s", name)
+		}
+		scriptMap[name] = "" // empty means it's a registered Go migration
+	}
 
-	return sqlFiles, nil
+	// 3. Sort by key name
+	var ordered []string
+	for name := range scriptMap {
+		ordered = append(ordered, name)
+	}
+	sort.Strings(ordered)
+
+	// 4. Rebuild final list with full paths or Go keys
+	var final []string
+	for _, name := range ordered {
+		path := scriptMap[name]
+		if path != "" {
+			final = append(final, path)
+		} else {
+			final = append(final, name) // just name of go file
+		}
+	}
+
+	return final, nil
 }
 
 func applyMigrationPerTenant(ctx context.Context, conn *pgxpool.Conn, org model.Organization, scripts []string) (err error) {
@@ -117,38 +146,52 @@ func applyMigrationPerTenant(ctx context.Context, conn *pgxpool.Conn, org model.
 	// For each script
 	for _, scriptPath := range scripts {
 		scriptFile := filepath.Base(scriptPath)
+		if filepath.Ext(scriptPath) == "" { // it's a .go key, not a path
+			scriptFile = scriptPath
+		}
 
-		// Apply only scripts not yet run
 		if runScripts[scriptFile] {
 			logger.Log.Infof("Skipping already run script: %s", scriptFile)
 			continue
 		}
 
-		// Reading script content
-		content, err := os.ReadFile(scriptPath)
-		if err != nil {
-			logger.Log.Errorf("failed to read migration file %s: %v", scriptFile, err)
-			return err
+		ext := filepath.Ext(scriptFile)
+
+		switch ext {
+		case ".sql":
+			content, err := os.ReadFile(scriptPath)
+			if err != nil {
+				return fmt.Errorf("failed to read %s: %w", scriptFile, err)
+			}
+			fullSQL := fmt.Sprintf(`SET LOCAL search_path TO "%s", public;
+%s`, org.DBSchema, content)
+
+			logger.Log.Infof("[MIGRATION] ▶ Applying SQL %s to schema %s", scriptFile, org.DBSchema)
+			if _, err := tx.Exec(ctx, fullSQL); err != nil {
+				return fmt.Errorf("failed executing %s: %w", scriptFile, err)
+			}
+
+		case ".go":
+			fn, ok := register.Migrations[scriptFile]
+			if !ok {
+				return fmt.Errorf("no registered migration function for %s", scriptFile)
+			}
+
+			logger.Log.Infof("[MIGRATION] ▶ Running GO migration %s on schema %s", scriptFile, org.DBSchema)
+			if err := fn(ctx, tx, org.DBSchema); err != nil {
+				return fmt.Errorf("failed running %s: %w", scriptFile, err)
+			}
+
+		default:
+			logger.Log.Warnf("Skipping unsupported file type: %s", scriptFile)
+			continue
 		}
 
-		// Appending query to set schema
-		fullSQL := fmt.Sprintf("SET LOCAL search_path TO \"%s\", public;\n%s", org.DBSchema, string(content))
-
-		logger.Log.Infof("[MIGRATION] ▶ Applying %s to schema %s", scriptFile, org.DBSchema)
-
-		// Applying migration
-		if _, err := tx.Exec(ctx, fullSQL); err != nil {
-			logger.Log.Errorf("Error applying migration: %v", err)
-			return err
-		}
-
-		// Logging
 		if err := migration_log_repository.InsertTenantMigrationLog(ctx, tx, &model.TenantMigrationLog{
 			SchemaName: org.DBSchema,
 			ScriptName: scriptFile,
 		}); err != nil {
-			logger.Log.Errorf("Error logging migration: %v", err)
-			return err
+			return fmt.Errorf("failed logging migration %s: %w", scriptFile, err)
 		}
 	}
 
